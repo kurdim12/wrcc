@@ -61,7 +61,7 @@ export const DoseConfirmModal = ({ showToast }) => {
           <div className="grid grid-cols-2 gap-2 text-sm">
             <Field label="Device" value={dose.device_id} />
             <Field label="Source" value={dose.source} />
-            <Field label="Fused risk" value={dose.trigger_risk != null ? Math.round(dose.trigger_risk) : '—'} />
+            <Field label="Fused risk" value={dose.trigger_risk != null ? Math.round(dose.trigger_risk) : 'Manual request'} />
             <Field label="Pump / volume" value={`${dose.pump_ms} ms · ≈ ${dose.volume_ml_est} ml`} />
           </div>
 

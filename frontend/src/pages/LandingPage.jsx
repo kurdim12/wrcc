@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import DarkModeToggle from '../components/ui/DarkModeToggle.jsx';
 import BugSwarm from '../components/BugSwarm.jsx';
+import { RiskHalo } from '../components/RiskHalo.jsx';
 
 const ASSETS = {
   logo:    '/logo.png',
@@ -94,20 +95,16 @@ const NodeMonitor = () => (
       <span className="hud-label text-forest-400 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-forest-400 animate-heartbeat" /> streaming</span>
     </div>
 
-    {/* risk halo + readout */}
-    <div className="flex items-center gap-5 mb-5">
-      <svg viewBox="0 0 120 120" className="h-28 w-28 shrink-0 -rotate-90">
-        <circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" className="text-muted/15" strokeWidth="9" />
-        <circle cx="60" cy="60" r="52" fill="none" stroke="#C2A14D" strokeWidth="9" strokeLinecap="round"
-                strokeDasharray="326.7" strokeDashoffset="120" />
-      </svg>
-      <div className="-ml-[88px] w-28 text-center">
-        <div className="telemetry-num text-4xl font-bold text-gold">63</div>
-        <div className="hud-label">risk · watch</div>
-      </div>
-      <div className="ml-auto space-y-2 text-right">
-        <div><div className="hud-label">P(activity)</div><div className="telemetry-num text-xl font-bold text-charcoal dark:text-bone">0.61</div></div>
+    {/* risk halo + readout — reuses the dashboard's RiskHalo so it aligns cleanly */}
+    <div className="flex items-center justify-between gap-4 mb-5">
+      <RiskHalo risk={52} pActivity={null} size={120} caveat={false} />
+      <div className="space-y-2 text-right">
+        <div>
+          <div className="hud-label">P(activity)</div>
+          <div className="telemetry-num text-2xl font-bold text-charcoal dark:text-bone">0.52</div>
+        </div>
         <div className="hud-label text-caution">proxy model</div>
+        <div className="hud-label text-muted/80">illustrative</div>
       </div>
     </div>
 

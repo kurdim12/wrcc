@@ -48,6 +48,14 @@ export const PalmDetailDrawer = ({ palm, onClose, showToast }) => {
     return () => { alive = false; off(); };
   }, [palm?.id, palm?.device_id]);
 
+  // Close on Escape (matches the backdrop click).
+  useEffect(() => {
+    if (!palm) return;
+    const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [palm, onClose]);
+
   if (!palm) return null;
 
   const cls = latest?.classification ?? palm.classification ?? 'low';

@@ -1,7 +1,9 @@
 // Socket.IO singleton + typed broadcast helpers. server.js calls init(io) once.
 import db, { now } from '../db.js';
+import { ROSTER, buildBands16 } from './demoFarm.js';
 
 let _io = null;
+const SPEC_PREFILL = 480;   // frames sent on subscribe so the demo spectrogram starts full
 
 export const init = (io) => {
   _io = io;
@@ -21,6 +23,16 @@ export const init = (io) => {
       `).run(deviceId, until);
       socket.join(`device:${deviceId}`);
       socket.emit('subscribed:spectrogram', { device_id: deviceId, until });
+
+      // Demo prefill: emit one burst of synthetic frames spread across "history"
+      // so the spectrogram canvas starts populated (then the live stream appends).
+      // Demo-only and clearly synthetic; never claims a validated signature.
+      const dev = ROSTER.find((d) => d.id === deviceId);
+      if (dev && !dev.offline) {
+        const frames = [];
+        for (let i = 0; i < SPEC_PREFILL; i++) frames.push(buildBands16(dev.intensity, (i - SPEC_PREFILL) * 0.18));
+        socket.emit('live:bands:burst', { device_id: deviceId, frames });
+      }
     });
 
     socket.on('unsubscribe:spectrogram', (deviceId) => {
@@ -37,6 +49,7 @@ const emit = (event, payload) => {
 
 export const emitReading = (reading) => emit('live:reading', reading);
 export const emitAlert   = (alert)   => emit('live:alert', alert);
+export const emitBands   = (frame)   => emit('live:bands', frame);   // high-rate spectrogram frame
 export const emitDeviceStatus = (device) => emit('device:status', device);
 export const emitSystemMode  = (status) => emit('system:mode', status);
 
@@ -57,3 +70,9 @@ export const isStreaming = (deviceId) => {
   }
   return true;
 };
+
+// All device IDs a dashboard is currently streaming (one query, for the demo
+// spectrogram driver). Expired rows are simply ignored.
+export const streamingDevices = () =>
+  db.prepare('SELECT device_id FROM stream_subscriptions WHERE stream_until >= ?')
+    .all(now()).map((r) => r.device_id);

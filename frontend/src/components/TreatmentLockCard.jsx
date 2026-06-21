@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import { ShieldCheck, ShieldOff, Droplets, Lock, Clock } from 'lucide-react';
 
-// TreatmentLockCard — per-device dosing control. Treats dosing as a locked,
-// human-gated, capped operation. Surfaces WHY an action is blocked.
+// TreatmentLockCard — per-device actuator control. Dosing is a locked,
+// human-gated, capped operation; the card stays compact and surfaces WHY an
+// action is blocked. Armed cards visually lift so the operator sees live risk.
 const PUMP_FLOW_ML_PER_S = 1.5;   // mirrors backend doseEngine estimate
 const now = () => Math.floor(Date.now() / 1000);
 
-const Field = ({ label, value, alarm }) => (
-  <div className="instrument-inset px-3 py-2">
+const Mini = ({ label, value, alarm }) => (
+  <div className="text-center">
     <div className="hud-label">{label}</div>
-    <div className={`telemetry-num text-sm font-semibold ${alarm ? 'text-crit' : 'text-charcoal dark:text-bone'}`}>{value}</div>
+    <div className={`telemetry-num text-xs font-bold ${alarm ? 'text-crit' : 'text-charcoal dark:text-bone'}`}>{value}</div>
   </div>
 );
 
@@ -26,62 +27,61 @@ export const TreatmentLockCard = ({ device, dosesToday = 0, demo = true, busy = 
   useEffect(() => { const i = setInterval(() => tick((n) => n + 1), 1000); return () => clearInterval(i); }, []);
   const cdRemaining = d.last_dose_ts ? Math.max(0, cooldownS - (now() - d.last_dose_ts)) : 0;
   const capReached = dosesToday >= maxDay;
+  const cdLabel = cdRemaining > 0 ? `${Math.floor(cdRemaining / 60)}:${String(cdRemaining % 60).padStart(2, '0')}` : `${Math.round(cooldownS / 60)}m`;
 
   const blockReason = !armed ? 'Arm required'
-    : cdRemaining > 0 ? `Cooldown ${Math.floor(cdRemaining / 60)}:${String(cdRemaining % 60).padStart(2, '0')}`
+    : cdRemaining > 0 ? `Cooldown ${cdLabel}`
     : capReached ? 'Daily cap reached'
     : null;
   const canRequest = !busy && !blockReason;
 
   return (
-    <div className="instrument p-4 flex flex-col gap-3">
+    <div className={`instrument p-3.5 flex flex-col gap-2.5 transition-colors ${armed ? 'border-forest-400/40' : ''}`}>
       <div className="flex items-center justify-between">
-        <div>
-          <div className="font-bold text-charcoal dark:text-bone">{d.id || '—'}</div>
-          <div className="hud-label">{d.variety || 'unassigned'}</div>
+        <div className="min-w-0">
+          <div className="font-bold text-charcoal dark:text-bone telemetry-num truncate">{d.id || '—'}</div>
+          <div className="hud-label truncate">{d.variety || 'unassigned'}</div>
         </div>
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${
+        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border shrink-0 ${
           armed ? 'bg-forest-400/15 text-forest-400 border-forest-400/30'
                 : 'bg-muted/15 text-muted border-muted/25'}`}>
-          {armed ? <ShieldCheck size={13} /> : <ShieldOff size={13} />}
-          {armed ? 'ARMED' : 'DISARMED'}
+          {armed ? <ShieldCheck size={12} /> : <ShieldOff size={12} />}
+          {armed ? 'armed' : 'disarmed'}
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <Field label="Doses today" value={`${dosesToday} / ${maxDay}`} alarm={capReached} />
-        <Field label="Cooldown" value={cdRemaining > 0 ? `${Math.floor(cdRemaining / 60)}:${String(cdRemaining % 60).padStart(2, '0')}` : `${Math.round(cooldownS / 60)} min`} alarm={cdRemaining > 0} />
-        <Field label="Pump" value={`${pumpMs} ms`} />
-        <Field label="Est. volume" value={`≈ ${volMl} ml`} />
+      {/* compact caps strip — one row, not four tiles */}
+      <div className="instrument-inset px-2 py-2 grid grid-cols-4 gap-1.5">
+        <Mini label="today" value={`${dosesToday}/${maxDay}`} alarm={capReached} />
+        <Mini label="cooldown" value={cdLabel} alarm={cdRemaining > 0} />
+        <Mini label="pump" value={`${pumpMs}ms`} />
+        <Mini label="≈ vol" value={`${volMl}ml`} />
       </div>
 
-      {demo && (
-        <div className="flex items-center gap-2 text-[11px] text-gold instrument-inset px-3 py-2">
-          <Droplets size={13} /> WRCC demo: clear water only.
-        </div>
-      )}
-
-      <div className="flex gap-2 pt-1">
+      <div className="flex gap-2">
         <button
           onClick={() => onArm?.(!armed)} disabled={busy}
-          className={`focus-ring flex-1 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors ${
+          className={`focus-ring flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors ${
             armed ? 'bg-muted/15 text-charcoal dark:text-bone hover:bg-muted/25'
                   : 'bg-forest text-bone hover:bg-forest-600'}`}>
-          {armed ? <><ShieldOff size={16} /> Disarm</> : <><ShieldCheck size={16} /> Arm</>}
+          {armed ? <><ShieldOff size={14} /> Disarm</> : <><ShieldCheck size={14} /> Arm</>}
         </button>
         <button
           onClick={() => onRequestDose?.()} disabled={!canRequest}
           title={blockReason || 'Request a dose (still needs confirmation)'}
-          className="focus-ring flex-1 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 bg-crit text-bone hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition">
-          {blockReason ? <Lock size={15} /> : <Droplets size={15} />}
+          className="focus-ring flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 bg-crit text-bone hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          {blockReason ? <Lock size={13} /> : <Droplets size={13} />}
           {blockReason || 'Request dose'}
         </button>
       </div>
-      {blockReason && (
-        <div className="flex items-center gap-1.5 text-[10px] text-muted">
-          <Clock size={11} /> {blockReason === 'Arm required' ? 'Arm the node to enable a dose request.' : `Treatment gate closed — ${blockReason.toLowerCase()}.`}
-        </div>
-      )}
+
+      <div className="flex items-center gap-1.5 text-[10px] text-muted min-h-[14px]">
+        {blockReason
+          ? <><Clock size={11} /> {blockReason === 'Arm required' ? 'Arm the node to enable a dose request.' : `Gate closed — ${blockReason.toLowerCase()}.`}</>
+          : demo
+            ? <><Droplets size={11} className="text-gold" /> <span className="text-gold">Armed · clear water only · confirm to release.</span></>
+            : <><ShieldCheck size={11} className="text-forest-400" /> Armed · confirm to release.</>}
+      </div>
     </div>
   );
 };

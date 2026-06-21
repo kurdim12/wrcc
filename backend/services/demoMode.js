@@ -13,13 +13,15 @@
 import { get, now, run } from '../db.js';
 import { ingest } from './ingest.js';
 import * as socket from './socket.js';
-import { ROSTER, buildPayload } from './demoFarm.js';
+import { ROSTER, buildPayload, buildBands16 } from './demoFarm.js';
 
 const REAL_TIMEOUT_S = 60;          // how long without a real reading before demo kicks in
 const DRIVE_TICK_MS  = 600;         // post one roster device per tick (round-robin)
+const STREAM_TICK_MS = 220;         // high-rate spectrogram frames for SUBSCRIBED devices
 const MONITOR_INTERVAL_MS = 5000;
 
 let drive_timer = null;
+let stream_timer = null;
 let monitor_timer = null;
 let mode = 'unknown';
 let rr_index = 0;
@@ -101,10 +103,33 @@ const driveTick = () => {
   void tickDevice(device);
 };
 
+// High-rate spectrogram driver: for every device a dashboard is currently
+// streaming (Tree Stethoscope subscription), emit a lightweight band frame on a
+// fast timer so the spectrogram scrolls within ~1s — independent of the slow
+// round-robin reading cadence. Isolated event (`live:bands`) so it never touches
+// the ingest path or other consumers. Cheap when nobody is subscribed.
+const streamTick = () => {
+  let subs;
+  try { subs = socket.streamingDevices(); } catch { return; }
+  if (!subs || subs.length === 0) return;
+  for (const id of subs) {
+    const device = ROSTER.find((d) => d.id === id);
+    if (!device || device.offline) continue;
+    const level = (events.get(id) || 0) > 0 ? 0.92 : device.intensity;
+    socket.emitBands({
+      device_id: id,
+      bands16: buildBands16(level),
+      ac_rms: Math.round(-52 + 26 * level),   // approximate loudness so the VU moves
+      ts: now(),
+    });
+  }
+};
+
 const startDriver = () => {
   if (drive_timer) return;
   console.log(`[demoMode] starting demo farm driver (${ROSTER.length} nodes, round-robin)`);
   drive_timer = setInterval(driveTick, DRIVE_TICK_MS);
+  stream_timer = setInterval(streamTick, STREAM_TICK_MS);
 };
 
 const stopDriver = () => {
@@ -112,6 +137,7 @@ const stopDriver = () => {
   console.log('[demoMode] stopping driver (real device is reporting)');
   clearInterval(drive_timer);
   drive_timer = null;
+  if (stream_timer) { clearInterval(stream_timer); stream_timer = null; }
 };
 
 // Detects mode based on whether any non-demo device reported recently

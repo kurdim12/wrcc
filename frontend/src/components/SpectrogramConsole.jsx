@@ -9,7 +9,7 @@ import { ModelCaveatBadge } from './ModelCaveatBadge.jsx';
 // device picker, scrolling spectrogram (time × frequency × energy), feeding-band
 // guide (literature only — model owns the call), VU meter, 16-band bars,
 // P(activity). Honest labels throughout; no "RPW signature detected".
-const HISTORY_KEEP = 120, SPEC_W = 800, SPEC_H = 256, NUM_BANDS = 16, BAND_HZ = 500;
+const HISTORY_KEEP = 120, SPEC_W = 480, SPEC_H = 256, NUM_BANDS = 16, BAND_HZ = 500;
 const FEED_LO = 1, FEED_HI = 8;   // ~0.5–4 kHz literature guide
 
 const dbToFraction = (db) => (db == null ? 0 : Math.max(0, Math.min(1, (db + 80) / 80)));
@@ -141,7 +141,22 @@ export const SpectrogramConsole = ({ deviceId: controlled, onDeviceChange }) => 
       streakRef.current = sa >= 60 ? Math.min(streakRef.current + 1, 6) : Math.max(streakRef.current - 1, 0);
       setAlert(streakRef.current >= 3);
     });
-    return () => { clearInterval(renew); off(); unsubscribeSpectrogram(deviceId); setStreaming(false); };
+    // High-rate band frames (demo streamer / real device fast-cycle). These only
+    // feed the scrolling canvas + 16-band bars + VU — the model verdict (P, alert
+    // streak) stays sourced from the authoritative live:reading above.
+    const offBands = onEvent('live:bands', (r) => {
+      if (r.device_id !== deviceId || !Array.isArray(r.bands16)) return;
+      queueRef.current.push(r.bands16);
+      setLatest((l) => ({ ...(l || {}), bands16: r.bands16, ac_rms: r.ac_rms ?? l?.ac_rms }));
+    });
+    // One-time prefill burst (demo) so the canvas starts full instead of black.
+    const offBurst = onEvent('live:bands:burst', (r) => {
+      if (r.device_id !== deviceId || !Array.isArray(r.frames)) return;
+      for (const f of r.frames) if (Array.isArray(f)) queueRef.current.push(f);
+      const last = r.frames[r.frames.length - 1];
+      if (Array.isArray(last)) setLatest((l) => ({ ...(l || {}), bands16: last }));
+    });
+    return () => { clearInterval(renew); off(); offBands(); offBurst(); unsubscribeSpectrogram(deviceId); setStreaming(false); };
   }, [deviceId]);
 
   const pAct = latest?.p_activity;

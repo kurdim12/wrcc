@@ -30,6 +30,7 @@ export const Palms = ({ palms = [], onSelectPalm }) => {
   }, []);
 
   const devById = useMemo(() => new Map(devices.map((d) => [d.id, d])), [devices]);
+  const sample = useMemo(() => Object.values(latest).find((r) => r?.p_activity != null) || {}, [latest]);
 
   const filtered = useMemo(() => {
     const s = q.toLowerCase();
@@ -57,6 +58,12 @@ export const Palms = ({ palms = [], onSelectPalm }) => {
         </div>
       </div>
 
+      {/* single model caveat for the whole roster (not repeated per row) */}
+      <div className="flex items-center gap-2 px-1">
+        <ModelCaveatBadge {...(sample.p_activity != null ? { modelVersion: sample.model_version, modelSource: sample.model_source, calibrated: sample.calibrated } : {})} size="xs" showInfo={false} />
+        <span className="hud-label normal-case tracking-normal text-muted">P(activity) is a proxy/heuristic activity estimate — not validated accuracy.</span>
+      </div>
+
       {/* column header (desktop) */}
       <div className="hidden lg:grid grid-cols-[1.4fr_0.8fr_0.7fr_1fr_0.7fr_0.6fr_0.7fr_0.7fr] gap-3 px-4 hud-label">
         <span>Palm</span><span>Status</span><span>Risk</span><span>P(activity)</span><span>Pulse</span><span>Battery</span><span>Dose lock</span><span>Last seen</span>
@@ -81,7 +88,6 @@ export const Palms = ({ palms = [], onSelectPalm }) => {
               <div className={`telemetry-num font-bold text-lg ${riskColor(risk)}`}>{Math.round(risk)}</div>
               <div className="flex items-center gap-1.5">
                 <span className="telemetry-num text-sm text-charcoal dark:text-bone">{r.p_activity != null ? r.p_activity.toFixed(2) : '—'}</span>
-                {r.p_activity != null && <ModelCaveatBadge modelVersion={r.model_version} modelSource={r.model_source} calibrated={r.calibrated} size="xs" showInfo={false} />}
               </div>
               <div className="flex items-center gap-1.5">
                 <span className={`w-1.5 h-1.5 rounded-full ${fresh ? 'bg-forest-400 animate-heartbeat' : 'bg-muted/50'}`} />

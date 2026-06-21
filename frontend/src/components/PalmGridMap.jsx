@@ -1,309 +1,154 @@
-// 2D / 3D / Satellite map view. Adapted from code.txt:734-1067 to consume real
-// `palms` and `devices` props (plus their joined classification).
-//
-// Map mode:
-//   - Cursor-anchored scroll-zoom (zooms toward where the mouse is)
-//   - Pan clamped so the satellite image always fills the viewport
-//   - Markers projected from real lat/lng so they sit on top of the palms
-//     visible in /public/palmfarm.jpg.
-import { useState, useRef, useMemo, useEffect } from 'react';
-import { MapPin, Network as NetworkIcon, Box, Globe, Plus, Minus } from 'lucide-react';
-import Card from './ui/Card.jsx';
+// Living Orchard Command Map — a calm, instrument-style plot of the orchard.
+// Replaces the old noisy satellite/polka-dot view. Palms are laid out on their
+// row/col grid as engineered risk glyphs (halo + core), wired to a gateway, with
+// a legend and low-battery/offline hints. SVG so it scales crisply to any panel.
+import { useMemo } from 'react';
+import { Radio } from 'lucide-react';
+import { useDevices } from '../hooks/useDevices.js';
 
-// Calibrated for /public/palmfarm.jpg so the seed_palms.py grid (centered on
-// 31.917632 / 35.589378) lands in the middle of the image (around 35-65%).
-const MAP_BOUNDS = {
-  minLat: 31.916057, maxLat: 31.919057,
-  minLng: 35.587303, maxLng: 35.591303,
+const VB_W = 320, VB_H = 200;
+const PAD_X = 30, PAD_TOP = 26, PAD_BOT = 46;   // bottom room for the gateway
+
+const TONES = {
+  high:    '#C94A3A',
+  medium:  '#C2A14D',
+  low:     '#19A66A',
+  offline: '#8C9B91',
+};
+const LEGEND = [
+  ['low', 'healthy'], ['medium', 'watch'], ['high', 'critical'], ['offline', 'offline / stale'],
+];
+
+const toneKey = (p) => {
+  if (p.device_status && p.device_status !== 'online') return 'offline';
+  return p.classification === 'high' ? 'high' : p.classification === 'medium' ? 'medium' : 'low';
 };
 
-const project = (lat, lng) => ({
-  x: ((lng - MAP_BOUNDS.minLng) / (MAP_BOUNDS.maxLng - MAP_BOUNDS.minLng)) * 100,
-  y: ((MAP_BOUNDS.maxLat - lat) / (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat)) * 100,
-});
+export const PalmGridMap = ({ palms = [], onSelectPalm, selectedPalm, height = 'h-[360px]' }) => {
+  const { devices } = useDevices();
+  const devById = useMemo(() => Object.fromEntries(devices.map((d) => [d.id, d])), [devices]);
 
-const statusColor = (cls) => {
-  if (cls === 'high')   return 'bg-red-500    ring-red-500/30    animate-pulse';
-  if (cls === 'medium') return 'bg-orange-500 ring-orange-500/30';
-  return 'bg-emerald-500';
-};
-
-const MIN_SCALE = 1;
-const MAX_SCALE = 6;
-
-// Clamps pan so the scaled image fills the viewport exactly (no white edges).
-const clampPan = (x, y, scale, viewW, viewH) => {
-  const minX = viewW * (1 - scale);
-  const minY = viewH * (1 - scale);
-  return {
-    x: Math.min(0, Math.max(minX, x)),
-    y: Math.min(0, Math.max(minY, y)),
-  };
-};
-
-const DEFAULT_MAP_SCALE = 1.5;
-
-export const PalmGridMap = ({ palms = [], onSelectPalm, selectedPalm, height = 'h-[550px]' }) => {
-  const [viewMode, setViewMode] = useState('map');                   // satellite by default
-  const [transform, setTransform] = useState({ x: 0, y: 0, scale: DEFAULT_MAP_SCALE });
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const viewportRef = useRef(null);
-
-  const items = useMemo(() => palms.map(p => ({
-    ...p,
-    classification: p.classification ?? 'low',
-    proj: p.lat != null && p.lng != null ? project(p.lat, p.lng) : { x: 50, y: 50 },
-  })), [palms]);
-
-  // Cursor-anchored wheel zoom. Native listener with passive:false so
-  // preventDefault() actually stops the page from scrolling.
-  useEffect(() => {
-    if (viewMode !== 'map') return;
-    const el = viewportRef.current;
-    if (!el) return;
-
-    const onWheel = (e) => {
-      e.preventDefault();
-      const rect = el.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-      const factor = Math.exp(-e.deltaY * 0.0015);     // smooth exponential
-
-      setTransform(prev => {
-        const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, prev.scale * factor));
-        if (newScale === prev.scale) return prev;
-        // Keep the world-point under the cursor in the same screen position.
-        const ratio = newScale / prev.scale;
-        const nx = mx - ratio * (mx - prev.x);
-        const ny = my - ratio * (my - prev.y);
-        const clamped = clampPan(nx, ny, newScale, rect.width, rect.height);
-        return { scale: newScale, x: clamped.x, y: clamped.y };
-      });
-    };
-
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
-  }, [viewMode]);
-
-  // When entering map mode, center the satellite at the default 1.5x zoom.
-  // When leaving map mode, reset transform so 2D/3D views render at scale 1.
-  useEffect(() => {
-    if (viewMode === 'map') {
-      const apply = () => {
-        const rect = viewportRef.current?.getBoundingClientRect();
-        if (!rect) return;
-        const scale = DEFAULT_MAP_SCALE;
-        setTransform({
-          scale,
-          x: rect.width  * (1 - scale) / 2,
-          y: rect.height * (1 - scale) / 2,
-        });
+  const nodes = useMemo(() => {
+    const withIdx = palms.map((p, i) => ({
+      ...p,
+      _r: p.row_idx ?? Math.floor(i / 4),
+      _c: p.col_idx ?? i % 4,
+    }));
+    const maxR = Math.max(1, ...withIdx.map((p) => p._r));
+    const maxC = Math.max(1, ...withIdx.map((p) => p._c));
+    return withIdx.map((p) => {
+      const dev = devById[p.device_id] || {};
+      return {
+        ...p,
+        tone: toneKey(p),
+        battery: dev.battery_pct,
+        x: PAD_X + (p._c / maxC) * (VB_W - 2 * PAD_X),
+        y: PAD_TOP + (p._r / maxR) * (VB_H - PAD_TOP - PAD_BOT),
       };
-      // First run can fire before the viewport has measurable dimensions, so retry on next frame.
-      if (viewportRef.current?.clientWidth) apply();
-      else requestAnimationFrame(apply);
-    } else {
-      setTransform({ x: 0, y: 0, scale: 1 });
-    }
-  }, [viewMode]);
-
-  const handleMouseDown = (e) => {
-    if (viewMode !== 'map' || transform.scale <= MIN_SCALE) return;
-    setIsDragging(true);
-    dragStartRef.current = { x: e.clientX - transform.x, y: e.clientY - transform.y };
-  };
-  const handleMouseMove = (e) => {
-    if (!isDragging || viewMode !== 'map') return;
-    const rect = viewportRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const newX = e.clientX - dragStartRef.current.x;
-    const newY = e.clientY - dragStartRef.current.y;
-    const clamped = clampPan(newX, newY, transform.scale, rect.width, rect.height);
-    setTransform(t => ({ ...t, x: clamped.x, y: clamped.y }));
-  };
-  const handleMouseUp = () => setIsDragging(false);
-
-  const zoomBy = (factor) => {
-    const rect = viewportRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const cx = rect.width / 2, cy = rect.height / 2;
-    setTransform(prev => {
-      const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, prev.scale * factor));
-      if (newScale === prev.scale) return prev;
-      const ratio = newScale / prev.scale;
-      const nx = cx - ratio * (cx - prev.x);
-      const ny = cy - ratio * (cy - prev.y);
-      const clamped = clampPan(nx, ny, newScale, rect.width, rect.height);
-      return { scale: newScale, x: clamped.x, y: clamped.y };
     });
-  };
+  }, [palms, devById]);
+
+  const gw = { x: VB_W / 2, y: VB_H - 18 };
+  const counts = nodes.reduce((m, n) => ((m[n.tone] = (m[n.tone] || 0) + 1), m), {});
 
   return (
-    <Card className={`p-0 ${height} flex flex-col overflow-hidden relative border border-gray-100 dark:border-gray-800 shadow-lg`}>
-      {/* Top control bar */}
-      <div className="absolute top-5 left-5 right-5 z-30 flex justify-between items-start pointer-events-none">
-        <div className="bg-white/90 dark:bg-[#0f1422]/90 backdrop-blur-xl p-3 md:p-4 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 pointer-events-auto flex items-center gap-3 md:gap-4">
-          <div className="bg-emerald-100 dark:bg-emerald-500/15 p-2 rounded-lg text-emerald-600 dark:text-emerald-400">
-            <MapPin size={18} />
-          </div>
-          <div>
-            <h3 className="font-bold text-gray-900 dark:text-white text-xs md:text-sm">Farm Digital Twin</h3>
-            <div className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-mono mt-0.5">
-              {viewMode === 'map' ? 'SATELLITE FEED' : viewMode === '3d' ? 'ISOMETRIC VIEW' : 'GRID TOPOLOGY'}
-              {' · ' + items.length + ' palms'}
-              {viewMode === 'map' && transform.scale > 1.01 ? ' · ' + transform.scale.toFixed(1) + 'x' : ''}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-2 pointer-events-auto bg-white/90 dark:bg-[#0f1422]/90 backdrop-blur-xl p-1.5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-          {[
-            { id: '2d',  Icon: NetworkIcon, title: '2D grid' },
-            { id: '3d',  Icon: Box,         title: 'Isometric' },
-            { id: 'map', Icon: Globe,       title: 'Satellite' },
-          ].map(({ id, Icon, title }) => (
-            <button key={id} onClick={() => setViewMode(id)} title={title}
-              className={`p-2.5 rounded-lg transition-all ${
-                viewMode === id
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-              }`}>
-              <Icon size={18} />
-            </button>
-          ))}
-        </div>
+    <div className={`instrument relative overflow-hidden ${height}`}>
+      {/* status chip */}
+      <div className="absolute top-3 left-3 z-10 instrument-inset px-3 py-1.5 flex items-center gap-2">
+        <Radio size={12} className="text-forest-400" />
+        <span className="hud-label text-muted">{nodes.length} palms · 1 gateway{counts.high ? ` · ${counts.high} critical` : ''}</span>
       </div>
 
-      {/* Zoom controls (map mode) */}
-      {viewMode === 'map' && (
-        <div className="absolute bottom-5 right-5 z-30 flex flex-col gap-2 pointer-events-auto">
-          <button onClick={() => zoomBy(1.4)} title="Zoom in"
-            className="p-2 bg-white dark:bg-[#0f1422] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-[#161b2b] text-gray-700 dark:text-gray-200">
-            <Plus size={18} />
-          </button>
-          <button onClick={() => zoomBy(1 / 1.4)} title="Zoom out"
-            className="p-2 bg-white dark:bg-[#0f1422] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-[#161b2b] text-gray-700 dark:text-gray-200">
-            <Minus size={18} />
-          </button>
-          <button onClick={() => {
-              const rect = viewportRef.current?.getBoundingClientRect();
-              const scale = DEFAULT_MAP_SCALE;
-              setTransform({
-                scale,
-                x: rect ? rect.width  * (1 - scale) / 2 : 0,
-                y: rect ? rect.height * (1 - scale) / 2 : 0,
-              });
-            }}
-            title="Reset to default view"
-            className="p-2 bg-white dark:bg-[#0f1422] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-[#161b2b] text-[10px] font-bold text-gray-600 dark:text-gray-400">
-            ⌂
-          </button>
+      {/* legend */}
+      <div className="absolute top-3 right-3 z-10 instrument-inset px-3 py-2 space-y-1">
+        {LEGEND.map(([k, lbl]) => (
+          <div key={k} className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: TONES[k] }} />
+            <span className="hud-label">{lbl}</span>
+            <span className="telemetry-num text-[10px] text-muted ml-auto">{counts[k] || 0}</span>
+          </div>
+        ))}
+      </div>
+
+      <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <pattern id="orchard-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M20 0H0V20" fill="none" stroke="#8C9B91" strokeOpacity="0.10" strokeWidth="0.5" />
+          </pattern>
+          <radialGradient id="gw-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#19A66A" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#19A66A" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+
+        {/* subtle orchard-row grid */}
+        <rect x="0" y="0" width={VB_W} height={VB_H} fill="url(#orchard-grid)" />
+
+        {/* signal threads node → gateway */}
+        {nodes.map((n) => (
+          <line key={`l-${n.id}`} x1={n.x} y1={n.y} x2={gw.x} y2={gw.y}
+                stroke={n.tone === 'offline' ? '#8C9B91' : TONES[n.tone]}
+                strokeOpacity={n.tone === 'offline' ? 0.06 : 0.14} strokeWidth="0.6"
+                strokeDasharray={n.tone === 'offline' ? '2 3' : undefined} />
+        ))}
+
+        {/* gateway / base station */}
+        <circle cx={gw.x} cy={gw.y} r="22" fill="url(#gw-glow)" />
+        <rect x={gw.x - 6} y={gw.y - 6} width="12" height="12" rx="2" transform={`rotate(45 ${gw.x} ${gw.y})`}
+              fill="#0A5C44" stroke="#19A66A" strokeWidth="1.2" />
+        <circle cx={gw.x} cy={gw.y} r="2.4" fill="#19A66A" />
+        <text x={gw.x} y={gw.y + 16} textAnchor="middle" fill="#8C9B91"
+              style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 6, letterSpacing: '0.12em' }}>GATEWAY</text>
+
+        {/* palm nodes */}
+        {nodes.map((n) => {
+          const c = TONES[n.tone];
+          const sel = selectedPalm?.id === n.id;
+          const crit = n.tone === 'high';
+          const lowBat = n.battery != null && n.battery < 25 && n.tone !== 'offline';
+          return (
+            <g key={n.id} onClick={() => onSelectPalm?.(n)} style={{ cursor: 'pointer' }}>
+              {/* generous invisible hit area */}
+              <circle cx={n.x} cy={n.y} r="13" fill="transparent" />
+              {/* halo */}
+              <circle cx={n.x} cy={n.y} r={sel ? 11 : 9} fill={c} fillOpacity={crit ? 0.16 : 0.10} />
+              <circle cx={n.x} cy={n.y} r={sel ? 11 : 9} fill="none" stroke={c}
+                      strokeOpacity={n.tone === 'offline' ? 0.5 : 0.85} strokeWidth={sel ? 1.6 : 1.1} />
+              {crit && (
+                <circle cx={n.x} cy={n.y} r="9" fill="none" stroke={c} strokeWidth="1">
+                  <animate attributeName="r" values="9;15;9" dur="2s" repeatCount="indefinite" />
+                  <animate attributeName="stroke-opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite" />
+                </circle>
+              )}
+              {/* core */}
+              <circle cx={n.x} cy={n.y} r={sel ? 4.2 : 3.4} fill={c}
+                      stroke="#FFFDF6" strokeOpacity="0.5" strokeWidth="0.6" />
+              {/* selection ring */}
+              {sel && (
+                <circle cx={n.x} cy={n.y} r="15" fill="none" stroke={c} strokeWidth="1.2" strokeDasharray="3 3">
+                  <animateTransform attributeName="transform" type="rotate"
+                    from={`0 ${n.x} ${n.y}`} to={`360 ${n.x} ${n.y}`} dur="8s" repeatCount="indefinite" />
+                </circle>
+              )}
+              {/* low-battery tick */}
+              {lowBat && <circle cx={n.x + 7} cy={n.y - 7} r="1.8" fill="#D89B2B" stroke="#FFFDF6" strokeWidth="0.4" />}
+              {/* label */}
+              <text x={n.x} y={n.y - (sel ? 15 : 12)} textAnchor="middle"
+                    fill={sel ? c : '#8C9B91'} fillOpacity={sel ? 1 : 0.8}
+                    style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: sel ? 6.5 : 5.5, fontWeight: sel ? 700 : 400 }}>
+                {n.id?.replace('P-', '')}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+
+      {nodes.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="hud-label flex items-center gap-2"><Radio size={14} /> awaiting orchard telemetry…</div>
         </div>
       )}
-
-      {/* Viewport */}
-      <div
-        ref={viewportRef}
-        className={`flex-1 relative overflow-hidden transition-colors duration-500 ${
-          viewMode === 'map' ? 'bg-[#0a0d14]' : 'bg-gray-50 dark:bg-[#0a0e1a]'
-        }`}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
-        {/* Satellite view */}
-        {viewMode === 'map' && (
-          <div
-            className={`absolute top-0 left-0 w-full h-full origin-top-left ${
-              isDragging ? 'cursor-grabbing' : transform.scale > 1.01 ? 'cursor-grab' : 'cursor-default'
-            }`}
-            style={{
-              transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
-              transition: isDragging ? 'none' : 'transform 250ms cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-          >
-            <div className="absolute inset-0 w-full h-full" style={{
-              backgroundImage: `url('/palmfarm.jpg')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              filter: 'saturate(1.05) contrast(1.05)',
-            }} />
-            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
-              backgroundImage: 'linear-gradient(rgba(255,255,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.3) 1px, transparent 1px)',
-              backgroundSize: '100px 100px',
-            }} />
-
-            {items.map(p => (
-              <div
-                key={p.id}
-                className="absolute -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer group"
-                style={{ left: `${p.proj.x}%`, top: `${p.proj.y}%` }}
-                onClick={(e) => { e.stopPropagation(); onSelectPalm?.(p); }}
-              >
-                {selectedPalm?.id === p.id && (
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 border-2 border-blue-400 rounded-full animate-ping opacity-75" />
-                )}
-                {/* Counter-scale so dots stay readable when the map is zoomed in. */}
-                <div
-                  className="relative"
-                  style={{ transform: `scale(${Math.max(1 / transform.scale, 0.45)})` }}
-                >
-                  <div className={`w-3.5 h-3.5 rounded-full border-2 border-white shadow-lg ring-2 ring-black/40 ${statusColor(p.classification)} ${selectedPalm?.id === p.id ? 'ring-blue-500 ring-4 scale-150 bg-blue-500' : 'group-hover:scale-150'} transition-transform`} />
-                </div>
-              </div>
-            ))}
-
-            {items.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="bg-black/60 backdrop-blur text-white text-sm px-4 py-2 rounded-xl">
-                  No palms — run <code className="font-mono text-xs">python tools/seed_palms.py</code>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* 2D / 3D grid view */}
-        {(viewMode === '2d' || viewMode === '3d') && (
-          <div className="w-full h-full p-4 md:p-12 relative flex items-center justify-center perspective-container">
-            <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.06] pointer-events-none" style={{
-              backgroundImage: 'radial-gradient(currentColor 1px, transparent 1px)',
-              backgroundSize: '20px 20px',
-            }} />
-
-            {items.length === 0 ? (
-              <div className="text-center text-gray-400 dark:text-gray-500 max-w-sm">
-                <div className="text-sm font-bold mb-1">No palms registered yet</div>
-                <div className="text-xs">
-                  Run <code className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">python tools/seed_palms.py</code> to seed the demo grid.
-                </div>
-              </div>
-            ) : (
-              <div className={`relative w-full max-w-3xl aspect-square transition-all duration-700 transform-style-3d ${viewMode === '3d' ? 'rotate-x-60 scale-75' : ''}`}>
-                <div className="absolute inset-0 grid grid-cols-10 gap-2 z-10">
-                  {items.slice(0, 100).map((palm) => (
-                    <button
-                      key={palm.id}
-                      onClick={() => onSelectPalm?.(palm)}
-                      title={`${palm.id} · ${palm.classification}`}
-                      className={`
-                        w-3 h-3 md:w-3.5 md:h-3.5 rounded-full transition-all duration-300 transform shadow-sm
-                        ${palm.classification === 'low'    ? 'bg-emerald-500 hover:scale-150' : ''}
-                        ${palm.classification === 'medium' ? 'bg-orange-500 ring-4 ring-orange-500/20 hover:scale-150' : ''}
-                        ${palm.classification === 'high'   ? 'bg-red-500    ring-4 ring-red-500/30 animate-pulse scale-125' : ''}
-                        ${selectedPalm?.id === palm.id     ? 'ring-4 ring-blue-500 ring-offset-2 dark:ring-offset-[#0a0e1a] scale-150 z-30 bg-blue-500' : ''}
-                      `}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </Card>
+    </div>
   );
 };
 

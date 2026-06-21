@@ -65,6 +65,32 @@ export const buildMelPatch = (level) => {
   return raw;
 };
 
+// 16-band (×500 Hz, 0–8 kHz) instantaneous dB spectrum for the Tree Stethoscope.
+// Bands 1..7 (~0.5–4 kHz) are the RPW feeding "literature guide" and lift with
+// `level`; the values drift in time so the spectrogram scrolls with texture and
+// fire occasional feeding "clicks". This is synthetic DEMO data (the UI is
+// labelled DEMO) — it never claims a validated RPW signature.
+export const buildBands16 = (level, tOffset = 0) => {
+  const I = Math.max(0, Math.min(1, level));
+  const t = Date.now() / 1000 + tOffset;   // tOffset spreads a prefill burst over "history"
+  const out = new Array(16);
+  for (let i = 0; i < 16; i++) {
+    // Noise floor: a touch warmer at low frequencies, with slow broadband drift.
+    let db = -74 + (i < 2 ? 5 : 0) + 3 * Math.sin(t * 1.3 + i * 0.7) + gauss(0, 2);
+    if (i >= 1 && i < 8) {                          // feeding band 0.5–4 kHz
+      const center = 1 - Math.abs(i - 4) / 4;       // peak ~2 kHz (band 4)
+      const mod = 0.7 + 0.3 * Math.sin(t * 2.3 + i * 1.1);
+      db += (6 + 56 * I) * center * mod;
+    }
+    out[i] = +db.toFixed(1);
+  }
+  // Sporadic feeding "clicks": a brief energy burst across the feeding band.
+  if (I > 0.2 && Math.random() < 0.3 * I) {
+    for (let i = 2; i < 7; i++) out[i] = Math.min(-6, out[i] + rng(6, 16));
+  }
+  return out;
+};
+
 // Build a full reading payload for a device at a given infestation intensity.
 // `amb` lets the caller share one diurnal ambient across the farm.
 export const buildPayload = (device, intensity, { amb = 28, cycle = 0, withMel = true } = {}) => {
@@ -76,6 +102,7 @@ export const buildPayload = (device, intensity, { amb = 28, cycle = 0, withMel =
 
   const ac = {
     bands,
+    bands16: buildBands16(I),                      // 16×500 Hz spectrum → spectrogram
     cent: lerp(1500, 2800, I) + gauss(0, 200),   // model owns the real spectral call
     flat: Math.max(0.08, lerp(0.78, 0.15, I) + gauss(0, 0.03)),
     rms:  lerp(-52, -26, I) + gauss(0, 2),
