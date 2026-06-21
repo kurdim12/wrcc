@@ -9,6 +9,7 @@ import Network             from './pages/Network.jsx';
 import Reports             from './pages/Reports.jsx';
 import LiveSpectrogram     from './pages/LiveSpectrogram.jsx';
 import Doses               from './pages/Doses.jsx';
+import Intelligence        from './pages/Intelligence.jsx';
 
 import Sidebar             from './components/Sidebar.jsx';
 import Header              from './components/Header.jsx';
@@ -25,6 +26,7 @@ const PAGE_TITLES = {
   overview: 'Mission Overview', palms: 'Palm Roster', alerts: 'Alerts / Incidents',
   doses: 'Treatment Control', network: 'Orchard Nervous System',
   spectrogram: 'Tree Stethoscope', reports: 'Evidence Locker',
+  intelligence: 'Intelligence Layer',
 };
 
 import { useTheme }        from './hooks/useTheme.js';
@@ -155,6 +157,7 @@ export default function App() {
                   {page === 'network'     && <Network palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} />}
                   {page === 'reports'     && <Reports showToast={addToast} />}
                   {page === 'spectrogram' && <LiveSpectrogram />}
+                  {page === 'intelligence' && <Intelligence deviceId={selectedPalm?.device_id} />}
                 </ErrorBoundary>
               </main>
             </div>

@@ -25,6 +25,8 @@ jobs:
         run: python3 tests/test_device_fsm.py
       - name: Server-side dose caps (spawns a fresh backend)
         run: python3 tests/test_server_caps.py
+      - name: Intelligence layer — expert/fusion unit tests
+        run: node --test tests/test_intelligence.mjs
 
   # Dashboard must build (catches import/JSX regressions before the demo).
   frontend-build:
@@ -65,7 +67,7 @@ jobs:
           python -m train.train --manifest data/manifest.csv --epochs 2 --version TOY-DATA-not-real-v0
           python -m export.export_tflite --saved export/saved_model --manifest data/manifest.csv
           test -f export/model_int8.tflite
-      - name: serve auto-loads the trained toy model
+      - name: serve auto-loads the trained toy model + honesty schema present
         working-directory: ml
         run: |
-          python -c "import serve.app as a; assert a._model_loaded, 'toy model failed to load'; assert 'toy' in a._model_version.lower(); print('serve loaded:', a._model_version)"
+          python -c "import serve.app as a; assert a._model_loaded, 'toy model failed to load'; assert 'toy' in a._model_version.lower(); h=a.health(); assert h['model_family']=='acoustic_activity_proxy' and h['validation_status']=='proxy_validated_not_field_validated' and h['claim_guardrail']=='risk_indicator_not_confirmed_rpw_detection' and h['feature_version'], 'honesty/schema fields missing'; print('serve loaded:', a._model_version, '| honesty OK')"

@@ -63,6 +63,24 @@ export const serverCapsPass = (deviceId, pumpMs) => {
   return { ok: true, reason: null };
 };
 
+// Read-only caps snapshot for the UI / doseSafetyEngine. Pure reporting — it
+// never creates, confirms, or sends a dose, so it's safe to call on a GET.
+export const capsSnapshot = (deviceId) => {
+  const p = policy(deviceId);
+  const cdRemaining = p.lastDoseTs ? Math.max(0, p.cooldownS - (now() - p.lastDoseTs)) : 0;
+  return {
+    armed: p.armed,
+    maxDosesDay: p.maxDosesDay,
+    cooldownS: p.cooldownS,
+    cooldownRemainingS: cdRemaining,
+    pumpMs: p.pumpMs,
+    pumpMsCeiling: MAX_PUMP_MS,
+    autoConfirm: p.autoConfirm,
+    dosesToday: dosesToday(deviceId),
+    capsPass: serverCapsPass(deviceId, p.pumpMs),
+  };
+};
+
 const emit = (dose) => { if (dose) socket.emitDose(dose); };
 const fetchDose = (id) => get('SELECT * FROM doses WHERE id = ?', id);
 

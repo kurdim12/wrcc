@@ -127,6 +127,60 @@ flowchart LR
 
 ---
 
+## Intelligence Layer — Multi-Sensor Expert Architecture
+
+Palm Guard is **not a single black-box detector**. The backend runs a small
+**multi-sensor expert architecture** (deterministic "expert" / "signal-model"
+modules — no LLM in the control path) that feeds one server-authoritative
+**fusion engine**. Acoustic activity is the primary signal; vibration validates
+it; environmental sensors add context only; a sensor-health expert protects
+reliability; the fusion engine produces a risk score; and a safety agent keeps
+dosing human-confirmed, hard-capped, nonce-protected and clear-water-only in
+the demo. The dashboard surfaces all of this on the **Intelligence Layer** page.
+
+```mermaid
+flowchart LR
+  S[Sensors<br/>mic · IMU · trunk temp · VOC] --> A[Acoustic Activity Expert<br/>primary signal]
+  S --> V[Vibration Validation Expert<br/>corroboration]
+  S --> E[Environmental Context Expert<br/>context only]
+  S --> H[Sensor Health Expert<br/>reliability gate]
+  A --> F[Risk Fusion Engine<br/>risk 0-100 + confidence]
+  V --> F
+  E --> F
+  H -->|confidence penalty / resample| F
+  F --> SA[Safety Dose Agent<br/>server + device caps]
+  SA --> HC[Human Confirmation<br/>mandatory]
+  HC --> D[Capped Demo Dose<br/>clear water only]
+```
+
+| Expert / Engine | Role | Honesty boundary |
+|---|---|---|
+| Acoustic Activity Expert | **Primary** — scores feeding-like acoustic activity | "acoustic activity" / proxy — never "RPW detected" |
+| Vibration Validation Expert | Confirms or weakens acoustic suspicion | corroboration only |
+| Environmental Context Expert | Trunk-temp + VOC **context** | never claims gas/temp proves infestation |
+| Sensor Health Expert | Flags missing/impossible/stale data | forces *resample* on bad data |
+| Risk Fusion Engine | Weighted fuse → risk + level + recommendation | mirrors the server-authoritative risk score |
+| Safety Dose Agent | Server caps mirror device caps | human-confirmed, nonce, clear-water demo |
+| Explanation Agent | Plain-English, judge-friendly rationale | no overclaiming |
+
+**Endpoints / events:** `GET /api/v1/intelligence[/:deviceId]`; Socket.io
+`risk:fusion` (fused risk + recommendation + explanation) and `agents:update`
+(per-expert breakdown + safety). The existing `live:reading` now also carries an
+additive `intelligence` field (backwards-compatible). Full details, payload
+examples and the capability-vs-roadmap table: [`docs/INTELLIGENCE_LAYER.md`](docs/INTELLIGENCE_LAYER.md).
+
+> Palm Guard is a solar ESP32-S3 node that listens inside the palm with an
+> INMP441 mic, fused with MPU6050 vibration, DS18B20 trunk temperature and a
+> BME680 environmental sensor. The ESP32 runs a 1024-point FFT in firmware to
+> build a 40×32 log-mel fingerprint, posts readings to a Node.js + Socket.io
+> backend, and a React/Vite mission-control dashboard shows the system live.
+> Palm Guard is not a single black-box AI model: acoustic, vibration,
+> environmental, and sensor-health experts feed a server-authoritative fusion
+> engine. Any treatment path remains human-confirmed, hard-capped,
+> nonce-protected, and clear-water only in the demo.
+
+---
+
 ## Repository Structure
 
 ```text

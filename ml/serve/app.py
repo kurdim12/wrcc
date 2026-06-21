@@ -29,8 +29,23 @@ from pydantic import BaseModel, Field
 from features.params import N_MELS, N_FRAMES, PATCH_LEN, FEED_LO, FEED_HI
 
 HEURISTIC_VERSION = "heuristic-baseline-v0"
+FEATURE_VERSION = f"logmel-{N_MELS}x{N_FRAMES}-v1"
+
+# Honesty fields — surfaced on every response so a consumer can never mistake
+# this for a field-validated RPW classifier (§2). Mirrors backend MODEL_HONESTY.
+HONESTY = {
+    "model_family": "acoustic_activity_proxy",
+    "validation_status": "proxy_validated_not_field_validated",
+    "claim_guardrail": "risk_indicator_not_confirmed_rpw_detection",
+}
 
 app = FastAPI(title="Palm Guard ML", version="2.0.0")
+
+
+def _confidence(p: float) -> float:
+    """Decisiveness proxy in [0,1] — how far the score is from the 50/50 line.
+    NOT a calibrated probability (calibrated=false until a model is trained)."""
+    return round(float(np.clip(0.3 + 0.6 * abs(p - 0.5) * 2, 0.0, 1.0)), 2)
 
 
 # ─── Optional trained model ──────────────────────────────────────────────────
@@ -102,9 +117,13 @@ def health():
         "ok": True,
         "service": "palm-guard-ml",
         "model_version": _model_version,
+        "feature_version": FEATURE_VERSION,
         "calibrated": _calibrated,
         "model_loaded": _model_loaded,
         "patch_len": PATCH_LEN,
+        "logmel": {"n_mels": N_MELS, "n_frames": N_FRAMES, "patch_len": PATCH_LEN},
+        "proxy_validation_warning": "acoustic activity model — proxy-validated, NOT field-validated for RPW",
+        **HONESTY,
     }
 
 
@@ -119,12 +138,20 @@ def score(req: ScoreRequest):
     elif mel.size % N_MELS == 0 and mel.size > 0:
         patch = mel.reshape(N_MELS, mel.size // N_MELS)
     else:
-        return {"p_activity": 0.5, "model_version": _model_version,
-                "calibrated": False, "note": "unexpected mel length"}
+        return {"p_activity": 0.5, "confidence": 0.0, "model_version": _model_version,
+                "feature_version": FEATURE_VERSION, "calibrated": False,
+                "note": "unexpected mel length", **HONESTY}
 
     if _model_loaded and patch.shape == (N_MELS, N_FRAMES):
         p = model_score(patch)
     else:
         p = heuristic_score(patch)
 
-    return {"p_activity": p, "model_version": _model_version, "calibrated": _calibrated}
+    return {
+        "p_activity": p,
+        "confidence": _confidence(p),
+        "model_version": _model_version,
+        "feature_version": FEATURE_VERSION,
+        "calibrated": _calibrated,
+        **HONESTY,
+    }

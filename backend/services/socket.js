@@ -52,6 +52,9 @@ export const emitAlert   = (alert)   => emit('live:alert', alert);
 export const emitBands   = (frame)   => emit('live:bands', frame);   // high-rate spectrogram frame
 export const emitDeviceStatus = (device) => emit('device:status', device);
 export const emitSystemMode  = (status) => emit('system:mode', status);
+// Intelligence layer (multi-sensor expert architecture)
+export const emitRiskFusion = (fusion) => emit('risk:fusion', fusion);   // fused risk + recommendation + explanation
+export const emitAgents     = (agents) => emit('agents:update', agents); // per-expert breakdown + safety
 
 // Dose lifecycle (§10.4 / §11.2)
 export const emitDosePending = (dose) => emit('dose:pending', dose);  // raises confirm modal

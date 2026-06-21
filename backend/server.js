@@ -22,6 +22,7 @@ import reportsRouter  from './routes/reports.js';
 import chatRouter     from './routes/chat.js';
 import systemRouter   from './routes/system.js';
 import dosesRouter    from './routes/doses.js';
+import intelligenceRouter from './routes/intelligence.js';
 
 const PORT = parseInt(process.env.PORT, 10) || 4000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -58,6 +59,7 @@ app.use('/api/v1/reports',  reportsRouter);
 app.use('/api/v1/chat',     chatRouter);
 app.use('/api/v1/system',   systemRouter);
 app.use('/api/v1/doses',    dosesRouter);
+app.use('/api/v1/intelligence', intelligenceRouter);
 
 // 404 catch-all for /api
 app.use('/api', (_req, res) => res.status(404).json({ error: 'not_found' }));
