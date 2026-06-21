@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.vite/
+*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+backend/data/palmguard.db
+backend/data/palmguard.db-journal
+backend/data/palmguard.db-wal
+backend/data/palmguard.db-shm
+
+# Firmware build artifacts
+firmware/palmguard-esp32s3/.pio/
+firmware/palmguard-esp32s3/.vscode/
+firmware/palmguard-esp32s3/include/secrets.h
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+ml/.venv/
+
+# ML data + trained artifacts (large / regenerable; never commit corpora)
+ml/data/
+ml/eval_report/*.png
+ml/export/saved_model/
+ml/export/*.tflite
+*.wav
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.swp

@@ -1,0 +1,3 @@
+# Generated evaluation artifacts land here (metrics.json, ROC/PR/confusion PNGs).
+# Empty until train.py runs on real corpora. Per §9.9 every number here is real
+# and labelled "proxy". Nothing is committed by hand.

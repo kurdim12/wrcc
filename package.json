@@ -1,0 +1,19 @@
+{
+  "name": "palm-guard",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Palm Guard — solar ESP32-S3 node for acoustic Red Palm Weevil early-warning + human-confirmed targeted micro-dosing. Honest, proxy-validated.",
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "start": "concurrently -n backend,frontend -c blue,green \"npm start --prefix backend\" \"npm run dev --prefix frontend\"",
+    "backend": "npm run dev --prefix backend",
+    "frontend": "npm run dev --prefix frontend",
+    "ml": "cd ml && uvicorn serve.app:app --port 8001",
+    "mock": "python tools/mock_device.py",
+    "seed": "python tools/seed_palms.py"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
