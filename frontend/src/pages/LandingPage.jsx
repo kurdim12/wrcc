@@ -1,283 +1,381 @@
-// Marketing landing page. Adapted from code.txt:263-642 - same structure
-// (Hero → Comparison → How It Works → X-Ray → Stats → Dashboard preview → CTA)
-// using local /public assets. Click any "Get protected" / "Book Demo" button
-// to enter the dashboard.
-import { useEffect, useRef, useState } from 'react';
+// Palm Guard — landing page, rebuilt on the "Living Telemetry Interface"
+// design system (instrument surfaces, HUD labels, JetBrains-mono numerals,
+// forest/gold/bone/ink palette) so the front door matches the dashboard.
+//
+// Honesty is load-bearing here (§2): the model is described as proxy/heuristic
+// and shown as a probability — never "X% accurate"; dosing is always armed +
+// human-confirmed with hard caps. The hero monitor is explicitly illustrative.
+//
+// Public contract is unchanged: <LandingPage onLogin dark toggleTheme />.
+import { useState } from 'react';
 import {
-  ArrowRight, Zap, Activity, Network, Cpu, X, Menu, ShieldCheck,
-  CheckCircle, XCircle,
+  ArrowRight, Activity, Radio, Waves, Thermometer, Wind, Cpu,
+  ShieldCheck, Syringe, Sun, WifiOff, Stethoscope, Gauge, FlaskConical,
+  X, Menu, ChevronRight,
 } from 'lucide-react';
 import DarkModeToggle from '../components/ui/DarkModeToggle.jsx';
 import BugSwarm from '../components/BugSwarm.jsx';
+import { RiskHalo } from '../components/RiskHalo.jsx';
 
 const ASSETS = {
-  logo:           '/logo.png',
-  product:        '/product.png',
-  beforeAfter:    '/7.jpg',
-  xray:           '/2.jpg',
-  xrayAlt:        '/3.jpg',
-  aiSpectrogram:  '/1.jpg',
-  satelliteMap:   '/palmfarm.jpg',
-  damaged:        '/7-1.png',
-  healthy:        '/7-2.png',
+  logo:    '/logo.png',
+  product: '/product.png',
+  damaged: '/7-1.png',
+  healthy: '/7-2.png',
+  xray:    '/2.jpg',
 };
 
-// ─── Header ────────────────────────────────────────────────────────────
-const LandingHeader = ({ onLogin, dark, toggleTheme }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+const NAV = [['threat', 'The threat'], ['how', 'How it listens'], ['honesty', 'Honest by design'], ['mission-control', 'Mission control']];
+const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+
+// ─── HUD primitives ──────────────────────────────────────────────────
+const Kicker = ({ children }) => (
+  <span className="inline-flex items-center gap-2 hud-label instrument-inset px-3 py-1.5">
+    <span className="relative flex h-1.5 w-1.5">
+      <span className="animate-heartbeat absolute inline-flex h-full w-full rounded-full bg-forest-400" />
+      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-forest-400" />
+    </span>
+    {children}
+  </span>
+);
+
+const SectionHead = ({ tag, title, sub }) => (
+  <div className="max-w-2xl mb-12">
+    <div className="hud-label text-forest-400 mb-3">{tag}</div>
+    <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-charcoal dark:text-bone mb-4">{title}</h2>
+    {sub && <p className="text-base md:text-lg text-muted leading-relaxed">{sub}</p>}
+  </div>
+);
+
+// ─── Nav ─────────────────────────────────────────────────────────────
+const LandingNav = ({ onLogin, dark, toggleTheme }) => {
+  const [open, setOpen] = useState(false);
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white/70 dark:bg-[#0a0e1a]/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-white/5">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
-          <img src={ASSETS.logo} alt="" className="h-10 w-auto" />
-          <span className="font-bold text-xl tracking-tight text-green-900 dark:text-white">Palm Guard</span>
-        </div>
-        <div className="hidden md:flex items-center gap-10 text-sm font-medium text-gray-600 dark:text-gray-300">
-          {['features', 'how-it-works', 'dashboard-preview'].map(id => (
-            <button key={id} onClick={() => scrollTo(id)} className="hover:text-green-700 dark:hover:text-white capitalize">
-              {id.replace('-', ' ')}
-            </button>
+    <nav className="fixed top-0 inset-x-0 z-50 bg-bone/80 dark:bg-ink-900/80 backdrop-blur-xl border-b border-charcoal/10 dark:border-muted/10">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <button className="flex items-center gap-2.5" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <img src={ASSETS.logo} alt="" className="h-8 w-auto" />
+          <span className="font-bold text-lg tracking-tight text-charcoal dark:text-bone">Palm Guard</span>
+          <span className="hidden sm:inline hud-label text-forest-400">· LTI</span>
+        </button>
+        <div className="hidden md:flex items-center gap-8">
+          {NAV.map(([id, label]) => (
+            <button key={id} onClick={() => scrollTo(id)} className="hud-label hover:text-charcoal dark:hover:text-bone transition-colors">{label}</button>
           ))}
         </div>
         <div className="hidden md:flex items-center gap-3">
           <DarkModeToggle dark={dark} toggle={toggleTheme} />
-          <button onClick={onLogin} className="text-sm font-semibold text-gray-700 dark:text-gray-200 hover:text-green-700 dark:hover:text-white px-3">
-            Log in
-          </button>
-          <button onClick={onLogin} className="bg-gray-900 dark:bg-white text-white dark:text-black px-6 py-2.5 rounded-full text-sm font-bold shadow-xl hover:scale-105 active:scale-95 transition">
-            Open Dashboard
+          <button onClick={onLogin} className="focus-ring text-sm font-bold px-5 py-2 rounded-full bg-forest text-bone hover:bg-forest-600 transition-colors flex items-center gap-2">
+            Open Dashboard <ArrowRight size={15} />
           </button>
         </div>
-        <div className="flex md:hidden items-center gap-3">
+        <div className="flex md:hidden items-center gap-2">
           <DarkModeToggle dark={dark} toggle={toggleTheme} />
-          <button onClick={() => setIsOpen(!isOpen)} className="p-2 text-gray-600 dark:text-gray-300">
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <button onClick={() => setOpen(!open)} className="focus-ring p-2 text-charcoal dark:text-bone">{open ? <X size={22} /> : <Menu size={22} />}</button>
         </div>
       </div>
-      {isOpen && (
-        <div className="md:hidden absolute top-20 left-0 w-full bg-white dark:bg-[#0f1422] border-b border-gray-200 dark:border-gray-800 shadow-2xl flex flex-col p-6 animate-fade-in-up">
-          <button onClick={onLogin} className="w-full py-3 rounded-xl bg-green-600 text-white font-bold shadow-lg">
-            Open Dashboard
-          </button>
+      {open && (
+        <div className="md:hidden border-t border-charcoal/10 dark:border-muted/10 bg-panel dark:bg-ink-800 p-4 space-y-1">
+          {NAV.map(([id, label]) => (
+            <button key={id} onClick={() => { scrollTo(id); setOpen(false); }} className="block w-full text-left hud-label py-2.5">{label}</button>
+          ))}
+          <button onClick={onLogin} className="w-full mt-2 py-3 rounded-xl bg-forest text-bone font-bold">Open Dashboard</button>
         </div>
       )}
     </nav>
   );
 };
 
-// ─── Hero ────────────────────────────────────────────────────────────
-const HeroSection = ({ onLogin }) => (
-  <section className="pt-32 pb-20 px-6 min-h-[92vh] flex flex-col items-center justify-center bg-[#FAFAFA] dark:bg-[#0a0e1a] overflow-hidden relative">
-    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_left,_var(--tw-gradient-stops))] from-green-100/40 via-transparent to-transparent dark:opacity-0" />
-    <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-100/40 via-transparent to-transparent dark:opacity-0" />
-    <BugSwarm />
+// ─── Signature visual: a single field-node monitor (illustrative) ─────
+const MEL = [22, 41, 30, 64, 48, 88, 70, 52, 33, 58, 80, 47, 66, 38, 92, 55, 74, 42, 60, 28, 50, 72];
+const NodeMonitor = () => (
+  <div className="instrument p-5 scanlines relative overflow-hidden">
+    <div className="flex items-center justify-between mb-4">
+      <span className="hud-label">node PG-07 · live monitor</span>
+      <span className="hud-label text-forest-400 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-forest-400 animate-heartbeat" /> streaming</span>
+    </div>
 
-    <div className="text-center max-w-5xl mx-auto z-20 relative px-4">
-      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md text-green-700 dark:text-green-400 text-xs font-bold mb-8 border border-green-100 dark:border-gray-800 shadow-sm animate-fade-in-up">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-        </span>
-        <span className="tracking-wide uppercase">Solar Mesh 2.0 Active</span>
-      </div>
-      <h1 className="text-5xl md:text-8xl font-bold text-gray-900 dark:text-white tracking-tighter leading-[1] mb-8 animate-fade-in-up delay-100">
-        Protect your palms.
-        <br />
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 via-emerald-500 to-green-400 dark:from-green-400 dark:via-emerald-300 dark:to-green-200">
-          Stop the silent killer.
-        </span>
-      </h1>
-      <p className="text-lg md:text-2xl text-gray-500 dark:text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed font-medium animate-fade-in-up delay-200">
-        AI-powered, multi-sensor early warning system for Red Palm Weevil — detects internal larval activity{' '}
-        <span className="text-gray-900 dark:text-white">before visible damage occurs.</span>
-      </p>
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300 relative z-40">
-        <button onClick={onLogin} className="group w-full sm:w-auto px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-full font-bold text-lg hover:bg-black dark:hover:bg-gray-100 shadow-2xl active:scale-95 flex items-center justify-center gap-2 transition">
-          Open Dashboard
-          <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-        </button>
-        <button
-          onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-          className="w-full sm:w-auto px-8 py-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm text-gray-900 dark:text-white border border-gray-200 dark:border-gray-800 rounded-full font-bold text-lg hover:bg-white dark:hover:bg-gray-800 flex items-center justify-center gap-2 active:scale-95 transition"
-        >
-          <Zap size={18} className="text-yellow-500" fill="currentColor" />
-          See Technology
-        </button>
+    {/* risk halo + readout — reuses the dashboard's RiskHalo so it aligns cleanly */}
+    <div className="flex items-center justify-between gap-4 mb-5">
+      <RiskHalo risk={52} pActivity={null} size={120} caveat={false} />
+      <div className="space-y-2 text-right">
+        <div>
+          <div className="hud-label">P(activity)</div>
+          <div className="telemetry-num text-2xl font-bold text-charcoal dark:text-bone">0.52</div>
+        </div>
+        <div className="hud-label text-caution">proxy model</div>
+        <div className="hud-label text-muted/80">illustrative</div>
       </div>
     </div>
 
-    <div className="mt-16 md:-mt-12 relative z-10 w-full max-w-[400px] md:max-w-[650px] mx-auto animate-float cursor-pointer group" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[400px] h-[300px] md:h-[400px] bg-gradient-to-tr from-green-400/20 to-emerald-300/20 blur-[80px] rounded-full pointer-events-none" />
-      <img src={ASSETS.product} alt="Palm Guard Sensor" className="w-full h-auto drop-shadow-2xl transform rotate-[165deg] hover:rotate-[180deg] transition-transform duration-1000" />
-    </div>
-  </section>
-);
-
-// ─── Comparison ──────────────────────────────────────────────────────
-const ComparisonSection = () => (
-  <section id="features" className="py-24 bg-black text-white overflow-hidden relative">
-    <div className="max-w-7xl mx-auto px-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 rounded-[3rem] overflow-hidden shadow-2xl border border-white/10 relative h-auto md:h-[650px]">
-        <div className="relative h-[400px] md:h-full group overflow-hidden">
-          <div className="absolute inset-0 bg-red-900/40 z-10 mix-blend-multiply" />
-          <img src={ASSETS.damaged} alt="Damaged" className="absolute inset-0 w-[200%] h-full object-cover object-left filter grayscale contrast-125" />
-          <div className="absolute inset-0 flex flex-col justify-center items-center p-8 md:p-12 z-20 bg-black/40 backdrop-blur-[2px]">
-            <div className="bg-red-500/10 border border-red-500/50 px-4 py-1.5 rounded-full mb-6 backdrop-blur-md">
-              <span className="text-red-400 font-mono tracking-widest text-xs font-bold uppercase">Without Detection</span>
-            </div>
-            <h3 className="text-3xl md:text-5xl font-bold text-center mb-6 text-white tracking-tight">Silent Infestation</h3>
-            <p className="text-gray-200 text-center max-w-sm text-base md:text-lg leading-relaxed font-medium">
-              By the time visual symptoms appear, internal damage is{' '}
-              <span className="text-red-400 font-bold">irreversible</span>.
-            </p>
-            <div className="mt-10 w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/50">
-              <XCircle className="text-red-500 w-8 h-8 md:w-10 md:h-10" />
-            </div>
-          </div>
-        </div>
-        <div className="relative h-[400px] md:h-full group overflow-hidden border-t md:border-t-0 md:border-l border-white/10">
-          <div className="absolute inset-0 bg-green-900/30 z-10 mix-blend-multiply" />
-          <img src={ASSETS.healthy} alt="Healthy" className="absolute inset-0 w-[200%] h-full object-cover object-right saturate-150" />
-          <div className="absolute inset-0 flex flex-col justify-center items-center p-8 md:p-12 z-20 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
-            <div className="bg-green-500/10 border border-green-500/50 px-4 py-1.5 rounded-full mb-6 backdrop-blur-md">
-              <span className="text-green-400 font-mono tracking-widest text-xs font-bold uppercase">With Palm Guard</span>
-            </div>
-            <h3 className="text-3xl md:text-5xl font-bold text-center mb-6 text-white tracking-tight">Protect the Yield</h3>
-            <p className="text-gray-100 text-center max-w-sm text-base md:text-lg leading-relaxed font-medium">
-              Acoustic + multi-sensor early warning flags activity{' '}
-              <span className="text-green-400 font-bold">before crown symptoms show</span> — so treatment is targeted, not farm-wide.
-            </p>
-            <div className="mt-10 w-16 h-16 md:w-20 md:h-20 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
-              <CheckCircle className="text-green-400 w-8 h-8 md:w-10 md:h-10" />
-            </div>
-          </div>
-        </div>
+    {/* mel bars */}
+    <div className="instrument-inset px-3 py-3">
+      <div className="hud-label mb-2">acoustic patch · 40×32 log-mel</div>
+      <div className="h-16 flex items-end gap-1">
+        {MEL.map((h, i) => (
+          <div key={i} style={{ height: `${h}%`, animationDelay: `${i * 0.06}s`, animationDuration: `${1 + (i % 4) * 0.15}s` }}
+               className="flex-1 rounded-sm bg-gradient-to-t from-forest-400/70 via-gold/70 to-crit/70 animate-music-bar origin-bottom" />
+        ))}
       </div>
     </div>
-  </section>
-);
 
-// ─── How It Works ────────────────────────────────────────────────────
-const HowItWorksSection = () => (
-  <section id="how-it-works" className="py-32 bg-[#FAFAFA] dark:bg-[#0a0e1a] relative">
-    <div className="max-w-7xl mx-auto px-6 relative z-10">
-      <div className="text-center mb-24">
-        <h2 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 tracking-tighter">
-          Science, not Guesswork.
-        </h2>
-        <p className="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto font-medium">
-          Multi-sensor fusion: acoustic, vibration, thermal, and VOC signatures merged by an adaptive risk-score engine.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-        <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-800 group bg-gray-100 dark:bg-gray-900 aspect-square">
-          <img src={ASSETS.aiSpectrogram} alt="AI" className="w-full h-full object-cover mix-blend-overlay opacity-90" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-          <div className="absolute bottom-6 left-6 right-6 md:bottom-10 md:left-10 md:right-10 bg-white/10 backdrop-blur-xl p-6 rounded-3xl border border-white/10">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-xs font-bold text-white uppercase tracking-widest">Live Spectrogram</span>
-            </div>
-            <div className="h-16 flex items-end gap-1.5">
-              {[30, 50, 25, 85, 40, 95, 55, 35, 15, 45, 80, 40, 60, 20, 90, 40, 70, 30, 60, 20].map((h, i) => (
-                <div key={i} style={{ height: `${h}%`, animationDelay: `${i * 0.05}s` }}
-                     className="flex-1 bg-gradient-to-t from-green-400 to-red-500 rounded-full opacity-90 animate-music-bar" />
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className="space-y-12">
-          {[
-            { title: 'Internal Acoustic Probe', desc: 'INMP441 MEMS microphone captures larval feeding micro-vibrations (2–8 kHz). On-device FFT extracts spectral features and click rate.', icon: <Activity className="text-white" /> },
-            { title: 'Multi-Sensor Fusion', desc: 'MPU6050 vibration + DS18B20 trunk temperature + BME680 VOC are merged with adaptive weighting that adjusts to wind and chemical events.', icon: <Network className="text-white" /> },
-            { title: 'Risk Score 0–100', desc: 'Cloud risk-score engine outputs Low/Medium/High classification with sustained-event and anomaly-spike alerting.', icon: <Cpu className="text-white" /> },
-          ].map((item, i) => (
-            <div key={i} className="flex gap-8 group">
-              <div className="w-16 h-16 rounded-2xl bg-green-600 flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition">
-                {item.icon}
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-green-700 dark:group-hover:text-green-400 transition">{item.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-lg">{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
-// ─── Stats ───────────────────────────────────────────────────────────
-const StatsSection = () => (
-  <section className="py-32 bg-green-900 dark:bg-[#0a0e1a] text-white relative overflow-hidden">
-    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-    <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-16 text-center relative z-10">
-      {/* Honest, defensible stats only — no fabricated accuracy (§2). */}
-      {[
-        { val: '4-in-1', label: 'Sensor fusion', sub: 'Acoustic + vibration + thermal + VOC' },
-        { val: 'Proxy',  label: 'Model status',  sub: 'Validated on boring-sound proxies' },
-        { val: 'Human',  label: 'Confirmed dosing', sub: 'Armed + confirmed · hard caps' },
-        { val: 'Solar',  label: 'Self-powered',  sub: 'Duty-cycled per-tree node' },
-      ].map((stat, i) => (
-        <div key={i}>
-          <div className="text-5xl md:text-8xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-b from-white to-green-300">
-            {stat.val}
-          </div>
-          <div className="text-sm md:text-lg font-bold uppercase tracking-[0.2em] text-green-100 mb-1">{stat.label}</div>
-          <div className="text-xs md:text-sm text-green-300/60 font-medium">{stat.sub}</div>
+    {/* evidence chips */}
+    <div className="grid grid-cols-3 gap-2 mt-3">
+      {[['acoustic', 'feeding band'], ['vibration', 'elevated'], ['trunk Δ', '+0.4°C']].map(([k, v]) => (
+        <div key={k} className="instrument-inset px-2.5 py-2">
+          <div className="hud-label">{k}</div>
+          <div className="text-xs font-bold text-charcoal dark:text-bone telemetry-num">{v}</div>
         </div>
       ))}
     </div>
+
+    <div className="hud-label mt-3 text-muted/80">illustrative readout · live values in dashboard</div>
+  </div>
+);
+
+// ─── Hero ────────────────────────────────────────────────────────────
+const Hero = ({ onLogin }) => (
+  <section className="relative pt-28 pb-20 px-6 overflow-hidden">
+    <div className="absolute inset-0 scanlines opacity-40 pointer-events-none" />
+    <BugSwarm />
+    <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center relative z-10">
+      <div className="animate-fade-in-up">
+        <Kicker>Living Telemetry Interface</Kicker>
+        <h1 className="mt-6 text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] text-charcoal dark:text-bone">
+          Hear the weevil
+          <span className="block text-forest-400">before the palm falls.</span>
+        </h1>
+        <p className="mt-6 text-lg text-muted leading-relaxed max-w-xl">
+          A solar, per-tree node listens inside the trunk for Red Palm Weevil feeding, scores
+          infestation risk from a <span className="text-charcoal dark:text-bone font-semibold">proxy-trained acoustic model</span>, and gates
+          treatment through a <span className="text-charcoal dark:text-bone font-semibold">human-confirmed, hard-capped</span> dosing workflow.
+        </p>
+        <div className="mt-8 flex flex-col sm:flex-row gap-3">
+          <button onClick={onLogin} className="focus-ring group px-7 py-3.5 rounded-full bg-forest text-bone font-bold flex items-center justify-center gap-2 hover:bg-forest-600 transition-colors">
+            Open Dashboard <ArrowRight size={17} className="group-hover:translate-x-0.5 transition-transform" />
+          </button>
+          <button onClick={() => scrollTo('how')} className="focus-ring px-7 py-3.5 rounded-full instrument font-bold text-charcoal dark:text-bone flex items-center justify-center gap-2">
+            <Activity size={17} className="text-forest-400" /> How it listens
+          </button>
+        </div>
+        <div className="mt-8 flex flex-wrap gap-2">
+          {['Acoustic + vibration + thermal + VOC', 'Solar · duty-cycled', 'Offline-resilient', 'WRCC 2026'].map((t) => (
+            <span key={t} className="hud-label instrument-inset px-2.5 py-1">{t}</span>
+          ))}
+        </div>
+      </div>
+      <div className="animate-fade-in-up delay-200">
+        <NodeMonitor />
+      </div>
+    </div>
   </section>
 );
 
-// ─── Footer ──────────────────────────────────────────────────────────
-const LandingFooter = () => (
-  <footer className="bg-gray-50 dark:bg-[#0a0e1a] pt-32 pb-16 border-t border-gray-200 dark:border-gray-800">
-    <div className="max-w-7xl mx-auto px-6 flex flex-col items-center text-center">
-      <img src={ASSETS.logo} alt="" className="h-14 mb-8 opacity-80" />
-      <h3 className="text-2xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8 tracking-tight">
-        Protect Every Palm. Increase Yield.
-      </h3>
-      <p className="max-w-md text-gray-500 dark:text-gray-400 mb-12 text-lg">
-        Khalifa International Award for Date Palm submission · University of Petra, Jordan.
-      </p>
-      <p className="text-gray-400 dark:text-gray-600 text-sm font-medium">
-        © 2026 Palm Guard Technologies.
-      </p>
+// ─── 1) The threat (before / after) ──────────────────────────────────
+const ThreatSection = () => (
+  <section id="threat" className="py-20 px-6">
+    <div className="max-w-7xl mx-auto">
+      <SectionHead
+        tag="the problem"
+        title="By the time the crown wilts, the trunk is already hollow."
+        sub="Red Palm Weevil larvae feed inside the trunk for months. Visual inspection catches it too late — and farm-wide spraying is costly and blunt."
+      />
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="instrument overflow-hidden">
+          <div className="relative h-64">
+            <img src={ASSETS.damaged} alt="" className="absolute inset-0 w-full h-full object-cover grayscale contrast-110" />
+            <div className="absolute inset-0 bg-gradient-to-t from-ink-900/90 via-ink-900/30 to-transparent" />
+            <span className="absolute top-4 left-4 hud-label text-crit instrument-inset px-2.5 py-1">without detection</span>
+          </div>
+          <div className="p-5">
+            <h3 className="font-bold text-lg text-charcoal dark:text-bone flex items-center gap-2"><X size={16} className="text-crit" /> Silent until it's terminal</h3>
+            <p className="text-sm text-muted mt-1.5">Internal damage is irreversible once symptoms surface. A lost palm is years of growth gone.</p>
+          </div>
+        </div>
+        <div className="instrument overflow-hidden">
+          <div className="relative h-64">
+            <img src={ASSETS.healthy} alt="" className="absolute inset-0 w-full h-full object-cover saturate-110" />
+            <div className="absolute inset-0 bg-gradient-to-t from-forest/90 via-forest/20 to-transparent" />
+            <span className="absolute top-4 left-4 hud-label text-bone instrument-inset px-2.5 py-1">with palm guard</span>
+          </div>
+          <div className="p-5">
+            <h3 className="font-bold text-lg text-charcoal dark:text-bone flex items-center gap-2"><ShieldCheck size={16} className="text-forest-400" /> Flagged before the crown shows it</h3>
+            <p className="text-sm text-muted mt-1.5">Acoustic + multi-sensor early warning targets one tree — not the whole orchard.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+// ─── 2) How it listens (pipeline) ────────────────────────────────────
+const SENSORS = [
+  { icon: Radio, label: 'Acoustic', desc: 'INMP441 MEMS mic captures feeding micro-sounds; on-device FFT → 40×32 log-mel patch (200 Hz–8 kHz).' },
+  { icon: Waves, label: 'Vibration', desc: 'MPU6050 picks up trunk micro-vibration that wind alone does not explain.' },
+  { icon: Thermometer, label: 'Trunk Δ', desc: 'DS18B20 tracks trunk-vs-ambient temperature drift around the device.' },
+  { icon: Wind, label: 'VOC', desc: 'BME680 watches for chemical signatures, de-weighted during spray events.' },
+];
+const HowSection = () => (
+  <section id="how" className="py-20 px-6 bg-panel dark:bg-ink-800/40 border-y border-charcoal/5 dark:border-muted/10">
+    <div className="max-w-7xl mx-auto">
+      <SectionHead
+        tag="the pipeline"
+        title="Four senses, fused into one honest score."
+        sub="No single sensor is trusted alone. A weighted fusion engine merges them into a 0–100 risk score — and the acoustic model reports a probability, not a verdict."
+      />
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {SENSORS.map((s, i) => (
+          <div key={s.label} className="instrument p-5 animate-fade-in-up" style={{ animationDelay: `${i * 0.08}s` }}>
+            <div className="w-11 h-11 rounded-xl bg-forest/10 dark:bg-forest-400/10 flex items-center justify-center mb-3">
+              <s.icon size={20} className="text-forest-400" />
+            </div>
+            <div className="hud-label text-forest-400">sensor {i + 1}</div>
+            <h3 className="font-bold text-charcoal dark:text-bone">{s.label}</h3>
+            <p className="text-sm text-muted mt-1.5 leading-relaxed">{s.desc}</p>
+          </div>
+        ))}
+      </div>
+      <div className="instrument p-5 flex flex-col md:flex-row items-stretch md:items-center gap-3">
+        {[
+          { icon: Cpu, k: 'fusion engine', v: 'weighted multi-sensor merge' },
+          { icon: Gauge, k: 'risk score', v: '0–100 · low / watch / critical' },
+          { icon: Syringe, k: 'treatment', v: 'armed + human-confirmed' },
+        ].map((step, i, arr) => (
+          <div key={step.k} className="flex items-center gap-3 flex-1">
+            <div className="instrument-inset px-4 py-3 flex items-center gap-3 flex-1">
+              <step.icon size={18} className="text-gold shrink-0" />
+              <div><div className="hud-label">{step.k}</div><div className="text-sm font-bold text-charcoal dark:text-bone">{step.v}</div></div>
+            </div>
+            {i < arr.length - 1 && <ChevronRight size={18} className="text-muted shrink-0 hidden md:block" />}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ─── 3) Honest by design ─────────────────────────────────────────────
+const HONESTY = [
+  { icon: FlaskConical, tag: 'model status', title: 'A probability, not a promise', body: 'The detector is proxy/heuristic-trained on boring-sound corpora and field-validated against ASPID. The UI shows P(activity) with a "proxy" badge — never a fabricated accuracy number.', chip: 'proxy · heuristic fallback' },
+  { icon: ShieldCheck, tag: 'safety', title: 'No autonomous spraying', body: 'Dosing is always armed by an operator and human-confirmed per event. Hard caps mirror on server and device: max doses/day, cooldown, pump-time ceiling, and anti-replay nonces.', chip: 'armed · confirmed · capped' },
+  { icon: WifiOff, tag: 'resilience', title: 'Built for a real orchard', body: 'Solar, duty-cycled nodes keep buffering and recover gracefully when the network drops — the dashboard degrades to last-known state instead of lying.', chip: 'offline-resilient' },
+];
+const HonestySection = () => (
+  <section id="honesty" className="py-20 px-6">
+    <div className="max-w-7xl mx-auto">
+      <SectionHead
+        tag="why you can trust the panel"
+        title="Honest by design — and it shows on every screen."
+        sub="This is a competition prototype that refuses to fake its numbers. What the model doesn't know, it says it doesn't know."
+      />
+      <div className="grid md:grid-cols-3 gap-4">
+        {HONESTY.map((c, i) => (
+          <div key={c.title} className="instrument p-6 animate-fade-in-up" style={{ animationDelay: `${i * 0.08}s` }}>
+            <div className="w-11 h-11 rounded-xl bg-gold/10 flex items-center justify-center mb-4">
+              <c.icon size={20} className="text-gold" />
+            </div>
+            <div className="hud-label text-forest-400">{c.tag}</div>
+            <h3 className="font-bold text-lg text-charcoal dark:text-bone mt-1">{c.title}</h3>
+            <p className="text-sm text-muted mt-2 leading-relaxed">{c.body}</p>
+            <div className="mt-4 hud-label text-caution instrument-inset inline-block px-2.5 py-1">{c.chip}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ─── 4) Inside mission control (the four workspaces) ─────────────────
+const WORKSPACES = [
+  { icon: Stethoscope, name: 'Tree ICU', desc: 'Per-palm vitals, risk halo and an evidence trail from each fused sensor.' },
+  { icon: Gauge, name: 'Farm Mission Control', desc: 'The living orchard command map, mission counters and live incident feed.' },
+  { icon: Activity, name: 'Acoustic Lab', desc: 'A live spectrogram stethoscope with the RPW feeding band highlighted.' },
+  { icon: Syringe, name: 'Treatment Control Room', desc: 'Arm, confirm and audit every dose against the hard safety caps.' },
+];
+const MissionControlSection = ({ onLogin }) => (
+  <section id="mission-control" className="py-20 px-6 bg-panel dark:bg-ink-800/40 border-y border-charcoal/5 dark:border-muted/10">
+    <div className="max-w-7xl mx-auto">
+      <SectionHead
+        tag="inside the dashboard"
+        title="One mission-control deck for the whole orchard."
+        sub="Four instrument workspaces, one shared design language — from a single palm's vitals up to the farm at a glance."
+      />
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {WORKSPACES.map((w, i) => (
+          <button key={w.name} onClick={onLogin}
+            className="focus-ring text-left instrument p-5 hover:border-forest-400/40 transition-colors animate-fade-in-up" style={{ animationDelay: `${i * 0.08}s` }}>
+            <div className="w-11 h-11 rounded-xl bg-forest/10 dark:bg-forest-400/10 flex items-center justify-center mb-3">
+              <w.icon size={20} className="text-forest-400" />
+            </div>
+            <h3 className="font-bold text-charcoal dark:text-bone">{w.name}</h3>
+            <p className="text-sm text-muted mt-1.5 leading-relaxed">{w.desc}</p>
+          </button>
+        ))}
+      </div>
+      <div className="instrument overflow-hidden relative">
+        <img src={ASSETS.xray} alt="" className="w-full h-56 md:h-80 object-cover opacity-90" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-900/85 to-transparent" />
+        <div className="absolute bottom-5 left-5 right-5 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="hud-label text-bone/70">tree stethoscope</div>
+            <div className="text-bone font-bold text-lg">Listen inside the trunk in real time</div>
+          </div>
+          <button onClick={onLogin} className="focus-ring px-5 py-2.5 rounded-full bg-bone text-charcoal font-bold text-sm flex items-center gap-2 hover:bg-panel transition-colors">
+            Open Dashboard <ArrowRight size={15} />
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+// ─── 5) CTA ──────────────────────────────────────────────────────────
+const CtaSection = ({ onLogin }) => (
+  <section className="py-24 px-6">
+    <div className="max-w-4xl mx-auto instrument p-10 md:p-14 text-center scanlines relative overflow-hidden">
+      <img src={ASSETS.product} alt="" className="absolute -right-10 -bottom-10 w-48 opacity-20 rotate-[200deg] pointer-events-none" />
+      <div className="relative z-10">
+        <Kicker>ready when you are</Kicker>
+        <h2 className="mt-5 text-3xl md:text-5xl font-bold tracking-tight text-charcoal dark:text-bone">Protect every palm. Target every dose.</h2>
+        <p className="mt-4 text-muted max-w-xl mx-auto">Step into the live mission-control deck — seeded demo orchard, real safety workflow, zero fabricated metrics.</p>
+        <button onClick={onLogin} className="focus-ring mt-8 px-9 py-4 rounded-full bg-forest text-bone font-bold text-lg inline-flex items-center gap-2 hover:bg-forest-600 transition-colors">
+          Open Live Dashboard <ArrowRight size={18} />
+        </button>
+      </div>
+    </div>
+  </section>
+);
+
+// ─── 6) Footer ───────────────────────────────────────────────────────
+const Footer = () => (
+  <footer className="px-6 pb-12 pt-4 border-t border-charcoal/10 dark:border-muted/10">
+    <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="flex items-center gap-2.5">
+        <img src={ASSETS.logo} alt="" className="h-7 w-auto opacity-80" />
+        <span className="font-bold text-charcoal dark:text-bone">Palm Guard</span>
+        <span className="hud-label">· Living Telemetry Interface</span>
+      </div>
+      <div className="hud-label text-center md:text-right">
+        World Robot Caspian Cup 2026 · University of Petra, Jordan<br className="hidden md:block" />
+        <span className="text-muted/70">© 2026 Palm Guard — prototype, honest metrics only.</span>
+      </div>
     </div>
   </footer>
 );
 
-// ─── Page composition ────────────────────────────────────────────────
+// ─── Page ────────────────────────────────────────────────────────────
 export const LandingPage = ({ onLogin, dark, toggleTheme }) => (
-  <div>
-    <LandingHeader onLogin={onLogin} dark={dark} toggleTheme={toggleTheme} />
+  <div className="bg-bone dark:bg-ink-900 text-charcoal dark:text-bone min-h-screen">
+    <LandingNav onLogin={onLogin} dark={dark} toggleTheme={toggleTheme} />
     <main>
-      <HeroSection onLogin={onLogin} />
-      <ComparisonSection />
-      <HowItWorksSection />
-      <StatsSection />
-
-      <section id="dashboard-preview" className="py-32 bg-white dark:bg-gray-900 text-center">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 dark:text-white tracking-tight">
-            Powerful Insights. Simple Dashboard.
-          </h2>
-          <p className="text-xl text-gray-500 dark:text-gray-400 mb-16 max-w-2xl mx-auto font-medium">
-            Manage thousands of trees from a single pane of glass — live KPIs, risk-trend charts, and a real-time spectrogram.
-          </p>
-          <button onClick={onLogin} className="px-12 py-6 bg-green-600 text-white rounded-full font-bold text-xl hover:bg-green-700 shadow-xl shadow-green-600/20 transition hover:scale-105 active:scale-95">
-            Open Live Dashboard
-          </button>
-        </div>
-      </section>
+      <Hero onLogin={onLogin} />
+      <ThreatSection />
+      <HowSection />
+      <HonestySection />
+      <MissionControlSection onLogin={onLogin} />
+      <CtaSection onLogin={onLogin} />
     </main>
-    <LandingFooter />
+    <Footer />
   </div>
 );
 

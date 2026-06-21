@@ -24,18 +24,31 @@ calls it per reading and falls back to its own heuristic if the service is down
 ```bash
 pip install -r requirements-train.txt
 # 1) download corpora into ml/data/ (see prepare/DATASETS.md), then standardize:
-python -m prepare.standardize --in data/raw/aspid/infested --label activity --source aspid
-python -m prepare.standardize --in data/raw/aspid/clean    --label clean    --source aspid
+# ASPID is metadata-labeled (aspids_log.csv) — use the adapter, not folders:
+python -m prepare.aspid_prepare --log data/raw/aspid/aspids_log.csv --inspect      # confirm columns
+python -m prepare.aspid_prepare --log data/raw/aspid/aspids_log.csv --manifest data/manifest_aspid.csv
+# (other corpora that ARE folder-organised still use standardize.py --in <dir> --label …)
 # 2) train + evaluate + export (grouped split, augment, real metrics):
 python -m train.train --manifest data/manifest.csv --esc50 data/esc50/audio
 # 3) (stretch) int8 TFLite for esp-tflite-micro:
 python -m export.export_tflite --saved export/saved_model --manifest data/manifest.csv
 ```
 
+**Which datasets + why:** see [`docs/DATASET_SELECTION.md`](../docs/DATASET_SELECTION.md)
+(ASPID primary, ESC-50 augment, own INMP441 validate). **InsectSound1000 pretrain
+is skipped — it has no clean/negative class.** v1 trains directly on ASPID:
+```bash
+python -m prepare.aspid_prepare --log data/raw/aspid/aspids_log.csv --manifest data/manifest_aspid.csv
+python -m train.train --manifest data/manifest_aspid.csv --esc50 data/raw/esc50/audio --version cnn-aspid-v1
+```
+(`train.py --init-from <pretrained.keras>` remains for a *future* pretrain corpus
+that has a real negative class — not used for InsectSound1000.)
+
 `train.py` writes real metrics to `eval_report/metrics.json` (ROC-AUC, PR-AUC,
-confusion, per-SNR) and a `saved_model/`. `serve` auto-loads `export/saved_model`
-if present (set `PG_MODEL_PATH` to override). See `model_card.md` — until a model
-is trained, **there are no metrics and the UI shows "heuristic"**.
+confusion, per-SNR) and a `saved_model/`. `serve` auto-loads `export/model.keras`
+(or `export/saved_model`) if present (set `PG_MODEL_PATH` to override). See
+`model_card.md` — until a model is trained, **there are no metrics and the UI
+shows "heuristic"**.
 
 ## Feature contract (MUST match firmware)
 

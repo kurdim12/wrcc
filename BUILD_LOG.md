@@ -188,6 +188,50 @@ Honesty mandate (§2): nothing here claims a metric that wasn't measured.
   documented stretch (no hardware to validate).
 - Squash-merged PR #1 → `main` is one clean Phases 0–3 commit.
 
+## Session 4 — dataset selection + executable two-stage training
+
+- **`docs/DATASET_SELECTION.md`** — the honest dataset decision + rationale for
+  training a *real* model to replace `heuristic-baseline-v0`: ASPID/SPIDB primary
+  (boring/feeding signal + noise variants), InsectSound1000 backbone (airborne
+  mic @ 16 kHz — our modality, for pretraining), ESC-50 augment, own INMP441 as
+  the validation capstone; KAUST/Mankin real-RPW corpora named as the
+  field-validation target (contact-probe, on request). Documents the two gaps
+  (modality + species) and the exact CAN/CANNOT claims. Cross-linked from
+  `ml/prepare/DATASETS.md` and `ml/README.md`.
+- **`train.py --init-from <pretrained.keras>`** added so the documented
+  **pretrain → fine-tune** flow (InsectSound1000 → ASPID) is executable, not just
+  described. Verified on toy data: stage-1 pretrain → stage-2 loads those weights
+  ("fine-tuning from pretrained weights") → trains + exports cleanly.
+- CI (run #6 on `main`) is **green** — runner-provisioning hold cleared by the
+  user's Actions off→on toggle; workflow config was unchanged and sound.
+- Note: training the real model needs Kaggle/Zenodo data (network here is
+  GitHub/PyPI/npm-only), so it runs locally (path A) or on uploaded INMP441
+  clips (path B) — both documented. No model trained in-session; status stays
+  honest (`heuristic-baseline-v0`).
+
+## Session 5 — dataset research reconciled + ASPID adapter
+
+- Acted on verified dataset research. Corrections encoded in
+  `docs/DATASET_SELECTION.md` + `ml/prepare/DATASETS.md` + `ml/README.md`:
+  - **ASPID/SPIDB**: MIT, **~106 GB**, **metadata-labeled** via `aspids_log.csv`
+    (`target`→activity/clean, `noise`→snr) — not folder-labeled.
+  - **InsectSound1000**: Kaggle licence **"Unknown"**, ~100 GB, **no clean/silence
+    class** → **pretrain SKIPPED** (per the guardrail; never fabricate a negative
+    class). `train.py --init-from` kept for a future pretrain corpus with real
+    negatives. v1 trains **directly on ASPID**.
+  - **ESC-50**: CC BY-NC (augmentation only; flag for product).
+- **New `ml/prepare/aspid_prepare.py`** — metadata→manifest adapter: reads the CSV
+  (configurable `--file/target/noise` cols + `--inspect`), maps target→label and
+  noise→`snr_condition`, reuses `standardize.py` resample/window, groups by source
+  file. Smoke-tested on a synthetic ASPID fixture (target→label + noise→snr verified).
+- Fixed README `aspid/infested` inconsistency → adapter flow.
+- **Branch note:** `DATASET_SELECTION.md` + `train.py --init-from` live on
+  `claude/elegant-keller-aurxdw`, **not yet on `main`** (Session 4/5 landed after
+  the PR #1 squash-merge) — which is why a `main` clone didn't show them.
+- Still cannot train the real model here (network = GitHub/PyPI/npm only; no
+  Kaggle; ~106 GB; ephemeral, no GPU). Compute runs on the user's box (path A) or
+  a small uploaded INMP441 set (path B).
+
 ### Known limits / TODO (current)
 - **Firmware unbuilt** (no PlatformIO here): follow `docs/BENCH_BRINGUP.md` to
   validate the ~1 s mel capture timing/RAM and the pump/LED/dose paths on the

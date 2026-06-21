@@ -7,10 +7,11 @@ import { MessageSquare, Send, X, AlertCircle, Loader2 } from 'lucide-react';
 import { api } from '../api.js';
 
 const SUGGESTIONS = [
-  'Which devices are most at risk right now?',
-  'Why did PG-001 trigger HIGH_RISK?',
-  'Summarise the last 24 h of activity.',
-  'What does a click rate of 12 /s actually mean?',
+  'Why is this palm critical?',
+  'Can I dose now?',
+  'Which devices are offline?',
+  "Summarize today's incidents",
+  'Explain the model caveat',
 ];
 
 export const AIAssistant = ({ deviceId }) => {
@@ -59,12 +60,12 @@ export const AIAssistant = ({ deviceId }) => {
     <div className="fixed bottom-6 right-6 z-40">
       {open ? (
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 w-80 md:w-[420px] flex flex-col overflow-hidden animate-fade-in-up">
-          <div className="bg-green-600 p-4 flex justify-between items-center text-white">
+          <div className="bg-forest p-4 flex justify-between items-center text-bone">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-white/20 rounded-lg"><MessageSquare size={18} /></div>
+              <div className="p-1.5 bg-bone/15 rounded-lg"><MessageSquare size={18} /></div>
               <div className="leading-tight">
-                <div className="font-bold">PalmGuard AI</div>
-                <div className="text-[10px] opacity-80 font-mono">{status.model}</div>
+                <div className="font-bold">Palm Guard Analyst</div>
+                <div className="text-[10px] opacity-80 font-mono">{status.ready ? status.model : 'offline'}</div>
               </div>
             </div>
             <button onClick={() => setOpen(false)} className="hover:bg-white/20 p-1 rounded-lg">
@@ -76,7 +77,7 @@ export const AIAssistant = ({ deviceId }) => {
             {!status.ready && (
               <div className="text-xs text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 p-3 rounded-xl flex gap-2">
                 <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                <span>OpenRouter key not set. Edit <code>backend/.env</code>, set <code>PG_OPENROUTER_KEY</code>, and restart the backend.</span>
+                <span>Analyst unavailable — add <code>PG_OPENROUTER_KEY</code> to <code>backend/.env</code> and restart to enable live farm analysis.</span>
               </div>
             )}
             {messages.map((msg, i) => (
@@ -137,12 +138,12 @@ export const AIAssistant = ({ deviceId }) => {
       ) : (
         <button
           onClick={() => setOpen(true)}
-          className="w-14 h-14 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all relative"
-          title="PalmGuard AI"
+          className="focus-ring w-14 h-14 bg-forest hover:bg-forest-600 text-bone rounded-full shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all relative"
+          title="Palm Guard Analyst"
         >
           <MessageSquare size={24} />
           {status.ready && (
-            <span className="absolute top-1 right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-green-600 animate-pulse" />
+            <span className="absolute top-1 right-1 w-3 h-3 bg-forest-400 rounded-full border-2 border-forest animate-heartbeat" />
           )}
         </button>
       )}

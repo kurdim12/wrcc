@@ -17,8 +17,15 @@ import AIAssistant         from './components/AIAssistant.jsx';
 import ToastContainer      from './components/ToastContainer.jsx';
 import LiveBadge           from './components/LiveBadge.jsx';
 import DoseConfirmModal    from './components/DoseConfirmModal.jsx';
-import ConnectionBanner    from './components/ConnectionBanner.jsx';
+import SystemStatusStrip   from './components/SystemStatusStrip.jsx';
 import ErrorBoundary       from './components/ErrorBoundary.jsx';
+
+// Mission-control page titles (ids unchanged so routing/contracts stay intact).
+const PAGE_TITLES = {
+  overview: 'Mission Overview', palms: 'Palm Roster', alerts: 'Alerts / Incidents',
+  doses: 'Treatment Control', network: 'Orchard Nervous System',
+  spectrogram: 'Tree Stethoscope', reports: 'Evidence Locker',
+};
 
 import { useTheme }        from './hooks/useTheme.js';
 import { useToast }        from './hooks/useToast.js';
@@ -105,16 +112,16 @@ export default function App() {
   // ─────────────────────────────────────────────────────────────────────
   return (
     <div className={dark ? 'dark' : ''}>
-      <div className="min-h-screen font-sans bg-[#FAFAFA] dark:bg-[#0a0e1a] text-gray-900 dark:text-gray-100 transition-colors duration-500 relative">
-        <div className="absolute inset-0 opacity-[0.3] dark:opacity-0 pointer-events-none z-0"
-             style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+      <div className="min-h-screen font-sans bg-bone dark:bg-ink-900 text-charcoal dark:text-bone transition-colors duration-500 relative">
+        <div className="absolute inset-0 opacity-[0.25] dark:opacity-0 pointer-events-none z-0"
+             style={{ backgroundImage: 'radial-gradient(#c9c2ac 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
 
         {view === 'landing' ? (
           <div className="relative z-10">
             <LandingPage onLogin={handleLogin} dark={dark} toggleTheme={toggleTheme} />
           </div>
         ) : (
-          <div className="flex h-screen overflow-hidden text-gray-900 dark:text-gray-100 bg-[#FAFAFA] dark:bg-[#0a0e1a] relative z-10">
+          <div className="flex h-screen overflow-hidden text-charcoal dark:text-bone bg-bone dark:bg-ink-900 relative z-10">
             <Sidebar
               currentPage={page}
               setPage={setPage}
@@ -127,14 +134,15 @@ export default function App() {
             />
 
             <div className="flex-1 flex flex-col min-w-0">
-              <ConnectionBanner />
+              <SystemStatusStrip mode={sysMode.mode} />
               <Header
-                pageTitle={page === 'spectrogram' ? 'Live Spectrogram' : page}
+                pageTitle={PAGE_TITLES[page] || page}
                 onOpenSidebar={() => setSidebarOpen(true)}
                 dark={dark}
                 toggleTheme={toggleTheme}
                 alertCount={activeAlerts.length}
                 onBellClick={() => setPage('alerts')}
+                context={selectedPalm?.id}
                 rightExtras={<LiveBadge mode={sysMode.mode} size="md" />}
               />
 

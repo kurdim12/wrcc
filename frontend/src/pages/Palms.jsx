@@ -1,101 +1,111 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, Filter, Download, MoreHorizontal } from 'lucide-react';
-import Card from '../components/ui/Card.jsx';
+import { Search } from 'lucide-react';
 import { Badge, severityType } from '../components/ui/Badge.jsx';
+import { ModelCaveatBadge } from '../components/ModelCaveatBadge.jsx';
+import { useDevices } from '../hooks/useDevices.js';
+import { api } from '../api.js';
+import { onEvent } from '../socket.js';
+
+// Palm Roster — a patient roster for trees. Hybrid telemetry rows (not a plain
+// table): live risk, P(activity) + caveat, acoustic pulse, battery, signal,
+// dose-lock, last seen.
+const now = () => Math.floor(Date.now() / 1000);
+const fmtAgo = (ts) => { if (!ts) return 'never'; const d = now() - ts; return d < 60 ? `${d}s` : d < 3600 ? `${Math.floor(d / 60)}m` : d < 86400 ? `${Math.floor(d / 3600)}h` : `${Math.floor(d / 86400)}d`; };
+const riskColor = (r) => (r >= 61 ? 'text-crit' : r >= 31 ? 'text-gold' : 'text-forest-400');
 
 export const Palms = ({ palms = [], onSelectPalm }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const { devices } = useDevices();
+  const [q, setQ] = useState('');
   const [filter, setFilter] = useState('all');
+  const [latest, setLatest] = useState({});   // device_id -> latest reading
+
+  useEffect(() => {
+    const load = () => api.readingsLatest().then((rows) => {
+      setLatest(Object.fromEntries(rows.map((r) => [r.device_id, r])));
+    }).catch(() => {});
+    load();
+    const off = onEvent('live:reading', (r) => setLatest((m) => ({ ...m, [r.device_id]: { ...m[r.device_id], ...r } })));
+    const i = setInterval(load, 15000);
+    return () => { off(); clearInterval(i); };
+  }, []);
+
+  const devById = useMemo(() => new Map(devices.map((d) => [d.id, d])), [devices]);
+  const sample = useMemo(() => Object.values(latest).find((r) => r?.p_activity != null) || {}, [latest]);
 
   const filtered = useMemo(() => {
-    const q = searchTerm.toLowerCase();
-    return palms.filter(p => {
-      const matchQ = !q || p.id.toLowerCase().includes(q) || (p.classification || '').toLowerCase().includes(q);
-      const matchF = filter === 'all' || (p.classification || 'low') === filter;
-      return matchQ && matchF;
+    const s = q.toLowerCase();
+    return palms.filter((p) => {
+      const mq = !s || p.id.toLowerCase().includes(s) || (p.classification || '').toLowerCase().includes(s);
+      const mf = filter === 'all' || (p.classification || 'low') === filter;
+      return mq && mf;
     });
-  }, [palms, searchTerm, filter]);
+  }, [palms, q, filter]);
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+    <div className="space-y-4 animate-fade-in-up">
+      <div className="flex flex-col md:flex-row gap-3 justify-between items-center">
         <div className="relative w-full md:w-96">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search palm ID or status..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 dark:text-white shadow-sm"
-          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={18} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search palm ID or status…"
+            className="focus-ring w-full pl-10 pr-4 py-2.5 instrument text-charcoal dark:text-bone placeholder:text-muted" />
         </div>
-        <div className="flex gap-2 w-full md:w-auto">
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="flex-1 md:flex-none px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl text-gray-700 dark:text-gray-200 font-medium shadow-sm cursor-pointer hover:border-green-500 dark:hover:border-green-500 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            <option value="all">All</option>
-            <option value="low">Healthy</option>
-            <option value="medium">At risk</option>
-            <option value="high">Critical</option>
-          </select>
-          <a
-            href="/api/v1/reports/weekly.csv"
-            className="flex-1 md:flex-none px-4 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 flex items-center justify-center gap-2 shadow-sm"
-          >
-            <Download size={18} /> Export
-          </a>
+        <div className="flex gap-1 instrument p-1 w-full md:w-auto">
+          {[['all', 'All'], ['low', 'Healthy'], ['medium', 'Watch'], ['high', 'Critical']].map(([v, lbl]) => (
+            <button key={v} onClick={() => setFilter(v)}
+              className={`focus-ring flex-1 md:flex-none px-3 py-1.5 rounded-md text-sm font-bold transition-colors ${
+                filter === v ? 'bg-forest text-bone' : 'text-muted hover:text-charcoal dark:hover:text-bone'}`}>{lbl}</button>
+          ))}
         </div>
       </div>
 
-      <Card className="overflow-hidden border border-gray-100 dark:border-gray-800">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold">
-                <th className="p-4 md:p-6 rounded-tl-2xl">Palm ID</th>
-                <th className="p-4 md:p-6">Location</th>
-                <th className="p-4 md:p-6">Variety</th>
-                <th className="p-4 md:p-6">Status</th>
-                <th className="p-4 md:p-6">Risk Score</th>
-                <th className="p-4 md:p-6">Device</th>
-                <th className="p-4 md:p-6 rounded-tr-2xl text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {filtered.slice(0, 80).map((palm) => (
-                <tr key={palm.id} onClick={() => onSelectPalm?.(palm)} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer text-sm md:text-base">
-                  <td className="p-4 md:p-6 font-bold text-gray-900 dark:text-white">{palm.id}</td>
-                  <td className="p-4 md:p-6 text-gray-500 dark:text-gray-400">
-                    {palm.farm_id || '-'}{palm.row_idx != null ? ` · R${palm.row_idx + 1}` : ''}
-                  </td>
-                  <td className="p-4 md:p-6 text-gray-500 dark:text-gray-400">{palm.variety || '-'}</td>
-                  <td className="p-4 md:p-6">
-                    <Badge type={severityType(palm.classification || 'low')} text={palm.classification || 'low'} />
-                  </td>
-                  <td className="p-4 md:p-6 font-mono text-xs text-gray-700 dark:text-gray-300">
-                    {palm.risk_score != null ? Math.round(palm.risk_score) : '-'}
-                  </td>
-                  <td className="p-4 md:p-6 text-gray-500 dark:text-gray-400 text-xs">
-                    {palm.device_id ? <span className="font-mono">{palm.device_id}</span> : <span className="italic">unassigned</span>}
-                  </td>
-                  <td className="p-4 md:p-6 text-right">
-                    <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                      <MoreHorizontal size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* single model caveat for the whole roster (not repeated per row) */}
+      <div className="flex items-center gap-2 px-1">
+        <ModelCaveatBadge {...(sample.p_activity != null ? { modelVersion: sample.model_version, modelSource: sample.model_source, calibrated: sample.calibrated } : {})} size="xs" showInfo={false} />
+        <span className="hud-label normal-case tracking-normal text-muted">P(activity) is a proxy/heuristic activity estimate — not validated accuracy.</span>
+      </div>
+
+      {/* column header (desktop) */}
+      <div className="hidden lg:grid grid-cols-[1.4fr_0.8fr_0.7fr_1fr_0.7fr_0.6fr_0.7fr_0.7fr] gap-3 px-4 hud-label">
+        <span>Palm</span><span>Status</span><span>Risk</span><span>P(activity)</span><span>Pulse</span><span>Battery</span><span>Dose lock</span><span>Last seen</span>
+      </div>
+
+      <div className="space-y-2">
+        {filtered.slice(0, 120).map((p) => {
+          const r = latest[p.device_id] || {};
+          const dev = devById.get(p.device_id);
+          const risk = r.risk_score ?? p.risk_score ?? 0;
+          const cls = r.classification ?? p.classification ?? 'low';
+          const armed = r?.act?.armed ?? dev?.armed ?? false;
+          const fresh = (r.ts && now() - r.ts < 20) || (p.last_seen && now() - p.last_seen < 20);
+          return (
+            <button key={p.id} onClick={() => onSelectPalm?.(p)}
+              className="focus-ring w-full instrument px-4 py-3 grid grid-cols-2 lg:grid-cols-[1.4fr_0.8fr_0.7fr_1fr_0.7fr_0.6fr_0.7fr_0.7fr] gap-3 items-center text-left hover:border-forest-400/40 transition-colors">
+              <div>
+                <div className="font-bold text-charcoal dark:text-bone telemetry-num">{p.id}</div>
+                <div className="hud-label">{p.variety || 'unassigned'}{p.row_idx != null ? ` · R${p.row_idx + 1}` : ''}</div>
+              </div>
+              <div><Badge type={severityType(cls)} text={cls} /></div>
+              <div className={`telemetry-num font-bold text-lg ${riskColor(risk)}`}>{Math.round(risk)}</div>
+              <div className="flex items-center gap-1.5">
+                <span className="telemetry-num text-sm text-charcoal dark:text-bone">{r.p_activity != null ? r.p_activity.toFixed(2) : '—'}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className={`w-1.5 h-1.5 rounded-full ${fresh ? 'bg-forest-400 animate-heartbeat' : 'bg-muted/50'}`} />
+                <span className="telemetry-num text-xs text-muted">{r.ac_clk != null ? `${r.ac_clk.toFixed(0)}/s` : '—'}</span>
+              </div>
+              <div className="telemetry-num text-sm text-muted">{r.battery_pct != null ? `${r.battery_pct}%` : (dev?.battery_pct != null ? `${dev.battery_pct}%` : '—')}</div>
+              <div><span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${armed ? 'bg-forest-400/15 text-forest-400' : 'bg-muted/15 text-muted'}`}>{armed ? 'armed' : 'locked'}</span></div>
+              <div className="telemetry-num text-xs text-muted">{fmtAgo(r.ts || p.last_seen)}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="instrument p-12 text-center text-muted text-sm">
+          No palms found. Run <code className="font-mono text-forest-400">npm run seed:farm</code> (backend) to seed the demo orchard.
         </div>
-        {filtered.length === 0 && (
-          <div className="p-12 text-center text-gray-400 dark:text-gray-500">
-            No palms found. Run <code className="font-mono">python tools/seed_palms.py</code> to seed the demo grid.
-          </div>
-        )}
-      </Card>
+      )}
     </div>
   );
 };
