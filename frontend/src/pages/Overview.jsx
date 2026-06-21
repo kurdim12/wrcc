@@ -8,25 +8,11 @@ import PalmGridMap from '../components/PalmGridMap.jsx';
 import AlertList from '../components/AlertList.jsx';
 import { PalmPulseStrip } from '../components/PalmPulseStrip.jsx';
 import { PalmVitalCard } from '../components/PalmVitalCard.jsx';
+import { MissionCounter } from '../components/MissionCounter.jsx';
 import { useFarmStats } from '../hooks/useFarmStats.js';
 import { useAlerts } from '../hooks/useAlerts.js';
 import { useDevices } from '../hooks/useDevices.js';
 import { api } from '../api.js';
-
-// Mission counter — a compact telemetry tile (not a marketing KPI card).
-const Counter = ({ icon: Icon, label, value, sub, tone = 'forest' }) => {
-  const c = { forest: 'text-forest-400', crit: 'text-crit', gold: 'text-gold', muted: 'text-muted' }[tone];
-  return (
-    <div className="instrument px-4 py-3">
-      <div className="flex items-center justify-between">
-        <span className="hud-label">{label}</span>
-        <Icon size={15} className={c} />
-      </div>
-      <div className={`telemetry-num text-3xl font-bold mt-1 ${c}`}>{value}</div>
-      <div className="text-[11px] text-muted">{sub}</div>
-    </div>
-  );
-};
 
 export const Overview = ({ palms, onSelectPalm, selectedPalm, onAlertClick }) => {
   const { stats } = useFarmStats();
@@ -66,10 +52,10 @@ export const Overview = ({ palms, onSelectPalm, selectedPalm, onAlertClick }) =>
     <div className="space-y-5">
       {/* mission counters */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Counter icon={Trees} label="Palms monitored" value={stats?.totalPalms ?? 0} sub={`${stats?.totalDevices ?? 0} field nodes`} />
-        <Counter icon={Signal} label="Devices online" value={`${stats?.onlinePct ?? 0}%`} sub={`${stats?.onlineDevices ?? 0}/${stats?.totalDevices ?? 0} reporting`} tone="forest" />
-        <Counter icon={AlertTriangle} label="Critical incidents" value={stats?.criticalAlerts ?? 0} sub={`${stats?.activeAlerts ?? 0} active total`} tone={(stats?.criticalAlerts ?? 0) > 0 ? 'crit' : 'muted'} />
-        <Counter icon={ShieldCheck} label="Treatment armed" value={`${armed}`} sub={armed ? `${armed} node${armed === 1 ? '' : 's'} ready` : 'all locked'} tone={armed ? 'gold' : 'muted'} />
+        <MissionCounter icon={Trees} label="Palms monitored" value={stats?.totalPalms ?? 0} sub={`${stats?.totalDevices ?? 0} field nodes`} />
+        <MissionCounter icon={Signal} label="Devices online" value={`${stats?.onlinePct ?? 0}%`} sub={`${stats?.onlineDevices ?? 0}/${stats?.totalDevices ?? 0} reporting`} tone="forest" />
+        <MissionCounter icon={AlertTriangle} label="Critical incidents" value={stats?.criticalAlerts ?? 0} sub={`${stats?.activeAlerts ?? 0} active total`} tone={(stats?.criticalAlerts ?? 0) > 0 ? 'crit' : 'muted'} />
+        <MissionCounter icon={ShieldCheck} label="Treatment armed" value={`${armed}`} sub={armed ? `${armed} node${armed === 1 ? '' : 's'} ready` : 'all locked'} tone={armed ? 'gold' : 'muted'} />
       </div>
 
       {/* orchard at a glance */}
@@ -88,7 +74,7 @@ export const Overview = ({ palms, onSelectPalm, selectedPalm, onAlertClick }) =>
           <PalmVitalCard palm={focusPalm} />
         </div>
         <div className="xl:col-span-5">
-          <div className="hud-label mb-2">orchard live map</div>
+          <div className="hud-label mb-2">living orchard command map</div>
           <PalmGridMap palms={palms} onSelectPalm={onSelectPalm} selectedPalm={selectedPalm} height="h-[360px]" />
         </div>
         <div className="xl:col-span-3">
