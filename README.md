@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/palm-guard-logo.png" width="260" alt="Palm Guard Logo" />
+<img src="frontend/public/logo.png" width="260" alt="Palm Guard Logo" />
 
 # Palm Guard
 
