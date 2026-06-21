@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  # 19 dose-safety tests: device-side FSM gauntlet + server-side doseEngine caps.
+  safety-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22          # built-in node:sqlite, no native build
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install backend deps
+        run: npm install --no-audit --no-fund
+        working-directory: backend
+      - name: Device-side dose FSM failsafes
+        run: python3 tests/test_device_fsm.py
+      - name: Server-side dose caps (spawns a fresh backend)
+        run: python3 tests/test_server_caps.py
+
+  # Dashboard must build (catches import/JSX regressions before the demo).
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install + build
+        run: npm install --no-audit --no-fund && npm run build
+        working-directory: frontend
+
+  # ML pipeline smoke on TOY data: prepare -> train -> export -> serve loads it.
+  # (TOY DATA — not real metrics; this only proves the pipeline runs.)
+  ml-toy-smoke:
+    runs-on: ubuntu-latest
+    env:
+      TF_CPP_MIN_LOG_LEVEL: "3"
+      TF_ENABLE_ONEDNN_OPTS: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install ML deps (serve + train)
+        run: pip install tensorflow-cpu librosa soundfile scikit-learn pandas numpy fastapi "uvicorn[standard]" pydantic
+      - name: Generate toy corpus + standardize
+        working-directory: ml
+        run: |
+          python -m prepare.make_toy_corpus
+          python -m prepare.standardize --in data/raw/toy/activity --label activity --source toy
+          python -m prepare.standardize --in data/raw/toy/clean    --label clean    --source toy
+      - name: Train (TOY) + export int8 tflite
+        working-directory: ml
+        run: |
+          python -m train.train --manifest data/manifest.csv --epochs 2 --version TOY-DATA-not-real-v0
+          python -m export.export_tflite --saved export/saved_model --manifest data/manifest.csv
+          test -f export/model_int8.tflite
+      - name: serve auto-loads the trained toy model
+        working-directory: ml
+        run: |
+          python -c "import serve.app as a; assert a._model_loaded, 'toy model failed to load'; assert 'toy' in a._model_version.lower(); print('serve loaded:', a._model_version)"

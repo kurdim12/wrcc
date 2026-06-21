@@ -165,6 +165,29 @@ Honesty mandate (§2): nothing here claims a metric that wasn't measured.
   claim yet" list (no accuracy/AUC, no trained-on-RPW, no autonomy, no
   mesh/range/battery/field-tested, no fixed RPW frequency) + the safe claims.
 
+## Session 3 — demo runbook, judge Q&A, CI, single clean main
+
+- **`docs/DEMO_RUNBOOK.md`** — exact on-stage click path (pre-flight → arm →
+  `tools/demo_event.sh` scripted spike → confirm → dose → history) + a failure
+  drill mapping each failure (WiFi/socket drop, ML-service death, backend
+  restart, noisy capture, render glitch) to the fallback already built. Added
+  `tools/demo_event.sh` convenience wrapper for `POST /system/demo-event`.
+- **`docs/JUDGE_QA.md`** — 11 hard questions with honest, confident answers
+  (airborne mic vs in-trunk larvae; proxy data / no trained model; dual-cap
+  human-confirmed dosing; accuracy framing; species-ID out of scope; 16 kHz
+  rationale; solar duty cycle; what's real vs demo; edge TFLite stretch) +
+  the "MUST NOT claim" list pulled from `CLAIMS_AUDIT.md`.
+- **Report/deck edit (Task 4):** no report/deck text is in the repo (the old
+  PDFs were intentionally not carried into the rebuild), so `CLAIMS_AUDIT.md`
+  remains the editing guide — apply it to the deck when the text is available.
+- **`.github/workflows/ci.yml`** — real green check: `safety-tests` (19 dose
+  tests + backend install), `frontend-build` (vite build), `ml-toy-smoke`
+  (install ML deps → toy prepare/train/export → assert serve loads the trained
+  toy model). YAML validated; safety suite re-run green locally.
+- **NOT done (per instruction):** on-device TFLite-Micro — left as the
+  documented stretch (no hardware to validate).
+- Squash-merged PR #1 → `main` is one clean Phases 0–3 commit.
+
 ### Known limits / TODO (current)
 - **Firmware unbuilt** (no PlatformIO here): follow `docs/BENCH_BRINGUP.md` to
   validate the ~1 s mel capture timing/RAM and the pump/LED/dose paths on the
