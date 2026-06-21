@@ -6,7 +6,17 @@ let _socket = null;
 
 export const socket = () => {
   if (!_socket) {
-    _socket = io({ transports: ['websocket', 'polling'] });
+    // Auto-reconnect with backoff so a venue WiFi/socket drop recovers WITHOUT
+    // a page reload (Phase 3 resilience). These are socket.io defaults, made
+    // explicit + capped so the UI's "reconnecting" state is predictable.
+    _socket = io({
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 8000,
+    });
     if (typeof window !== 'undefined') {
       window.__pgSocket = _socket;          // handy for browser-console debugging
     }
@@ -20,6 +30,19 @@ export const onEvent = (event, handler) => {
   const s = socket();
   s.on(event, handler);
   return () => s.off(event, handler);
+};
+
+// Subscribe to live-link connection changes. Calls handler(connected:boolean)
+// immediately and on every connect/disconnect. Returns a cleanup fn.
+export const onConnection = (handler) => {
+  const s = socket();
+  const up = () => handler(true);
+  const down = () => handler(false);
+  s.on('connect', up);
+  s.on('disconnect', down);
+  s.io.on('reconnect', up);
+  handler(s.connected);
+  return () => { s.off('connect', up); s.off('disconnect', down); s.io.off('reconnect', up); };
 };
 
 // Ask backend to flip stream-mode for `deviceId` for ~60 s. Backend will tell

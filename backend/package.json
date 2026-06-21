@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node --no-warnings=ExperimentalWarning --env-file-if-exists=.env server.js",
-    "dev":   "node --no-warnings=ExperimentalWarning --env-file-if-exists=.env --watch server.js"
+    "dev":   "node --no-warnings=ExperimentalWarning --env-file-if-exists=.env --watch server.js",
+    "seed:farm": "node --no-warnings=ExperimentalWarning --env-file-if-exists=.env scripts/seedFarm.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

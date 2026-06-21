@@ -76,7 +76,7 @@ const explain = (r, mode) => {
   const parts = [];
 
   const sa = r.sa ?? 0;
-  if (sa > 60) parts.push(`acoustic ${sa.toFixed(0)} (sustained click pattern in 2-5 kHz)`);
+  if (sa > 60) parts.push(`acoustic ${sa.toFixed(0)} (sustained feeding-band activity, model)`);
   else if (sa > 30) parts.push(`acoustic ${sa.toFixed(0)} (intermittent activity)`);
 
   const sv = r.sv ?? 0;

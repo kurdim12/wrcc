@@ -10,6 +10,9 @@ bool wifi_connect() {
     Serial.printf("[wifi] connecting to '%s'\n", PG_WIFI_SSID);
     WiFi.mode(WIFI_STA);
     WiFi.setSleep(true);
+    // Let the SDK transparently reconnect after a drop (non-blocking).
+    WiFi.setAutoReconnect(true);
+    WiFi.persistent(false);
     WiFi.begin(PG_WIFI_SSID, PG_WIFI_PASSWORD);
 
     uint32_t start = millis();
@@ -25,6 +28,23 @@ bool wifi_connect() {
     Serial.printf("[wifi] connected, IP=%s, RSSI=%d\n",
                   WiFi.localIP().toString().c_str(), WiFi.RSSI());
     return true;
+}
+
+
+// Non-blocking re-sync after a WiFi drop. The main loop calls this every cycle;
+// it NEVER blocks — it just kicks WiFi.reconnect() at most once per throttle
+// window and returns immediately. The SDK does the actual reconnect in the
+// background (setAutoReconnect), so telemetry resumes on its own.
+void wifi_tick() {
+    if (strlen(PG_WIFI_SSID) == 0) return;          // serial-only build, no WiFi
+    if (WiFi.status() == WL_CONNECTED) return;
+    static uint32_t last_kick = 0;
+    const uint32_t RECONNECT_THROTTLE_MS = 10000;   // at most every 10 s
+    uint32_t nowMs = millis();
+    if (last_kick != 0 && (nowMs - last_kick) < RECONNECT_THROTTLE_MS) return;
+    last_kick = nowMs;
+    Serial.println(F("[wifi] link down - kicking non-blocking reconnect"));
+    WiFi.reconnect();                                // returns immediately
 }
 
 

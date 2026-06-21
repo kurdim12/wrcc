@@ -68,6 +68,60 @@ Honesty mandate (§2): nothing here claims a metric that wasn't measured.
   "98% accurate"), and arm/dose controls + confidence in `PalmDetailDrawer`.
   _Verified:_ `vite build` succeeds.
 
+## Session 2 — Phase 3 hardening + Tier 2 de-risking
+
+### Task 1 — Offline / flaky-network degradation ✅ (verified)
+- **Firmware:** `wifi_mgr` now enables SDK auto-reconnect and exposes a
+  non-blocking `wifi_tick()` (throttled `WiFi.reconnect()` kick, never blocks)
+  called each loop in the HTTP path — re-syncs after a venue WiFi drop. Serial
+  path is one-way and never blocks. (Code review; not flashed.)
+- **Backend:** verified **Rule 5** offline marking + auto-recover on a throwaway
+  DB: device gap → `status=offline` + active OFFLINE alert; reappearance →
+  alert auto-`resolved`. Ingestion already tolerant of gaps.
+- **Frontend:** Socket.IO auto-reconnect made explicit (infinite attempts,
+  capped backoff); `useConnectivity` (socket events + /health poll),
+  `ConnectionBanner` (amber "reconnecting" / red "backend unreachable", hides on
+  recovery — no reload), and an `ErrorBoundary` around the page area so a
+  transient bad data shape never white-screens. ML-down is already handled
+  server-side (heuristic fallback → "heuristic" badge). `vite build` clean.
+- DoD met: kill ML (fallback), kill/restart backend (banner + auto-recover),
+  drop socket (reconnecting state + auto-resume) — all without a reload.
+
+### Task 2 — Seeded believable farm + scripted demo event ✅ (verified)
+- `services/demoFarm.js`: shared 16-node roster (12 healthy / 2 elevated / 1
+  high / 1 offline) + per-intensity payload builder + level-scaled mel patch —
+  used by BOTH the seeder and the live driver so they stay consistent.
+- `scripts/seedFarm.js` (`npm run seed:farm`): direct-DB seed of palms +
+  devices + baselines (warmup done) + **~48 h backdated readings** (the high
+  node ramps — an emerging-infestation story) + a HIGH_RISK + OFFLINE alert +
+  2 past doses. Idempotent. Verified: 16 palms, 1552 readings, 3-day trend.
+- `demoMode.js` rewritten to drive the roster live (round-robin, one node per
+  600 ms, skips the offline node so Rule 5 stays demoable) with a **per-device
+  dose simulator** that closes the dose loop on stage (adopts arm, executes the
+  downlink under local failsafes, echoes the nonce).
+- `POST /api/v1/system/demo-event {device_id,cycles}` drives a scripted
+  infestation spike. Verified: a healthy node climbs to risk ~75 (high) on
+  command, and with arm+auto_confirm the dose goes pending→sent→**done** fully
+  through the demo driver. Demo banner stays (all nodes are PG-DEMO).
+- DoD met: fresh boot shows a credible live farm; the scripted event runs the
+  whole detect→fuse→alert→(armed+confirm)→dose→history pipeline on command.
+
+### Task 3 — Polish (honesty + states + legibility) ✅
+- **Honesty sweep:** removed the fabricated **"70-80% Accuracy"** landing stat
+  (and the unbuilt 500m-mesh / optimistic-battery / "24/7" stats) → replaced
+  with true, defensible ones (sensor fusion, proxy model status, human-confirmed
+  dosing, solar). Softened "Guaranteed Yield / detects larvae 3–6 months early /
+  simple and effective" to defensible early-warning copy.
+- **Spectrogram honesty:** the page hardcoded a "2-5 kHz RPW signature band" and
+  a Trigger still citing the **removed ~4.5 kHz centroid**. Reframed the overlay
+  to the ~0.5-4 kHz **feeding band (literature guide; model owns the call)**,
+  relabeled "RPW signature detected" → "High acoustic activity (model)", fixed
+  all band labels, and added a **heuristic/proxy badge** next to the
+  SA = 100·P(activity) readout. Fixed the "2-5 kHz" string in LiveAnalysis.
+- Confidence/proxy badge now appears wherever a model score shows (palm drawer +
+  spectrogram). Empty/loading states retained ("collecting…", "No doses yet").
+- `vite build` clean.
+
 ### Known limits / TODO
 - Firmware unbuilt (no PlatformIO here): bench-validate I2S timing/RAM of the
   ~1 s mel capture and the pump/LED/dose paths before the field demo.

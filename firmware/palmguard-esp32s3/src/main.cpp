@@ -203,6 +203,7 @@ void loop() {
 #endif
 
 #if PG_EMIT_HTTP
+  wifi_tick();                       // non-blocking re-sync if the link dropped
   if (wifi_is_connected()) {
     auto r = poster_send(seq, ac, vib, th, env, dose,
                          (PG_MEL_SEND && mel_valid) ? mel_patch : nullptr, batt);

@@ -144,9 +144,10 @@ const ComparisonSection = () => (
             <div className="bg-green-500/10 border border-green-500/50 px-4 py-1.5 rounded-full mb-6 backdrop-blur-md">
               <span className="text-green-400 font-mono tracking-widest text-xs font-bold uppercase">With Palm Guard</span>
             </div>
-            <h3 className="text-3xl md:text-5xl font-bold text-center mb-6 text-white tracking-tight">Guaranteed Yield</h3>
+            <h3 className="text-3xl md:text-5xl font-bold text-center mb-6 text-white tracking-tight">Protect the Yield</h3>
             <p className="text-gray-100 text-center max-w-sm text-base md:text-lg leading-relaxed font-medium">
-              AI detects larvae <span className="text-green-400 font-bold">3–6 months early</span>. Treatment is simple and effective.
+              Acoustic + multi-sensor early warning flags activity{' '}
+              <span className="text-green-400 font-bold">before crown symptoms show</span> — so treatment is targeted, not farm-wide.
             </p>
             <div className="mt-10 w-16 h-16 md:w-20 md:h-20 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
               <CheckCircle className="text-green-400 w-8 h-8 md:w-10 md:h-10" />
@@ -215,11 +216,12 @@ const StatsSection = () => (
   <section className="py-32 bg-green-900 dark:bg-[#0a0e1a] text-white relative overflow-hidden">
     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
     <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-16 text-center relative z-10">
+      {/* Honest, defensible stats only — no fabricated accuracy (§2). */}
       {[
-        { val: '70-80%', label: 'Accuracy', sub: 'Multi-sensor fusion' },
-        { val: '500m',   label: 'Range',    sub: 'Mesh Network' },
-        { val: '6-12mo', label: 'Battery',  sub: 'Solar-Ready' },
-        { val: '24/7',   label: 'Monitoring', sub: 'Live + offline' },
+        { val: '4-in-1', label: 'Sensor fusion', sub: 'Acoustic + vibration + thermal + VOC' },
+        { val: 'Proxy',  label: 'Model status',  sub: 'Validated on boring-sound proxies' },
+        { val: 'Human',  label: 'Confirmed dosing', sub: 'Armed + confirmed · hard caps' },
+        { val: 'Solar',  label: 'Self-powered',  sub: 'Duty-cycled per-tree node' },
       ].map((stat, i) => (
         <div key={i}>
           <div className="text-5xl md:text-8xl font-black mb-4 text-transparent bg-clip-text bg-gradient-to-b from-white to-green-300">

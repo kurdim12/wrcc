@@ -1,8 +1,9 @@
 // Live audio spectrogram + full sensor diagnostics for one selected device.
 //
 // The big canvas is a real frequency-domain spectrogram (time on X, frequency
-// on Y, color = energy). The 2-5 kHz Red Palm Weevil signature band is
-// outlined in red; when SA sustains >= 60 the overlay flashes a warning.
+// on Y, color = energy). The ~0.5-4 kHz feeding band (literature guide, App. B)
+// is outlined in red as a VISUAL AID — the model, not this band, makes the call.
+// When SA (=100·P(activity)) sustains >= 60 the overlay flashes a warning.
 //
 // The firmware computes a 1024-point FFT every 250 ms and ships 16 band
 // energies (`bands16`, 500 Hz wide each, covering 0 - 8 kHz).
@@ -24,8 +25,10 @@ const SPEC_WIDTH   = 800;
 const SPEC_HEIGHT  = 256;
 const NUM_BANDS    = 16;
 const BAND_HZ      = 500;
-const RPW_BAND_LO  = 4;          // 2 kHz
-const RPW_BAND_HI  = 10;         // 5 kHz
+// Feeding band per literature (~0.5-4 kHz, Appendix B), shown as a GUIDE only —
+// the trained model owns the actual spectral decision, not this fixed band.
+const RPW_BAND_LO  = 1;          // 0.5 kHz
+const RPW_BAND_HI  = 8;          // 4 kHz
 
 const dbToFraction = (db) => {
   if (db == null) return 0;
@@ -142,15 +145,15 @@ const Spectrogram = ({ specQueueRef, alertActive }) => {
       <div className="absolute right-2 top-1 text-[10px] font-mono text-white/70 bg-black/60 backdrop-blur px-1.5 py-0.5 rounded">8 kHz</div>
       <div className="absolute right-2 bottom-1 text-[10px] font-mono text-white/70 bg-black/60 backdrop-blur px-1.5 py-0.5 rounded">0 Hz</div>
       <div className="absolute right-2 text-[10px] font-mono font-bold text-red-300 bg-red-500/40 backdrop-blur px-1.5 py-0.5 rounded"
-           style={{ top: `${rpwTopPct * 100 - 0.5}%` }}>5 kHz</div>
+           style={{ top: `${rpwTopPct * 100 - 0.5}%` }}>4 kHz</div>
       <div className="absolute right-2 text-[10px] font-mono font-bold text-red-300 bg-red-500/40 backdrop-blur px-1.5 py-0.5 rounded"
-           style={{ top: `${rpwBottomPct * 100}%`, transform: 'translateY(-100%)' }}>2 kHz · RPW band</div>
+           style={{ top: `${rpwBottomPct * 100}%`, transform: 'translateY(-100%)' }}>0.5 kHz · feeding band</div>
       <div className="absolute left-2 top-1 text-[10px] font-mono text-white/70 bg-black/60 backdrop-blur px-1.5 py-0.5 rounded">freq ↑</div>
       <div className="absolute left-2 bottom-1 text-[10px] font-mono text-white/70 bg-black/60 backdrop-blur px-1.5 py-0.5 rounded">newest →</div>
 
       {alertActive && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full flex items-center gap-2 shadow-2xl shadow-red-500/50 animate-pulse">
-          <AlertTriangle size={14} /> RPW signature detected
+          <AlertTriangle size={14} /> High acoustic activity (model)
         </div>
       )}
     </div>
@@ -319,7 +322,7 @@ export const LiveSpectrogram = () => {
               <AudioLines className="text-emerald-500" /> Live Audio Spectrogram
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              INMP441 · 1024-pt FFT · 16 bands × 500 Hz · 4 Hz refresh · 2-5 kHz RPW signature outlined
+              INMP441 · 1024-pt FFT · 16 bands × 500 Hz · 4 Hz refresh · ~0.5-4 kHz feeding band (literature guide; model owns the call)
             </p>
           </div>
 
@@ -349,14 +352,27 @@ export const LiveSpectrogram = () => {
           <div className="flex flex-col items-center gap-4 lg:w-48 shrink-0">
             <VuMeter rmsDb={rmsDb} />
             <div className="text-center">
-              <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Acoustic risk</div>
+              <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Acoustic activity</div>
               <div className={`text-3xl font-black ${
                 (latest?.sa ?? 0) >= 61 ? 'text-red-500' :
                 (latest?.sa ?? 0) >= 31 ? 'text-orange-500' : 'text-emerald-500'
               }`}>
-                {latest?.sa != null ? Math.round(latest.sa) : '–'}
+                {latest?.p_activity != null ? `P=${Number(latest.p_activity).toFixed(2)}`
+                  : latest?.sa != null ? `P=${(latest.sa / 100).toFixed(2)}` : '–'}
               </div>
-              <div className="text-[9px] uppercase tracking-widest text-gray-400">SA / 100</div>
+              <div className="text-[9px] uppercase tracking-widest text-gray-400">SA = 100·P(activity)</div>
+              {(() => {
+                const heuristic = !latest?.model_version || String(latest.model_version).startsWith('heuristic')
+                  || latest.model_version === 'fallback' || latest.model_source === 'fallback' || latest.model_source === 'heuristic';
+                return (
+                  <div className={`mt-1 inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                    heuristic ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'}`}
+                    title="Airborne mic; proxy-validated. A probability, not a certified accuracy.">
+                    {heuristic ? 'heuristic' : 'proxy-validated'}
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
@@ -365,7 +381,7 @@ export const LiveSpectrogram = () => {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Current spectrum (instant)</div>
-                <div className="text-[10px] text-gray-500 dark:text-gray-400">x = kHz · highlighted = RPW band</div>
+                <div className="text-[10px] text-gray-500 dark:text-gray-400">x = kHz · highlighted = feeding band (~0.5-4 kHz)</div>
               </div>
               <SpectrumBars bands={latest?.bands16} alertActive={rpwAlert} />
             </div>
@@ -394,12 +410,12 @@ export const LiveSpectrogram = () => {
                    detail="Dark purple = quiet (≤ -70 dBFS), green/yellow = moderate, bright yellow = loud (≥ -20 dBFS). Each row spans 500 Hz." />
           <Trigger title="VU meter"
                    detail="Pulses with broadband loudness (RMS dBFS). Voice, knock, breath, anything above ~-70 dBFS lights it up." />
-          <Trigger title="RPW signature band (2-5 kHz)"
-                   detail="The red-outlined band on the spectrogram. Sustained energy here for ≥ 3 readings (~0.75 s) flashes the red 'RPW signature detected' alert." />
+          <Trigger title="Feeding band (~0.5-4 kHz)"
+                   detail="The red-outlined band is a literature GUIDE (Appendix B) for where larval boring/feeding energy tends to sit. It does NOT itself decide — the model does. Sustained high activity flashes the overlay." />
           <Trigger title="Sustained click pattern"
-                   detail="When mid-band (2-8 kHz) energy stays high relative to low band, click_rate goes up and SA score increases. Talking ≈ 10-20, knocking ≈ 30-50, sustained tone or scratching = 60+." />
-          <Trigger title="Risk score (SA part)"
-                   detail="Combines band-power ratio + click rate + spectral peakiness + centroid match (~4.5 kHz). When SA reaches 60 for 3 readings, the dashboard treats it as RPW signature." />
+                   detail="Boring/feeding shows up as repeated transients (clicks) plus mid-band energy. Reliable mainly in quiet/close/night conditions — an airborne mic, not a guaranteed in-trunk detector." />
+          <Trigger title="Acoustic score SA = 100·P(activity)"
+                   detail="P(activity) comes from the ML scorer on a 40×32 log-mel patch — currently a proxy/heuristic baseline (see badge), NOT a certified accuracy. The hardcoded ~4.5 kHz centroid assumption was removed; the model owns the spectral decision." />
         </div>
       </Card>
 

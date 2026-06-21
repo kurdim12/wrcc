@@ -17,6 +17,8 @@ import AIAssistant         from './components/AIAssistant.jsx';
 import ToastContainer      from './components/ToastContainer.jsx';
 import LiveBadge           from './components/LiveBadge.jsx';
 import DoseConfirmModal    from './components/DoseConfirmModal.jsx';
+import ConnectionBanner    from './components/ConnectionBanner.jsx';
+import ErrorBoundary       from './components/ErrorBoundary.jsx';
 
 import { useTheme }        from './hooks/useTheme.js';
 import { useToast }        from './hooks/useToast.js';
@@ -125,6 +127,7 @@ export default function App() {
             />
 
             <div className="flex-1 flex flex-col min-w-0">
+              <ConnectionBanner />
               <Header
                 pageTitle={page === 'spectrogram' ? 'Live Spectrogram' : page}
                 onOpenSidebar={() => setSidebarOpen(true)}
@@ -136,13 +139,15 @@ export default function App() {
               />
 
               <main className="flex-1 overflow-y-auto p-4 md:p-6 xl:p-8 max-w-[1800px] mx-auto w-full">
-                {page === 'overview'    && <Overview palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} onAlertClick={handleAlertClick} onGotoAlerts={() => setPage('alerts')} sysMode={sysMode} />}
-                {page === 'palms'       && <Palms palms={palms} onSelectPalm={setSelected} />}
-                {page === 'alerts'      && <Alerts onAlertClick={handleAlertClick} showToast={addToast} />}
-                {page === 'doses'       && <Doses showToast={addToast} />}
-                {page === 'network'     && <Network palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} />}
-                {page === 'reports'     && <Reports showToast={addToast} />}
-                {page === 'spectrogram' && <LiveSpectrogram />}
+                <ErrorBoundary>
+                  {page === 'overview'    && <Overview palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} onAlertClick={handleAlertClick} onGotoAlerts={() => setPage('alerts')} sysMode={sysMode} />}
+                  {page === 'palms'       && <Palms palms={palms} onSelectPalm={setSelected} />}
+                  {page === 'alerts'      && <Alerts onAlertClick={handleAlertClick} showToast={addToast} />}
+                  {page === 'doses'       && <Doses showToast={addToast} />}
+                  {page === 'network'     && <Network palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} />}
+                  {page === 'reports'     && <Reports showToast={addToast} />}
+                  {page === 'spectrogram' && <LiveSpectrogram />}
+                </ErrorBoundary>
               </main>
             </div>
 
