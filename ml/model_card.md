@@ -1,5 +1,13 @@
 # Model Card — Palm Guard acoustic activity detector
 
+> **Honesty summary.** Once populated, every number in this card is a **proxy
+> metric** — measured on a **grouped** (recording-level) held-out split of open
+> proxy corpora (ASPID activity/clean + ESC-50 noise augmentation) — **not "RPW
+> accuracy."** No airborne real-RPW audio is used in training or evaluation.
+> Real-RPW INMP441 field validation is the next step, not something these numbers
+> establish. *Status: not yet populated — serving currently runs the heuristic
+> baseline.*
+
 **Task:** binary, acoustic-primary — `activity` (boring/feeding present) vs
 `clean` (no insect activity) from a ~1 s window → `p_activity ∈ [0,1]`.
 Species ID is explicitly **out of scope** for v1 (we don't have labelled RPW
@@ -35,15 +43,33 @@ held-out set and writes `eval_report/metrics.json`.
 - **Operating point favors precision** — a false dose is costly (it pesticides a
   healthy palm). Dosing is human-armed + confirmed regardless (§3).
 
-## Data (to be recorded here after training)
+## Data (proxy corpora — fill from the run)
 
 | split | source(s) | recordings | clips | activity:clean |
 |-------|-----------|-----------:|------:|---------------:|
-| train | _tbd_ | | | |
-| val   | _tbd_ | | | |
-| test  | _tbd_ | | | |
+| train | ASPID (proxy) | `__` | `__` | `__:__` |
+| val   | ASPID (proxy) | `__` | `__` | `__:__` |
+| test  | ASPID (proxy) | `__` | `__` | `__:__` |
 
-Splits are grouped by `recording_id` (no clip from one recording in two splits).
+Splits grouped by `recording_id` (no clip from one recording in two splits).
+ESC-50 is mixed in as **noise augmentation only** (CC BY-NC — non-commercial).
+
+**`clean` class composition depends on `--negative-policy`:**
+- `clean` (default): quiet-palm controls **plus** non-insect distractors
+  (e.g. "Talking", "Sweep") folded in as hard negatives — chosen to buy field
+  precision against daytime-farm noise.
+- `drop`: `clean` = quiet controls only; distractors excluded.
+
+Document which policy this run used (in Run provenance below) — it changes what
+`clean` means.
+
+### Data sources & licenses
+
+| Corpus | Role | License | Note |
+|--------|------|---------|------|
+| ASPID / SPIDB | primary proxy (activity vs clean) | MIT | commercial-OK |
+| InsectSound1000 | (pretrain — **not used**, no clean class) | **Unknown** | resolve at JKI/OpenAgrar `10.5073/20231024-173119-0` before any commercial framing — not the Kaggle page |
+| ESC-50 | noise augmentation only | **CC BY-NC** | non-commercial — fine for WRCC, flag for product |
 
 ## Features
 
@@ -52,11 +78,80 @@ fmax=8000`, per-clip mean-var normalization. Identical filterbank in
 `ml/features/melspec.py` and `firmware/.../acoustic.cpp` (and mirrored in
 `config.h`). See `ml/features/params.py`.
 
-## Metrics (populated by `train.py` on the grouped test set)
+## Metrics (proxy — populated by `train.py` on the grouped test set)
 
-_None yet._ When trained, report: ROC-AUC, PR-AUC, confusion matrix,
-precision/recall/F1 at the chosen threshold, and a **per-SNR breakdown** — all
-on the held-out grouped test set, all labelled **proxy**.
+> **All numbers below are PROXY metrics**, measured on a held-out **grouped**
+> (recording-level) test split of open proxy corpora (ASPID activity/clean +
+> ESC-50 noise augmentation). They are **NOT** "RPW accuracy." No airborne
+> real-RPW audio was used in training or evaluation. Real-RPW field validation
+> on INMP441 hardware is the next step, not something these numbers establish.
+>
+> Status: ⬜ not yet populated — fill only from `eval_report/metrics.json`.
+
+### Run provenance (fill from the training run)
+
+| Field | Value |
+|-------|-------|
+| Model version | `__________` (e.g. `cnn-aspid-v1`) |
+| Trained on | ASPID (proxy) — activity vs clean |
+| Pretrain | **skipped** — InsectSound1000 has no clean/silence class (no fabricated negative) |
+| Noise augmentation | ESC-50 `audio/` via `--esc50` (CC BY-NC — augmentation only) |
+| `--negative-policy` | `__________` (`clean` = distractors folded in as hard negatives / `drop`) |
+| Split | grouped by `recording_id` (no recording in two splits) |
+| Threshold (chosen) | `__________` (precision-favoring — see below) |
+| Eval source file | `eval_report/metrics.json` |
+
+### Headline (proxy) metrics
+
+| Metric (proxy) | Value |
+|----------------|------:|
+| ROC-AUC | `____` |
+| PR-AUC | `____` |
+| Precision @ chosen threshold | `____` |
+| Recall @ chosen threshold | `____` |
+| F1 @ chosen threshold | `____` |
+
+### Confusion matrix @ chosen threshold (proxy, grouped test)
+
+|              | pred clean | pred activity |
+|--------------|-----------:|--------------:|
+| **true clean**    | `____` (TN) | `____` (FP) |
+| **true activity** | `____` (FN) | `____` (TP) |
+
+### Threshold selection (precision-favoring)
+
+A false positive triggers a pesticide micro-dose on a healthy palm, so the
+operating point is chosen to **favor precision** off the proxy PR curve.
+
+- Target precision: `____` (state the precision floor aimed for)
+- Resulting recall: `____` (the recall cost paid for that precision)
+- Chosen threshold: `____`
+- Rationale: false-dose asymmetry — a false positive pesticides a healthy tree;
+  a false negative is recoverable on the next listening window. Dosing is also
+  human-armed + human-confirmed regardless (§3), so the model is one gate, not
+  the trigger.
+
+### Per-noise-condition breakdown (proxy, support-gated)
+
+> Axis is **noise condition** (ASPID's categorical `noise` column), **not a
+> measured SNR/dB**. Calling it SNR would overclaim. A row is reported only if
+> it clears the support floor in the grouped test split; sparser conditions are
+> collapsed into **`other`**. `n_recordings` / `n_clips` shown so support is
+> visible and a low-n row is never mistaken for a stable metric.
+
+**Support floor (lock from real post-split counts):** ≥ `__` distinct
+recordings AND ≥ `__` test clips. (Starting proposal: ≥6–8 recordings, ≥50
+clips — confirm against the `--inspect` distribution and post-split counts.)
+
+| Noise condition | n_recordings | n_clips | ROC-AUC | PR-AUC | Precision | Recall | F1 |
+|-----------------|-------------:|--------:|--------:|-------:|----------:|-------:|---:|
+| silence         | `__` | `__` | `__` | `__` | `__` | `__` | `__` |
+| `__________`    | `__` | `__` | `__` | `__` | `__` | `__` | `__` |
+| `__________`    | `__` | `__` | `__` | `__` | `__` | `__` | `__` |
+| **other (folded < floor)** | `__` | `__` | `__` | `__` | `__` | `__` | `__` |
+
+_All rows: proxy metrics on the grouped held-out test set. Conditions below the
+support floor are folded into `other` rather than reported as standalone rows._
 
 ## Pipeline smoke-test on TOY data (Tier 2 / Task 5)
 
