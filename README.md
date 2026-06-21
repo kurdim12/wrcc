@@ -23,7 +23,7 @@
 ---
 
 <p align="center">
-  <img src="frontend/public/device-render.png" width="100%" alt="Palm Guard device mounted on a date-palm trunk" />
+  <img src="device-render.png" width="100%" alt="Palm Guard device mounted on a date-palm trunk" />
 </p>
 
 ## The Product
