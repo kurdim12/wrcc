@@ -51,7 +51,7 @@ train on proxies/limited data and state the limits).
 | Dataset | What it is | Modality | Signal / species | Size | Rate | Noise? | Open? | Fit |
 |---|---|---|---|---|---|---|---|---|
 | **ASPID / SPIDB** | Acoustic Stored Product Insect DB | **Contact piezo** (+ mic for noise ref) | Boring/feeding: cowpea beetle, confused flour beetle, mealworm/darkling | ~37 h · **106 GB** | audio-band | **Yes** (natural + artificial) | **Kaggle · MIT** | ★★★★ primary (metadata-labeled) |
-| **InsectSound1000** | JKI greenhouse insect sounds | **Airborne mic** (4-ch, anechoic) | 12 insects, **all positives — no clean class** | 166k files / ~100 GB | **16 kHz** | No (anechoic) | Kaggle · *Unknown* | ✗ pretrain skipped (no negatives) |
+| **InsectSound1000** | JKI greenhouse insect sounds | **Airborne mic** (4-ch, anechoic) | 12 insects, **all positives — no clean class** | 166k files / ~91 GB | **16 kHz** | No (anechoic) | DOI · **CC BY 4.0** | ✗ pretrain skipped (no negatives) |
 | **ESC-50** | Environmental sound | n/a (ambient) | wind, rain, birds, insects, etc. | 2k clips | 44.1 kHz | — | **GitHub** | ★★★ augmentation |
 | **TreeVibes** | Wood-borer monitoring | Contact probe | Longicorn borer + *S. oryzae* in grain | moderate | audio-band | some | paper-linked | ★★ optional borer proxy |
 | **KAUST RPW DL set** | Real RPW, Al-Ahssa palms | Contact probe (waveguide) | **Real RPW**, 531/575 | ~1,100 clips | 20 s | wind variants | **on request** | ★★★ validation target only |
@@ -65,14 +65,22 @@ train on proxies/limited data and state the limits).
 - KAUST RPW paper (request data) — https://arxiv.org/abs/2308.15829
 - Mankin/King Saud RPW acoustic work (request data) — https://doi.org/10.3390/insects14040339
 
-> **Licenses + sizes (verified):**
-> - **ASPID / SPIDB — MIT** (commercial OK). **~106 GB**, ~12.9k files; labels are
->   **metadata-driven** via `aspids_log.csv` (`target` → activity/clean,
->   `noise` → snr), NOT folders → use `ml/prepare/aspid_prepare.py`.
-> - **InsectSound1000 — license "Unknown" on Kaggle** (the Sci Data paper is
->   open-access; confirm the data licence at the JKI/OpenAgrar source before any
->   commercial framing). **~95–106 GB**, 165,982 files, 4-ch/16 kHz/32-bit.
->   **It has NO silence/clean class** (12 insect species, all positives).
+> **Licenses + sizes (verified — browser re-check 2026-06):**
+> - **ASPID / SPIDB — MIT** (commercial OK). **106.32 GB**, ~12.9k files; slug
+>   `dkadyrov/stored-product-insect-database-spidb-aspids`. Labels are
+>   **metadata-driven** via `aspids/aspids_log.csv` — header
+>   `start,end,target,material,description,noise` — NOT folders → use
+>   `ml/prepare/aspid_prepare.py`. **Provisional** vocab from the Kaggle preview
+>   (authoritative confirmation is `--inspect` on the real CSV): `target` ∈
+>   {species…, `No Insects (Unconfirmed)`→clean, `Talking`/`Sweep`→non-insect
+>   distractors}; `noise` ∈ {Silence, Noise, Helicopter, Footsteps, Clap,
+>   Conversation, Airplane, Lawn Mowers} → `snr_condition` (a categorical
+>   **noise condition**, not a measured SNR).
+> - **InsectSound1000 — CC BY 4.0** (resolved at the OpenAgrar DOI
+>   `10.5073/20231024-173119-0`; the Kaggle "Unknown" was a mirror gap, not the
+>   real licence). `InsectSound1000.zip`, **90.78 GB**, 4-ch/16 kHz/32-bit.
+>   **Still NOT used** — NO silence/clean class (12 insect species, all
+>   positives), and fabricating a negative would break the no-fabrication rule.
 > - **ESC-50 — CC BY-NC** (non-commercial — fine for WRCC, flag for a product;
 >   the ESC-10 subset is CC BY). Augmentation only.
 > All usable for the competition (research/educational).

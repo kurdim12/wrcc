@@ -225,9 +225,11 @@ Honesty mandate (§2): nothing here claims a metric that wasn't measured.
   noise→`snr_condition`, reuses `standardize.py` resample/window, groups by source
   file. Smoke-tested on a synthetic ASPID fixture (target→label + noise→snr verified).
 - Fixed README `aspid/infested` inconsistency → adapter flow.
-- **Branch note:** `DATASET_SELECTION.md` + `train.py --init-from` live on
-  `claude/elegant-keller-aurxdw`, **not yet on `main`** (Session 4/5 landed after
-  the PR #1 squash-merge) — which is why a `main` clone didn't show them.
+- **Branch note (RESOLVED):** `DATASET_SELECTION.md` + `train.py --init-from`
+  (and the Living-Telemetry redesign) were merged to `main` in `5507f80`; the
+  later ML/docs tooling (label-mapping fix, model-card scaffold, `manifest_to_db`,
+  Path-A + Windows runbooks, license resolution) was merged in the follow-up
+  merge. A `main` clone now shows the full project — no branch gap.
 - Still cannot train the real model here (network = GitHub/PyPI/npm only; no
   Kaggle; ~106 GB; ephemeral, no GPU). Compute runs on the user's box (path A) or
   a small uploaded INMP441 set (path B).
