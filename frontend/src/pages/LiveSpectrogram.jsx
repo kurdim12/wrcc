@@ -362,14 +362,18 @@ export const LiveSpectrogram = () => {
               </div>
               <div className="text-[9px] uppercase tracking-widest text-gray-400">SA = 100·P(activity)</div>
               {(() => {
-                const heuristic = !latest?.model_version || String(latest.model_version).startsWith('heuristic')
-                  || latest.model_version === 'fallback' || latest.model_source === 'fallback' || latest.model_source === 'heuristic';
+                const ver = String(latest?.model_version || '');
+                const isToy = /toy/i.test(ver);
+                const heuristic = !ver || ver.startsWith('heuristic')
+                  || ver === 'fallback' || latest?.model_source === 'fallback' || latest?.model_source === 'heuristic';
+                const label = isToy ? 'TOY — not real' : heuristic ? 'heuristic' : 'proxy-validated';
+                const color = isToy ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300'
+                  : heuristic ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300';
                 return (
-                  <div className={`mt-1 inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                    heuristic ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'}`}
+                  <div className={`mt-1 inline-block px-2 py-0.5 rounded-full text-[9px] font-bold ${color}`}
                     title="Airborne mic; proxy-validated. A probability, not a certified accuracy.">
-                    {heuristic ? 'heuristic' : 'proxy-validated'}
+                    {label}
                   </div>
                 );
               })()}

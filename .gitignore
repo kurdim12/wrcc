@@ -35,11 +35,16 @@ __pycache__/
 venv/
 ml/.venv/
 
-# ML data + trained artifacts (large / regenerable; never commit corpora)
+# ML data + trained artifacts (large / regenerable; never commit corpora or
+# training outputs — including TOY runs, which must never look like real metrics)
 ml/data/
 ml/eval_report/*.png
+ml/eval_report/*.json
 ml/export/saved_model/
 ml/export/*.tflite
+ml/export/*.keras
+ml/export/model_version.txt
+ml/export/calibration.json
 *.wav
 
 # OS / editor

@@ -224,6 +224,7 @@ class DoseSim:
         self.armed = False
         self.doses_today = 0
         self.last_dose_s = 0
+        self.has_dosed = False        # explicit "never dosed" flag (uptime second 0 is valid)
         self.last_nonce = 0
         self.start = time.time()
         if cooldown_s is not None:
@@ -255,13 +256,14 @@ class DoseSim:
             print(f"  [dose] REJECT: pump_ms {pump_ms} out of range"); return
         if nonce != 0 and nonce == self.last_nonce:
             print(f"  [dose] REJECT: replayed nonce {nonce}"); return
-        if self.last_dose_s and (now - self.last_dose_s) < self.COOLDOWN_S:
+        if self.has_dosed and (now - self.last_dose_s) < self.COOLDOWN_S:
             print("  [dose] REJECT: cooldown"); return
         if self.doses_today >= self.MAX_PER_DAY:
             print("  [dose] REJECT: daily cap"); return
         # Execute (simulated pump-on).
         print(f"  [dose] *** DOSING {pump_ms} ms (nonce={nonce}) ***")
         self.last_dose_s = now
+        self.has_dosed = True
         self.last_nonce = nonce
         self.doses_today += 1
 

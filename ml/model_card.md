@@ -58,6 +58,22 @@ _None yet._ When trained, report: ROC-AUC, PR-AUC, confusion matrix,
 precision/recall/F1 at the chosen threshold, and a **per-SNR breakdown** — all
 on the held-out grouped test set, all labelled **proxy**.
 
+## Pipeline smoke-test on TOY data (Tier 2 / Task 5)
+
+The full `prepare → features → train → export → serve` path has been run
+end-to-end on a **tiny synthetic corpus** (`ml/prepare/make_toy_corpus.py`):
+obviously-fake tone-burst "activity" vs noise "clean" WAVs. This produced
+`export/model.keras`, a SavedModel, and `export/model_int8.tflite`, and the
+serving service auto-loaded the trained model (`/health` → `model_loaded:true`,
+`model_version:"TOY-DATA-not-real-v0"`, `calibrated:false`) with `/score`
+returning from it.
+
+> ⚠️ **TOY DATA — NOT REAL METRICS.** This only proves the pipeline runs; any
+> number from it is meaningless and is labelled TOY everywhere (the UI badge,
+> `eval_report/metrics.json` note, and `model_version`). All toy artifacts are
+> gitignored/regenerable. Real corpora (`prepare/DATASETS.md`) + your own
+> INMP441 clips are the drop-in replacement — same commands, real numbers.
+
 ## Highest-value next step (§9.10)
 
 Record **your own INMP441 clips** (palm log + mic, controlled activity if

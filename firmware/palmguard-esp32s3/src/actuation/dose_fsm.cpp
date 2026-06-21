@@ -8,7 +8,8 @@ namespace {
 DoseState state        = DS_IDLE;
 bool      armed        = false;
 uint8_t   doses_today  = 0;
-uint32_t  last_dose_s  = 0;       // 0 = never
+uint32_t  last_dose_s  = 0;       // device-uptime seconds of last dose
+bool      has_dosed    = false;   // explicit "never dosed" flag (uptime 0 is valid)
 uint32_t  last_nonce   = 0;       // anti-replay: most recent executed nonce
 uint32_t  day_start_s  = 0;       // rolling-24h window anchor
 
@@ -74,7 +75,7 @@ DoseResult dose_handle_cmd(bool has_cmd, uint32_t pump_ms, uint32_t nonce, uint3
   if (physical_disarmed() && armed) dose_set_armed(false);
 
   // Drop out of COOLDOWN back to ARMED/IDLE once the window elapses.
-  if (state == DS_COOLDOWN && (now_s - last_dose_s) >= (uint32_t)PG_DOSE_COOLDOWN_S) {
+  if (state == DS_COOLDOWN && has_dosed && (now_s - last_dose_s) >= (uint32_t)PG_DOSE_COOLDOWN_S) {
     state = armed ? DS_ARMED : DS_IDLE;
     led_set(armed ? LED_ARMED : LED_IDLE);
   }
@@ -94,7 +95,7 @@ DoseResult dose_handle_cmd(bool has_cmd, uint32_t pump_ms, uint32_t nonce, uint3
     Serial.printf("[dose] REJECT cmd: replayed nonce %u\n", nonce);
     return DOSE_REJ_REPLAY;
   }
-  if (last_dose_s != 0 && (now_s - last_dose_s) < (uint32_t)PG_DOSE_COOLDOWN_S) {
+  if (has_dosed && (now_s - last_dose_s) < (uint32_t)PG_DOSE_COOLDOWN_S) {
     Serial.printf("[dose] REJECT cmd: cooldown (%us since last)\n", now_s - last_dose_s);
     return DOSE_REJ_COOLDOWN;
   }
@@ -112,6 +113,7 @@ DoseResult dose_handle_cmd(bool has_cmd, uint32_t pump_ms, uint32_t nonce, uint3
 
   // Commit dose bookkeeping (this nonce is now spent — anti-replay).
   last_dose_s = now_s;
+  has_dosed   = true;
   last_nonce  = nonce;
   doses_today++;
   state = DS_COOLDOWN;

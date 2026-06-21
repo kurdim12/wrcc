@@ -103,6 +103,8 @@ def main() -> int:
     ap.add_argument("--batch", type=int, default=32)
     ap.add_argument("--threshold", type=float, default=0.5, help="operating point (favor precision)")
     ap.add_argument("--out", default="export/saved_model")
+    ap.add_argument("--version", default="cnn-proxy-v1",
+                    help="model_version label (use a TOY-* label for toy-data runs)")
     args = ap.parse_args()
 
     import tensorflow as tf
@@ -147,23 +149,30 @@ def main() -> int:
             per_snr[str(snr)] = {"n": int(m.sum()),
                                  "roc_auc": float(roc_auc_score(Yte[m], probs[m]))}
 
+    is_toy = "toy" in args.version.lower()
     rep = Path("eval_report"); rep.mkdir(exist_ok=True)
     metrics = {
+        "model_version": args.version,
         "n_test": int(len(Yte)), "threshold": args.threshold,
         "roc_auc": roc, "pr_auc": pr,
         "precision": float(pr_), "recall": float(rc_), "f1": float(f1_),
         "confusion_matrix": cm, "per_snr": per_snr,
-        "note": "Proxy-validated metrics (§2/§9.2): trained largely on proxy "
-                "boring/feeding corpora, not real airborne RPW. Label as proxy.",
+        "note": ("TOY DATA — NOT REAL METRICS. Synthetic smoke-test of the "
+                 "pipeline only; these numbers are meaningless." if is_toy else
+                 "Proxy-validated metrics (§2/§9.2): trained largely on proxy "
+                 "boring/feeding corpora, not real airborne RPW. Label as proxy."),
     }
     (rep / "metrics.json").write_text(json.dumps(metrics, indent=2))
     print("[eval]", json.dumps(metrics, indent=2))
 
-    # Export SavedModel + version sidecar
+    # Export both formats (Keras 3): native .keras for serving (full model,
+    # supports .predict) + a SavedModel dir for TFLite int8 conversion.
     out = Path(args.out); out.parent.mkdir(parents=True, exist_ok=True)
-    model.save(str(out))
-    Path("export/model_version.txt").write_text("cnn-proxy-v1")
-    print(f"[export] saved -> {out}  (run export/export_tflite.py for the int8 build)")
+    keras_path = out.parent / "model.keras"
+    model.save(str(keras_path))          # native Keras (served by ml/serve)
+    model.export(str(out))               # SavedModel dir (for export_tflite.py)
+    Path("export/model_version.txt").write_text(args.version)
+    print(f"[export] saved -> {keras_path} (serve) + {out} (SavedModel for TFLite)")
     return 0
 
 

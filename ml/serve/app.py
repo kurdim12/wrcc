@@ -42,9 +42,12 @@ _model_loaded = False
 
 def _try_load_model() -> None:
     global _model, _model_version, _calibrated, _model_loaded
-    model_path = os.environ.get("PG_MODEL_PATH", "export/saved_model")
-    p = Path(model_path)
-    if not p.exists():
+    # Prefer the native .keras model (full model, supports .predict). PG_MODEL_PATH
+    # overrides. Falls back to the heuristic if nothing loadable is present.
+    override = os.environ.get("PG_MODEL_PATH")
+    candidates = [override] if override else ["export/model.keras", "export/saved_model"]
+    p = next((Path(c) for c in candidates if c and Path(c).exists()), None)
+    if p is None:
         return
     try:
         import tensorflow as tf  # noqa: heavy, only when a model is present
@@ -54,7 +57,7 @@ def _try_load_model() -> None:
         cal = Path("export/calibration.json")
         _calibrated = cal.exists()
         _model_loaded = True
-        print(f"[ml] loaded model {_model_version} (calibrated={_calibrated})")
+        print(f"[ml] loaded model {_model_version} (calibrated={_calibrated}) from {p}")
     except Exception as e:  # pragma: no cover - depends on local TF install
         print(f"[ml] model present but failed to load ({e}); using heuristic")
 

@@ -122,10 +122,55 @@ Honesty mandate (§2): nothing here claims a metric that wasn't measured.
   spectrogram). Empty/loading states retained ("collecting…", "No doses yet").
 - `vite build` clean.
 
-### Known limits / TODO
-- Firmware unbuilt (no PlatformIO here): bench-validate I2S timing/RAM of the
-  ~1 s mel capture and the pump/LED/dose paths before the field demo.
-- No trained model: record own INMP441 clips (§9.10), run `train.py`, fill
-  `model_card.md` with real **proxy** metrics; then `serve` auto-loads it.
-- Phase 3 polish (offline-degradation pass, seeded believable farm) and Phase 4
-  (report alignment, judge Q&A rehearsal, on-device TFLite stretch) outstanding.
+### Task 4 — Prove the safety logic without flashing ✅ (tests pass)
+- `tests/test_device_fsm.py` (7 pass): device-side gauntlet via `DoseSim` (the
+  host port of `dose_fsm.cpp`) — disarmed, pump_ms≤MAX, cooldown, daily-cap,
+  anti-replay, pump_ms==0 each block.
+- `tests/test_server_caps.py` (12 pass): spawns a fresh backend (temp DB+port,
+  ML in fallback) and asserts the server doseEngine independently enforces:
+  disarmed → no pending; armed+sustained → pending → confirm → sent+nonce →
+  downlink within hard cap; device ack → done; cooldown → no new pending;
+  no-resend of a completed dose; pump_ms>3000 rejected; confirm-while-disarmed
+  rejected. → BOTH guards proven independently (§3).
+- **Bug found + fixed by the tests:** cooldown used `last_dose_s != 0` as the
+  "never dosed" sentinel, which collides with a real dose at uptime second 0.
+  Fixed with an explicit `has_dosed` flag in BOTH `DoseSim` and the firmware
+  `dose_fsm.cpp`.
+- `tests/run_all.sh` runner + `tests/README.md`.
+
+### Task 5 — Prove the ML path on toy data ✅ (verified)
+- `ml/prepare/make_toy_corpus.py`: 10 activity (tone bursts + clicks) + 10 clean
+  (noise) synthetic WAVs (stdlib `wave`, clearly fake).
+- Ran the REAL pipeline: `standardize` → 80 grouped clips → `train.train`
+  (Keras-3 fix: save `.keras` for serving + `model.export()` SavedModel for
+  TFLite) → `export_tflite` → **`model_int8.tflite` (36 KB)**.
+- `serve` auto-loads it: `/health` → `model_loaded:true`,
+  `model_version:"TOY-DATA-not-real-v0"`, `calibrated:false`; `/score` returns
+  from the trained model. (Outputs are meaningless toy outputs — by design.)
+- **Honesty:** everything labelled TOY — metrics.json note, model_version, and a
+  new red **"TOY — not real"** UI badge (ConfidenceBadge + spectrogram). All toy
+  artifacts gitignored/regenerable; real corpora + own INMP441 clips drop in
+  with the same commands. installed train deps (TF 2.21, librosa, sklearn, pandas).
+
+### Task 6 — Bench-readiness docs + capture helper ✅
+- `docs/BENCH_BRINGUP.md`: toolchain, pin discovery, per-sensor smoke test, the
+  ~1 s mel-window timing + RAM check, a safe **DRY** pump/LED test (bench 5 V, no
+  reservoir) with failsafe checks, end-to-end against the real backend incl. a
+  WiFi-drop test, and the §9.10 self-recording protocol.
+- `tools/record_inmp441.py`: host-audio or firmware-UDP capture of labelled
+  16 kHz clips named for `prepare/standardize.py` grouping. Compiles clean.
+
+### Task 7 — Claims/report alignment ✅
+- `docs/CLAIMS_AUDIT.md`: 14-row claim→reality table + an explicit "MUST NOT
+  claim yet" list (no accuracy/AUC, no trained-on-RPW, no autonomy, no
+  mesh/range/battery/field-tested, no fixed RPW frequency) + the safe claims.
+
+### Known limits / TODO (current)
+- **Firmware unbuilt** (no PlatformIO here): follow `docs/BENCH_BRINGUP.md` to
+  validate the ~1 s mel capture timing/RAM and the pump/LED/dose paths on the
+  board before the field demo.
+- **No trained model** (by design/honesty): pipeline proven on TOY data only.
+  Record own INMP441 clips (`tools/record_inmp441.py`), run `train.py`, fill
+  `model_card.md` with real **proxy** metrics; `serve` then auto-loads it.
+- **Phase 4** (judge Q&A rehearsal; on-device TFLite-Micro; BLE/ESP-NOW
+  multi-node; bilingual UI) remains — all explicitly out of scope for this PR.
