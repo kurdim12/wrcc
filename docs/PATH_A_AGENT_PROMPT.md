@@ -28,10 +28,10 @@ be violated.
    - ASPID / SPIDB — MIT — OK to use and (if needed) redistribute.
    - ESC-50 — CC BY-NC — **augmentation only, non-commercial**. Never fold it
      into a positive/negative class; never republish it.
-   - InsectSound1000 — license **UNKNOWN**. Do NOT use it. (It also has no
-     clean/silence class, so it can't be the pretrain negative anyway.) Your
-     only InsectSound1000 task is to **resolve its license** at the official
-     source and report the exact text — do not download it for training.
+   - InsectSound1000 — **CC BY 4.0** (resolved at OpenAgrar DOI
+     `10.5073/20231024-173119-0`; the Kaggle "Unknown" was a mirror gap). Still
+     do NOT use it — no clean/silence class, so it can't be a pretrain negative,
+     and fabricating one is forbidden. Do not download it.
 3. SAFETY FRAMING stays intact: dosing is human-armed + human-confirmed with
    hard caps; the model is one gate, not a trigger. Don't touch that code.
 4. GIT: develop on branch `claude/elegant-keller-aurxdw`. Do NOT merge to `main`
@@ -54,25 +54,23 @@ be violated.
 
 ## Phase 1 — Acquire data + verify licenses [BROWSER]
 
-A. ASPID / SPIDB (primary proxy corpus, ~106 GB, metadata-labelled via
-   `aspids_log.csv`):
-   - Find the dataset page (Kaggle / its canonical host). CONFIRM before
-     downloading that it is the right one: it must ship a flat WAV set + a log
-     CSV (e.g. `aspids_log.csv`) and be MIT-licensed. If what you find doesn't
-     match, STOP and report — do not download a guess.
-   - Sign in, accept any terms, and download via the official CLI (e.g.
-     `kaggle datasets download -d <the-confirmed-slug>` after placing
-     `~/.kaggle/kaggle.json`). Unzip into `ml/data/raw/aspid/`.
-   - Record the exact source URL + license in your final report.
+A. ASPID / SPIDB (primary proxy corpus, 106.32 GB, metadata-labelled via
+   `aspids/aspids_log.csv`). VERIFIED 2026-06: MIT, slug
+   `dkadyrov/stored-product-insect-database-spidb-aspids`, CSV header
+   `start,end,target,material,description,noise`.
+   - Re-confirm the page still matches (flat WAVs + log CSV + MIT) before pulling.
+   - Sign in, accept terms, place `~/.kaggle/kaggle.json`, then:
+     `kaggle datasets download -d dkadyrov/stored-product-insect-database-spidb-aspids`
+     Unzip into `ml/data/raw/aspid/`.
 
 B. ESC-50 (noise augmentation only): download `karoldvl/ESC-50` (GitHub) into
    `ml/data/raw/esc50/` so `ml/data/raw/esc50/audio/` exists. Note: CC BY-NC —
    augmentation only.
 
-C. InsectSound1000 (license resolution ONLY — do not download for training):
-   open the OpenAgrar/JKI record at DOI `10.5073/20231024-173119-0`, read the
-   actual license/terms, and copy the exact license text into your report.
-   Do not infer it from a Kaggle mirror.
+C. InsectSound1000 — license already RESOLVED as **CC BY 4.0** at OpenAgrar DOI
+   `10.5073/20231024-173119-0` (`InsectSound1000.zip`, 90.78 GB). Nothing to
+   download or do: it stays OUT of training (no clean/negative class). Re-verify
+   the DOI only if explicitly asked.
 
 Deliverable of Phase 1: a short note with each corpus's resolved source URL +
 license, and the local paths under `ml/data/raw/`.

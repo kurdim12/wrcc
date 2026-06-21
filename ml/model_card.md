@@ -68,7 +68,7 @@ Document which policy this run used (in Run provenance below) — it changes wha
 | Corpus | Role | License | Note |
 |--------|------|---------|------|
 | ASPID / SPIDB | primary proxy (activity vs clean) | MIT | commercial-OK |
-| InsectSound1000 | (pretrain — **not used**, no clean class) | **Unknown** | resolve at JKI/OpenAgrar `10.5073/20231024-173119-0` before any commercial framing — not the Kaggle page |
+| InsectSound1000 | (pretrain — **not used**, no clean class) | **CC BY 4.0** | resolved at OpenAgrar DOI `10.5073/20231024-173119-0` (the Kaggle "Unknown" was a mirror gap). Still not used — no clean/negative class |
 | ESC-50 | noise augmentation only | **CC BY-NC** | non-commercial — fine for WRCC, flag for product |
 
 ## Features
