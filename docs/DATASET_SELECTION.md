@@ -50,8 +50,8 @@ train on proxies/limited data and state the limits).
 
 | Dataset | What it is | Modality | Signal / species | Size | Rate | Noise? | Open? | Fit |
 |---|---|---|---|---|---|---|---|---|
-| **ASPID / SPIDB** | Acoustic Stored Product Insect DB | **Contact piezo** (+ mic for noise ref) | Boring/feeding: cowpea beetle, confused flour beetle, mealworm/darkling | ~37 h | audio-band | **Yes** (natural + artificial) | **Kaggle** | ★★★★ primary |
-| **InsectSound1000** | JKI greenhouse insect sounds | **Airborne mic** (4-ch, anechoic) | 12 insects (bumblebee→aphid midge); not borers | 169k clips / 1000 h | **16 kHz** | No (anechoic) | **Kaggle + JKI** | ★★★★ backbone/pretrain |
+| **ASPID / SPIDB** | Acoustic Stored Product Insect DB | **Contact piezo** (+ mic for noise ref) | Boring/feeding: cowpea beetle, confused flour beetle, mealworm/darkling | ~37 h · **106 GB** | audio-band | **Yes** (natural + artificial) | **Kaggle · MIT** | ★★★★ primary (metadata-labeled) |
+| **InsectSound1000** | JKI greenhouse insect sounds | **Airborne mic** (4-ch, anechoic) | 12 insects, **all positives — no clean class** | 166k files / ~100 GB | **16 kHz** | No (anechoic) | Kaggle · *Unknown* | ✗ pretrain skipped (no negatives) |
 | **ESC-50** | Environmental sound | n/a (ambient) | wind, rain, birds, insects, etc. | 2k clips | 44.1 kHz | — | **GitHub** | ★★★ augmentation |
 | **TreeVibes** | Wood-borer monitoring | Contact probe | Longicorn borer + *S. oryzae* in grain | moderate | audio-band | some | paper-linked | ★★ optional borer proxy |
 | **KAUST RPW DL set** | Real RPW, Al-Ahssa palms | Contact probe (waveguide) | **Real RPW**, 531/575 | ~1,100 clips | 20 s | wind variants | **on request** | ★★★ validation target only |
@@ -65,11 +65,17 @@ train on proxies/limited data and state the limits).
 - KAUST RPW paper (request data) — https://arxiv.org/abs/2308.15829
 - Mankin/King Saud RPW acoustic work (request data) — https://doi.org/10.3390/insects14040339
 
-> **Licenses:** verify each before any *commercial* use. InsectSound1000 is a
-> Scientific Data release (typically CC BY — confirm on the JKI repo). ESC-50 is
-> **CC BY-NC** (non-commercial — fine for the competition, flag for a product).
-> ASPID — check the Kaggle page. For the competition (research/educational), all
-> are usable.
+> **Licenses + sizes (verified):**
+> - **ASPID / SPIDB — MIT** (commercial OK). **~106 GB**, ~12.9k files; labels are
+>   **metadata-driven** via `aspids_log.csv` (`target` → activity/clean,
+>   `noise` → snr), NOT folders → use `ml/prepare/aspid_prepare.py`.
+> - **InsectSound1000 — license "Unknown" on Kaggle** (the Sci Data paper is
+>   open-access; confirm the data licence at the JKI/OpenAgrar source before any
+>   commercial framing). **~95–106 GB**, 165,982 files, 4-ch/16 kHz/32-bit.
+>   **It has NO silence/clean class** (12 insect species, all positives).
+> - **ESC-50 — CC BY-NC** (non-commercial — fine for WRCC, flag for a product;
+>   the ESC-10 subset is CC BY). Augmentation only.
+> All usable for the competition (research/educational).
 
 ---
 
@@ -85,11 +91,14 @@ datasets. No single set wins both, so we use both with a clear job each:
    already contains **noise variants + clean controls**, giving a genuine
    "robust under farm noise" result instead of an anechoic toy number. Its
    weakness (contact-piezo, not airborne) is real and we disclose it.
-2. **InsectSound1000 is the backbone** because it's the *only* large open corpus
-   recorded with an **airborne microphone at 16 kHz** — our exact sensor and
-   rate. Pretraining the feature extractor on it lets us honestly say the model
-   has learned from airborne-mic audio at our sensor's rate before it ever sees
-   ASPID.
+2. **InsectSound1000 — pretrain SKIPPED (verified finding).** It's the only large
+   open corpus on an **airborne mic at 16 kHz** (our modality), but it is **12
+   insect species only with NO silence/clean class** — all positives. Fabricating
+   a "clean" class from its gaps (or from ESC-50) would be dishonest, so per the
+   guardrail we **skip the InsectSound1000 pretrain stage and train directly on
+   ASPID**, which has real clean controls. (The `train.py --init-from` two-stage
+   path stays available for a *future* pretrain corpus that has a genuine
+   negative class; it is simply not used here.)
 3. **ESC-50** supplies outdoor ambient for augmentation (ASPID's noise + ESC-50
    = strong noise coverage).
 4. **Your own INMP441 recordings** close the loop: a small set captured on the
@@ -111,20 +120,25 @@ identically in firmware `acoustic.cpp`):
   per-clip mean-var normalization → **40×32 patch** (band-major flatten).
 - Segment into fixed ~0.96–1.0 s clips, 50% overlap.
 - **Split by `recording_id`** (no clip from one recording in two splits —
-  prevents leakage and inflated scores). `ml/prepare/standardize.py` already
-  stamps `recording_id = <source>:<file-stem>`.
+  prevents leakage and inflated scores). `ml/prepare/standardize.py` and
+  `aspid_prepare.py` both stamp `recording_id = <source>:<file-stem>`.
+- **ASPID is metadata-labeled**, so `standardize.py` (folder-driven) can't ingest
+  it alone — `ml/prepare/aspid_prepare.py` reads `aspids_log.csv` and emits the
+  same clip + manifest format (`target` → label, `noise` → `snr_condition`).
 
 ---
 
 ## Training plan (executable with the repo as-is)
 
-1. **Pretrain** the compact CNN on InsectSound1000 as airborne
-   **insect-vs-silence** (learns general airborne insect features at 16 kHz).
-   → produces `export/model.keras`.
-2. **Fine-tune** on ASPID as **activity (boring/feeding) vs clean**, loading the
-   pretrained weights with `train.py --init-from export/model.keras`, with
+> Pretrain is **skipped** — InsectSound1000 has no clean class (see above). v1
+> trains directly on ASPID's activity/clean with noise augmentation.
+
+1. **Prepare ASPID** with `aspid_prepare.py` (CSV → 16 kHz clips + manifest).
+   Run once per noise condition (or all at once) so `snr_condition` is populated
+   for a real per-SNR report.
+2. **Train directly on ASPID** as **activity (boring/feeding) vs clean** with
    **noise augmentation** (ASPID's own noise + ESC-50 mixing at varied SNR +
-   SpecAugment + mixup — already in `train.py`).
+   SpecAugment + mixup — already in `train.py`). No `--init-from`.
 3. **Calibrate** the output (temperature/isotonic) so `p_activity` is a real
    probability. _(Next step: add a `calibration.json`; `serve` reports
    `calibrated:true` when present — see `ml/serve/app.py`.)_
@@ -162,31 +176,34 @@ project from a demo. (See `docs/CLAIMS_AUDIT.md` for the full must-not-claim lis
 
 Network here is locked to GitHub/PyPI/npm — no Kaggle/Zenodo pulls — so two paths:
 
-**A — Train locally (best for the big proxy datasets; `ml/train/train.py` runs):**
+**A — Train locally on your GPU box (the proxy corpora are ~106 GB; pull with the
+Kaggle CLI on the box, not a browser):**
 ```bash
 pip install -r ml/requirements-train.txt
 pip install kaggle                                   # needs ~/.kaggle/kaggle.json
-kaggle datasets download -d dkadyrov/stored-product-insect-database-spidb-aspids
-kaggle datasets download -d hesi0ne/insectsound1000
-git clone https://github.com/karoldvl/ESC-50         # ambient noise
-
 cd ml
-# Stage 1 — pretrain on InsectSound1000 (insect vs silence). Point standardize at
-# its per-insect WAV folders (insect=activity) + a silence/clean folder, then:
-python -m train.train --manifest data/manifest_is1000.csv --epochs 30 --version cnn-pretrain-v1
-# Stage 2 — fine-tune on ASPID (boring/feeding vs control), with ESC-50 noise:
-python -m train.train --manifest data/manifest_aspid.csv --esc50 data/ESC-50/audio \
-       --init-from export/model.keras --epochs 40 --version cnn-aspid-v1
-# Stretch — int8 edge build:
+# ASPID (MIT, ~106 GB) + ESC-50 noise. InsectSound1000 is NOT needed (no clean class).
+kaggle datasets download -d dkadyrov/stored-product-insect-database-spidb-aspids -p data/raw/aspid --unzip
+git clone https://github.com/karoldvl/ESC-50 data/raw/esc50
+
+# 1) Inspect ASPID's CSV header, then ingest by metadata (target→label, noise→snr).
+python -m prepare.aspid_prepare --log data/raw/aspid/aspids_log.csv --inspect
+python -m prepare.aspid_prepare --log data/raw/aspid/aspids_log.csv \
+       --file-col <FILE_COL> --target-col target --noise-col noise \
+       --clean-match "No Insects" --manifest data/manifest_aspid.csv
+#   (set --file-col to the real header; add --start-col/--end-col if rows are segments.)
+
+# 2) Train directly on ASPID with ESC-50 noise augmentation (no pretrain / --init-from):
+python -m train.train --manifest data/manifest_aspid.csv --esc50 data/raw/esc50/audio \
+       --epochs 40 --version cnn-aspid-v1
+
+# 3) Stretch — int8 edge build:
 python -m export.export_tflite --saved export/saved_model --manifest data/manifest_aspid.csv
 ```
-**Glue (~1 session):** each corpus has its own folder layout, so map its
-subfolders to `activity`/`clean` with `ml/prepare/standardize.py`
-(`--in <dir> --label <activity|clean> --source <tag>` — it walks the dir,
-resamples to 16 kHz, windows, and appends to the manifest grouped by
-`recording_id`). Confirm the exact subfolder names against the unzipped tree
-first (don't guess them). InsectSound1000's processing scripts (linked above)
-help with its layout.
+**The ASPID glue is now in the repo** (`ml/prepare/aspid_prepare.py`): it reads
+`aspids_log.csv`, maps `target` → activity/clean and `noise` → `snr_condition`,
+reuses `standardize.py`'s resample/window, and groups by source file. Run
+`--inspect` first to confirm the column names against your download.
 
 **B — Validate here on real hardware:** record a small **INMP441 set** (clean
 farm ambient + "activity": scraping/boring a palm log works as a stand-in) with

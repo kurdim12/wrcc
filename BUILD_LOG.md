@@ -209,6 +209,29 @@ Honesty mandate (§2): nothing here claims a metric that wasn't measured.
   clips (path B) — both documented. No model trained in-session; status stays
   honest (`heuristic-baseline-v0`).
 
+## Session 5 — dataset research reconciled + ASPID adapter
+
+- Acted on verified dataset research. Corrections encoded in
+  `docs/DATASET_SELECTION.md` + `ml/prepare/DATASETS.md` + `ml/README.md`:
+  - **ASPID/SPIDB**: MIT, **~106 GB**, **metadata-labeled** via `aspids_log.csv`
+    (`target`→activity/clean, `noise`→snr) — not folder-labeled.
+  - **InsectSound1000**: Kaggle licence **"Unknown"**, ~100 GB, **no clean/silence
+    class** → **pretrain SKIPPED** (per the guardrail; never fabricate a negative
+    class). `train.py --init-from` kept for a future pretrain corpus with real
+    negatives. v1 trains **directly on ASPID**.
+  - **ESC-50**: CC BY-NC (augmentation only; flag for product).
+- **New `ml/prepare/aspid_prepare.py`** — metadata→manifest adapter: reads the CSV
+  (configurable `--file/target/noise` cols + `--inspect`), maps target→label and
+  noise→`snr_condition`, reuses `standardize.py` resample/window, groups by source
+  file. Smoke-tested on a synthetic ASPID fixture (target→label + noise→snr verified).
+- Fixed README `aspid/infested` inconsistency → adapter flow.
+- **Branch note:** `DATASET_SELECTION.md` + `train.py --init-from` live on
+  `claude/elegant-keller-aurxdw`, **not yet on `main`** (Session 4/5 landed after
+  the PR #1 squash-merge) — which is why a `main` clone didn't show them.
+- Still cannot train the real model here (network = GitHub/PyPI/npm only; no
+  Kaggle; ~106 GB; ephemeral, no GPU). Compute runs on the user's box (path A) or
+  a small uploaded INMP441 set (path B).
+
 ### Known limits / TODO (current)
 - **Firmware unbuilt** (no PlatformIO here): follow `docs/BENCH_BRINGUP.md` to
   validate the ~1 s mel capture timing/RAM and the pump/LED/dose paths on the
