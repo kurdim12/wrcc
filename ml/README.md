@@ -28,6 +28,10 @@ pip install -r requirements-train.txt
 python -m prepare.aspid_prepare --log data/raw/aspid/aspids_log.csv --inspect      # confirm columns
 python -m prepare.aspid_prepare --log data/raw/aspid/aspids_log.csv --manifest data/manifest_aspid.csv
 # (other corpora that ARE folder-organised still use standardize.py --in <dir> --label …)
+# 1b) index the manifest into SQLite (metadata only — audio stays on disk). Audits
+#     class balance + per-noise-condition support (n_recordings/n_clips) that locks
+#     the model_card.md support floor, and flags any label leak:
+python -m prepare.manifest_to_db --manifest data/manifest_aspid.csv --db data/corpus.db --report
 # 2) train + evaluate + export (grouped split, augment, real metrics):
 python -m train.train --manifest data/manifest.csv --esc50 data/esc50/audio
 # 3) (stretch) int8 TFLite for esp-tflite-micro:
