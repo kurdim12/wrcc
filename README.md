@@ -93,7 +93,7 @@ Palm Guard is designed as a full robotic loop, not just an IoT monitor.
 ## Dashboard Preview
 
 <p align="center">
-  <img src="frontend/public/dashboard-preview.png" width="100%" alt="Palm Guard dashboard overview" />
+  <img src="dashboard-preview.png" width="100%" alt="Palm Guard dashboard overview" />
 </p>
 
 The dashboard is built for a live competition demo and future field monitoring:
@@ -112,7 +112,7 @@ The dashboard is built for a live competition demo and future field monitoring:
 ## System Architecture
 
 <p align="center">
-  <img src="frontend/public/system-architecture.png" width="100%" alt="Palm Guard system architecture" />
+  <img src="system-architecture.png" width="100%" alt="Palm Guard system architecture" />
 </p>
 
 ```mermaid
