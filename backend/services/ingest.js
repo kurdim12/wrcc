@@ -17,6 +17,7 @@ import * as fusion from './fusion.js';
 import * as alerts from './alertEngine.js';
 import * as doseEngine from './doseEngine.js';
 import * as socket from './socket.js';
+import * as intelligence from './intelligence.js';
 
 const insertReading = db.prepare(`
   INSERT INTO readings (
@@ -141,6 +142,19 @@ export const ingest = async (payload, ip = null, isDemo = false) => {
   // hard-disarm on the node, §8.4). Lets the dashboard control the node's arm.
   const armed = !!(get('SELECT armed FROM devices WHERE id = ?', p.dev)?.armed);
 
+  // Multi-sensor expert architecture (derives from `scored`; never recomputes
+  // risk or touches dosing — additive explainability layer, §intelligence).
+  const isDemoFlag = isDemo || p.dev?.startsWith?.('PG-DEMO') || false;
+  const device = get('SELECT * FROM devices WHERE id = ?', p.dev);
+  let intel = null;
+  try {
+    intel = intelligence.analyze({ reading: stored, scored, raw: p, device, isDemo: isDemoFlag, nowTs: t });
+    socket.emitRiskFusion({ device_id: p.dev, ts: t, ...intel.fusion, explanation: intel.explanation });
+    socket.emitAgents({ device_id: p.dev, ts: t, experts: intel.experts, safety: intel.safety, model: intel.model });
+  } catch (e) {
+    console.error('[intelligence]', e.message);   // never block ingestion
+  }
+
   socket.emitReading({
     ...stored,
     bands16: p.ac?.bands16 ?? null,
@@ -149,7 +163,8 @@ export const ingest = async (payload, ip = null, isDemo = false) => {
     weights: scored.weights,
     model_source: fused.source,        // 'model' | 'fallback' | 'heuristic'
     calibrated:   fused.calibrated,
-    is_demo: isDemo || p.dev?.startsWith?.('PG-DEMO') || false,
+    is_demo: isDemoFlag,
+    intelligence: intel,               // backwards-compatible: additive field
   });
 
   return {

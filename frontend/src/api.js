@@ -19,6 +19,7 @@ const json = async (path, opts = {}) => {
 
 export const api = {
   health:        () => json('/health'),
+  intelligence:  (deviceId) => json(deviceId ? `/intelligence/${deviceId}` : '/intelligence'),
 
   // Devices
   devices:       () => json('/devices').then(d => d.devices),

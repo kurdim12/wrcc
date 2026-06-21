@@ -9,5 +9,12 @@ echo
 echo "== server-side dose caps =="
 python3 "$here/test_server_caps.py" || rc=1
 echo
+echo "== intelligence layer (experts + fusion) =="
+if command -v node >/dev/null 2>&1; then
+  node --test "$here/test_intelligence.mjs" || rc=1
+else
+  echo "  (node not found — skipping JS expert tests)"
+fi
+echo
 [ $rc -eq 0 ] && echo "ALL TESTS PASSED" || echo "SOME TESTS FAILED"
 exit $rc

@@ -12,6 +12,21 @@
 // 2.0.0 = rebuild with actuation/dose FSM + log-mel ML frame (see docs/BUILD_SPEC.md)
 #define PG_FW_VERSION "2.0.0"
 #endif
+// Feature-contract version — MUST match ml/features/params.py + ml/serve (FEATURE_VERSION)
+// and the backend intelligence layer. Bump together if the 40×32 log-mel shape changes.
+#ifndef PG_FEATURE_VERSION
+#define PG_FEATURE_VERSION "logmel-40x32-v1"
+#endif
+
+// ─── Reading payload → backend expert mapping (multi-sensor architecture) ──
+// Each JSON reading the node emits maps to the backend experts as follows:
+//   ac{bands16,clk,cent,flat,rms,zcr,mel} → Acoustic Activity Expert  (primary)
+//   vb{vib_rms,vib_pk,vib_dom_hz}         → Vibration Validation Expert (corroboration)
+//   th{core_c,amb_c} + env{gas_kohm,hum}  → Environmental Context Expert (context only)
+//   sys{fw,bat_pct,rssi} + freshness      → Sensor Health Expert
+//   act{armed,doses_today,last_nonce}     → Dose Safety Engine (nonce ack / anti-replay)
+// The device-side dose FSM (sensors/dose_fsm) enforces the SAME caps as the
+// server (PG_DOSE_* below): both must pass before the pump runs.
 
 // ─── Cycle timing ──────────────────────────────────────────────────────
 // 250 ms cycle = 4 Hz update rate. Each cycle samples ~100 ms of vibration +

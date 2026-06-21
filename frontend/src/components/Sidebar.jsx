@@ -1,12 +1,13 @@
 import {
   LayoutDashboard, Trees, AlertTriangle, Network, FileText,
-  AudioLines, LogOut, X, Sparkles, Syringe,
+  AudioLines, LogOut, X, Sparkles, Syringe, Cpu,
 } from 'lucide-react';
 
 // Instrument rail — renamed to the mission-control / tree-ICU mental model.
 // (ids unchanged so routing/contracts stay intact.)
 const ITEMS = [
   { id: 'overview',    icon: LayoutDashboard, label: 'Mission Overview',       code: 'OVW' },
+  { id: 'intelligence',icon: Cpu,             label: 'Intelligence Layer',     code: 'AI' },
   { id: 'palms',       icon: Trees,           label: 'Palm Roster',            code: 'RST' },
   { id: 'alerts',      icon: AlertTriangle,   label: 'Alerts / Incidents',     code: 'INC' },
   { id: 'doses',       icon: Syringe,         label: 'Treatment Control',      code: 'TRT' },
