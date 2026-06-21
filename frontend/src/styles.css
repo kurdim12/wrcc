@@ -106,3 +106,81 @@ html { scroll-behavior: smooth; }
 
 /* Radial gradient utility (used by RiskGauge background glow) */
 .bg-gradient-radial { background-image: radial-gradient(circle, var(--tw-gradient-stops)); }
+
+/* ============================================================
+   Living Telemetry Interface — design-system layer
+   ============================================================ */
+
+/* Instrument surface: crisper than the old marketing cards, hairline border. */
+.instrument {
+  background: #FFFDF6;
+  border: 1px solid rgba(27, 36, 32, 0.10);
+  border-radius: 0.85rem;
+  box-shadow: 0 8px 24px -18px rgba(0,0,0,0.30);
+}
+.dark .instrument {
+  background: #101C17;            /* ink-700 */
+  border-color: rgba(140, 155, 145, 0.14);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.03) inset, 0 10px 30px -20px rgba(0,0,0,0.6);
+}
+.instrument-inset {
+  background: rgba(27, 36, 32, 0.035);
+  border: 1px solid rgba(27, 36, 32, 0.08);
+  border-radius: 0.6rem;
+}
+.dark .instrument-inset {
+  background: rgba(8, 17, 14, 0.55);
+  border-color: rgba(140, 155, 145, 0.10);
+}
+
+/* HUD label: precise, operational, monospaced caps. */
+.hud-label {
+  font-family: '"JetBrains Mono"', ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8C9B91;
+}
+
+/* Heartbeat pulse for a live telemetry dot. */
+@keyframes heartbeat {
+  0%, 60%, 100% { transform: scale(1);   opacity: 1; }
+  30%           { transform: scale(1.5); opacity: 0.55; }
+}
+.animate-heartbeat { animation: heartbeat 1.6s ease-in-out infinite; }
+
+/* Brief "blip" applied for one render when a fresh reading lands. */
+@keyframes blip {
+  0%   { box-shadow: 0 0 0 0 rgba(25,166,106,0.5); }
+  100% { box-shadow: 0 0 0 10px rgba(25,166,106,0); }
+}
+.animate-blip { animation: blip 0.7s ease-out; }
+
+/* Loading skeleton shimmer (calm, not flashy). */
+@keyframes skeleton {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(140,155,145,0.10) 25%, rgba(140,155,145,0.20) 37%, rgba(140,155,145,0.10) 63%);
+  background-size: 200% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+
+/* Consistent keyboard focus ring across the app (accessibility). */
+.focus-ring:focus-visible {
+  outline: 2px solid #19A66A;
+  outline-offset: 2px;
+  border-radius: 0.4rem;
+}
+
+/* Telemetry numerals */
+.telemetry-num { font-family: '"JetBrains Mono"', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+/* Faint scanline texture for instrument panels (very subtle). */
+.scanlines {
+  background-image: repeating-linear-gradient(
+    0deg, rgba(140,155,145,0.05) 0px, rgba(140,155,145,0.05) 1px, transparent 1px, transparent 3px);
+}

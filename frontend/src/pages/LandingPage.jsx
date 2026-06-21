@@ -80,7 +80,7 @@ const HeroSection = ({ onLogin }) => (
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
         </span>
-        <span className="tracking-wide uppercase">Solar Mesh 2.0 Active</span>
+        <span className="tracking-wide uppercase">Living Telemetry Interface</span>
       </div>
       <h1 className="text-5xl md:text-8xl font-bold text-gray-900 dark:text-white tracking-tighter leading-[1] mb-8 animate-fade-in-up delay-100">
         Protect your palms.
@@ -90,8 +90,8 @@ const HeroSection = ({ onLogin }) => (
         </span>
       </h1>
       <p className="text-lg md:text-2xl text-gray-500 dark:text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed font-medium animate-fade-in-up delay-200">
-        AI-powered, multi-sensor early warning system for Red Palm Weevil — detects internal larval activity{' '}
-        <span className="text-gray-900 dark:text-white">before visible damage occurs.</span>
+        Palm Guard listens inside the palm, scores infestation risk from a proxy-trained acoustic model, and{' '}
+        <span className="text-gray-900 dark:text-white">gates treatment through a safe, human-confirmed workflow.</span>
       </p>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300 relative z-40">
         <button onClick={onLogin} className="group w-full sm:w-auto px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-black rounded-full font-bold text-lg hover:bg-black dark:hover:bg-gray-100 shadow-2xl active:scale-95 flex items-center justify-center gap-2 transition">
