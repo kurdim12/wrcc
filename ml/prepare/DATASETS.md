@@ -1,5 +1,10 @@
 # Datasets (Appendix A) — the data for "training the data"
 
+> **The decision + rationale + training plan live in
+> [`docs/DATASET_SELECTION.md`](../../docs/DATASET_SELECTION.md)** (ASPID primary,
+> InsectSound1000 backbone, ESC-50 augment, own INMP441 validate). This file is
+> the broader link list.
+
 > **Honest summary:** there is **no large open, airborne-mic, real-RPW** dataset.
 > Train on proxies (insects boring/feeding, recorded acoustically), augment with
 > ambient noise, validate honestly, and **record your own INMP441 data** (§9.10).

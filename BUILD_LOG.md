@@ -188,6 +188,27 @@ Honesty mandate (§2): nothing here claims a metric that wasn't measured.
   documented stretch (no hardware to validate).
 - Squash-merged PR #1 → `main` is one clean Phases 0–3 commit.
 
+## Session 4 — dataset selection + executable two-stage training
+
+- **`docs/DATASET_SELECTION.md`** — the honest dataset decision + rationale for
+  training a *real* model to replace `heuristic-baseline-v0`: ASPID/SPIDB primary
+  (boring/feeding signal + noise variants), InsectSound1000 backbone (airborne
+  mic @ 16 kHz — our modality, for pretraining), ESC-50 augment, own INMP441 as
+  the validation capstone; KAUST/Mankin real-RPW corpora named as the
+  field-validation target (contact-probe, on request). Documents the two gaps
+  (modality + species) and the exact CAN/CANNOT claims. Cross-linked from
+  `ml/prepare/DATASETS.md` and `ml/README.md`.
+- **`train.py --init-from <pretrained.keras>`** added so the documented
+  **pretrain → fine-tune** flow (InsectSound1000 → ASPID) is executable, not just
+  described. Verified on toy data: stage-1 pretrain → stage-2 loads those weights
+  ("fine-tuning from pretrained weights") → trains + exports cleanly.
+- CI (run #6 on `main`) is **green** — runner-provisioning hold cleared by the
+  user's Actions off→on toggle; workflow config was unchanged and sound.
+- Note: training the real model needs Kaggle/Zenodo data (network here is
+  GitHub/PyPI/npm-only), so it runs locally (path A) or on uploaded INMP441
+  clips (path B) — both documented. No model trained in-session; status stays
+  honest (`heuristic-baseline-v0`).
+
 ### Known limits / TODO (current)
 - **Firmware unbuilt** (no PlatformIO here): follow `docs/BENCH_BRINGUP.md` to
   validate the ~1 s mel capture timing/RAM and the pump/LED/dose paths on the

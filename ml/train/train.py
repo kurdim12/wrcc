@@ -105,6 +105,10 @@ def main() -> int:
     ap.add_argument("--out", default="export/saved_model")
     ap.add_argument("--version", default="cnn-proxy-v1",
                     help="model_version label (use a TOY-* label for toy-data runs)")
+    ap.add_argument("--init-from", default=None,
+                    help="Load weights from a prior .keras before training, to FINE-TUNE "
+                         "a model PRETRAINED on another corpus (e.g. InsectSound1000 -> "
+                         "ASPID, per docs/DATASET_SELECTION.md). Architecture must match.")
     args = ap.parse_args()
 
     import tensorflow as tf
@@ -124,6 +128,10 @@ def main() -> int:
     cw = {0: len(Ytr) / (2 * neg + 1e-9), 1: len(Ytr) / (2 * pos + 1e-9)}
 
     model = build_model()
+    if args.init_from:
+        # Two-stage transfer: load pretrained weights, then fine-tune here.
+        model.load_weights(args.init_from)
+        print(f"[train] fine-tuning from pretrained weights: {args.init_from}")
     es = tf.keras.callbacks.EarlyStopping(monitor="val_pr_auc", mode="max",
                                           patience=8, restore_best_weights=True)
     model.fit(Xtr, Ytr, validation_data=(Xva, Yva), epochs=args.epochs,

@@ -32,10 +32,21 @@ python -m train.train --manifest data/manifest.csv --esc50 data/esc50/audio
 python -m export.export_tflite --saved export/saved_model --manifest data/manifest.csv
 ```
 
+**Which datasets + why:** see [`docs/DATASET_SELECTION.md`](../docs/DATASET_SELECTION.md)
+(ASPID primary, InsectSound1000 backbone, ESC-50 augment, own INMP441 validate).
+For the planned **pretrain → fine-tune** flow, train stage 1 then pass its
+weights to stage 2:
+```bash
+python -m train.train --manifest data/manifest_is1000.csv --version cnn-pretrain-v1
+python -m train.train --manifest data/manifest_aspid.csv --esc50 data/ESC-50/audio \
+       --init-from export/model.keras --version cnn-aspid-v1
+```
+
 `train.py` writes real metrics to `eval_report/metrics.json` (ROC-AUC, PR-AUC,
-confusion, per-SNR) and a `saved_model/`. `serve` auto-loads `export/saved_model`
-if present (set `PG_MODEL_PATH` to override). See `model_card.md` — until a model
-is trained, **there are no metrics and the UI shows "heuristic"**.
+confusion, per-SNR) and a `saved_model/`. `serve` auto-loads `export/model.keras`
+(or `export/saved_model`) if present (set `PG_MODEL_PATH` to override). See
+`model_card.md` — until a model is trained, **there are no metrics and the UI
+shows "heuristic"**.
 
 ## Feature contract (MUST match firmware)
 
