@@ -223,25 +223,44 @@ the honesty fields (`model_family: acoustic_activity_proxy`,
 
 ## 11. Business Model
 
-Summarised here; full canvas in `Palm_Guard_BMC_A4.pdf`.
+Nine-block summary; full canvas in `Palm_Guard_BMC_A4.pdf`.
 
-- **Value proposition:** early, per-tree RPW risk warning + *targeted*,
-  human-confirmed treatment → fewer lost palms and less farm-wide spraying.
-- **Customers / beneficiaries:** date-palm farm operators, agricultural
-  ministries / plant-protection programs (MENA), research institutions.
-- **Revenue streams:** node hardware sales; dashboard/monitoring subscription
-  (SaaS); calibration/field-validation services; research grants.
-- **Key resources:** the firmware/backend/ML/expert-layer IP; the team; a
-  low-cost off-the-shelf sensor BOM.
-- **Key partners:** agriculture ministries (e.g., Jordan MoA `[verify]`),
-  research groups for field RPW data, sensor distributors, date-palm
-  cooperatives.
-- **Cost structure (indicative per node — to confirm with sourcing):** ESP32-S3
-  ~$8–12 · INMP441 ~$3–5 · MPU6050 ~$2–3 · DS18B20 ~$1–2 · BME680 ~$8–15 · pump +
-  driver ~$8–20 · solar + LiPo + charger ~$15–30 · enclosure/misc ~$10 →
-  **~$55–95/node (indicative)**; plus cloud hosting and R&D. *(Hardware cost
-  estimates only — not a performance claim.)*
-- **Channels:** direct sales + agricultural-extension programs.
+- **Customer segments:** palm-farm owners (small / medium / large);
+  municipalities & Ministry of Agriculture; landscaping companies & resorts;
+  Gulf-region premium date farms; agricultural contractors & pest-control firms.
+- **Value proposition:** per-tree acoustic + vibration + thermal early-warning
+  that **aims** to flag feeding-like activity before crown symptoms appear,
+  enabling *targeted, human-confirmed* treatment instead of farm-wide spraying —
+  reducing avoidable tree loss and chemical use. *(Lead-time and loss-reduction
+  figures are design **targets pending field validation**, not validated
+  metrics — see §9/§13.)*
+- **Channels:** direct field sales; government pilot → national rollout;
+  agricultural exhibitions; on-farm demos; distributor partnerships (Gulf entry).
+- **Customer relationships:** automated alerts + proactive monitoring; Arabic
+  farmer support line; in-dashboard onboarding; annual maintenance visits;
+  training / awareness workshops.
+- **Revenue streams:** hardware (one-time, tiered by farm size); installation +
+  maintenance + data-insight subscription tier. *(Pricing tiers: see BMC —
+  indicative.)*
+- **Key resources:** the firmware / backend / multi-sensor expert / ML IP; the
+  Palm Guard node (ESP32-S3 + sensors); core team (AI / firmware / field
+  engineering); seed capital + government/farm partnerships; proxy-model datasets.
+- **Key activities:** sensor data collection + edge processing; model training +
+  updates; farm installation; dashboard development + real-time alerting;
+  maintenance, field support, demos.
+- **Key partners:** Ministry of Agriculture & plant-protection programs; palm
+  farms, cooperatives & farmer unions; hardware/component suppliers; local
+  AgriTech distributors (Jordan + Gulf); universities & research centers.
+- **Cost structure:** hardware BOM (indicative **~$55–95/node** — ESP32-S3, mic,
+  IMU, temp, VOC, pump+driver, solar+LiPo, enclosure — to confirm with sourcing);
+  cloud + compute; engineering payroll; field operations / installation;
+  connectivity, maintenance & R&D. *(Hardware cost estimate only — not a
+  performance claim.)*
+
+> **Connectivity — current vs roadmap.** The node uses **WiFi/HTTP** today (plus
+> a serial bridge for bench use). **LoRa / Bluetooth-Mesh** networking shown on
+> the canvas is a **roadmap** item, not yet implemented — kept distinct so the
+> business story matches the codebase.
 
 ## 12. Compliance & Ethics
 
