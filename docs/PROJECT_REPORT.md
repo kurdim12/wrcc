@@ -5,7 +5,7 @@
 **Team:** VCoders  **Members:** Abdalrahman Alaa Jihad AL-Haymouni · Abdalrahman Ali Ahmad AL-Kurdi · Zaid Mahmoud Rajab Abu Al-Shaar
 **Country:** Jordan   **Institution/School:** `[FILL before final]`
 **Competition:** World Robot Caspian Cup (WRCC) 2026 · Open Category · **Theme 1 — Agriculture**
-**Date:** `[FILL: submission date]`   **Repository:** `[FILL: repo URL]`
+**Date:** 22 June 2026   **Repository:** https://github.com/kurdim12/wrcc
 **Team photo:** `[FILL: add before final]`
 
 > **Honesty statement (read first).** Every model number in this report is a
