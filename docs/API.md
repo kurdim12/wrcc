@@ -31,8 +31,7 @@ Base URL in dev: `http://localhost:4000` (Vite proxies `/api/*` so the React app
 | `GET` | `/api/v1/reports/weekly.csv` | Weekly summary |
 | `GET` | `/api/v1/reports/critical.csv` | Critical incidents log |
 | `GET` | `/api/v1/reports/battery.csv` | Battery efficiency report |
-| `GET` | `/api/v1/chat/status` | `{ ready, provider, model }` - tells the dashboard whether the OpenRouter key is set |
-| `POST` | `/api/v1/chat` | AI Assistant. Body: `{ message?, messages?, device_id? }`. Backend gathers live context, forwards to OpenRouter, returns `{ ok, role, content, model, usage }` |
+| `GET` | `/api/v1/intelligence` / `/:deviceId` | Multi-sensor expert decision (fusion + experts + safety + explanation) |
 
 ## ESP32 ingestion payload
 
@@ -86,8 +85,11 @@ Connect to the same origin (or `http://localhost:4000` directly).
 | Event | Direction | Payload |
 |---|---|---|
 | `hello`                  | server -> client | `{ ts }` (sent on connect) |
-| `live:reading`           | server -> client | full reading row, plus `bands16` if present |
+| `live:reading`           | server -> client | full reading row, plus `bands16` and additive `intelligence` if present |
+| `live:bands`             | server -> client | high-rate spectrogram frame `{ device_id, bands16, ac_rms }` |
 | `live:alert`             | server -> client | alert row (insert or update) |
+| `risk:fusion`            | server -> client | fused risk + level + confidence + recommendation + explanation |
+| `agents:update`          | server -> client | per-expert breakdown + safety + model honesty |
 | `device:status`          | server -> client | `{ id, status, new? }` |
 | `subscribe:spectrogram`  | client -> server | `deviceId` (60 s window) |
 | `unsubscribe:spectrogram`| client -> server | `deviceId` |
