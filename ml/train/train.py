@@ -101,7 +101,10 @@ def main() -> int:
     ap.add_argument("--esc50", default=None, help="dir of ESC-50 wavs for noise mixing")
     ap.add_argument("--epochs", type=int, default=40)
     ap.add_argument("--batch", type=int, default=32)
-    ap.add_argument("--threshold", type=float, default=0.5, help="operating point (favor precision)")
+    ap.add_argument("--threshold", type=float, default=0.5, help="fixed operating point (used if --target-precision unset)")
+    ap.add_argument("--target-precision", type=float, default=None,
+                    help="if set, pick the precision-favoring threshold on VAL achieving this precision "
+                         "(overrides --threshold); all reported metrics stay on the held-out TEST set")
     ap.add_argument("--out", default="export/saved_model")
     ap.add_argument("--version", default="cnn-proxy-v1",
                     help="model_version label (use a TOY-* label for toy-data runs)")
@@ -113,6 +116,8 @@ def main() -> int:
 
     import tensorflow as tf
     from train.model import build_model
+
+    tf.keras.utils.set_random_seed(42)   # reproducible split-featurize-train-eval
 
     df = load_manifest(args.manifest)
     tr, va, te = grouped_split(df)
@@ -139,32 +144,55 @@ def main() -> int:
 
     # ── Evaluation on the grouped held-out test set (real numbers only) ──
     from sklearn.metrics import (roc_auc_score, average_precision_score,
-                                 confusion_matrix, precision_recall_fscore_support)
+                                 confusion_matrix, precision_recall_curve,
+                                 precision_recall_fscore_support)
+
+    # Operating point: precision-favoring threshold chosen on VAL (if --target-precision),
+    # else the fixed --threshold. All reported metrics stay on the held-out TEST set.
+    thr = float(args.threshold)
+    thr_note = f"fixed {thr}"
+    if args.target_precision is not None and len(set(Yva)) > 1:
+        pv = model.predict(Xva, verbose=0).reshape(-1)
+        prec_v, _rec_v, cut_v = precision_recall_curve(Yva, pv)
+        ok = np.where(prec_v[:-1] >= args.target_precision)[0]   # drop degenerate no-positive tail
+        thr = float(cut_v[ok[0]]) if len(ok) else 0.5
+        thr_note = (f"precision-favoring: lowest VAL threshold with precision>="
+                    f"{args.target_precision} (chosen on val, not test)")
+
     probs = model.predict(Xte, verbose=0).reshape(-1)
-    preds = (probs >= args.threshold).astype(int)
+    preds = (probs >= thr).astype(int)
     roc = float(roc_auc_score(Yte, probs)) if len(set(Yte)) > 1 else None
     pr = float(average_precision_score(Yte, probs)) if len(set(Yte)) > 1 else None
     pr_, rc_, f1_, _ = precision_recall_fscore_support(Yte, preds, average="binary",
                                                        zero_division=0)
-    cm = confusion_matrix(Yte, preds).tolist()
+    cm = confusion_matrix(Yte, preds, labels=[0, 1]).tolist()
 
-    # Per-SNR breakdown
-    per_snr = {}
+    # Per-noise-condition breakdown (support-gated): full metrics, not just ROC-AUC,
+    # with n_recordings/n_clips so a low-support row is never mistaken for a stable one.
+    per_cond = {}
     te_reset = te.reset_index(drop=True)
-    for snr in te_reset["snr_condition"].unique():
-        m = (te_reset["snr_condition"] == snr).values
-        if m.sum() > 1 and len(set(Yte[m])) > 1:
-            per_snr[str(snr)] = {"n": int(m.sum()),
-                                 "roc_auc": float(roc_auc_score(Yte[m], probs[m]))}
+    for cond in te_reset["snr_condition"].unique():
+        m = (te_reset["snr_condition"] == cond).values
+        yc, pc = Yte[m], probs[m]
+        row = {"n_recordings": int(te_reset.loc[m, "recording_id"].nunique()),
+               "n_clips": int(m.sum())}
+        if len(set(yc)) > 1:
+            dc = (pc >= thr).astype(int)
+            p2, r2, f2, _ = precision_recall_fscore_support(yc, dc, average="binary", zero_division=0)
+            row.update(roc_auc=float(roc_auc_score(yc, pc)),
+                       pr_auc=float(average_precision_score(yc, pc)),
+                       precision=float(p2), recall=float(r2), f1=float(f2))
+        per_cond[str(cond)] = row
 
     is_toy = "toy" in args.version.lower()
     rep = Path("eval_report"); rep.mkdir(exist_ok=True)
     metrics = {
         "model_version": args.version,
-        "n_test": int(len(Yte)), "threshold": args.threshold,
+        "n_test": int(len(Yte)), "threshold": thr, "threshold_selection": thr_note,
+        "target_precision": args.target_precision,
         "roc_auc": roc, "pr_auc": pr,
         "precision": float(pr_), "recall": float(rc_), "f1": float(f1_),
-        "confusion_matrix": cm, "per_snr": per_snr,
+        "confusion_matrix": cm, "per_condition": per_cond,
         "note": ("TOY DATA — NOT REAL METRICS. Synthetic smoke-test of the "
                  "pipeline only; these numbers are meaningless." if is_toy else
                  "Proxy-validated metrics (§2/§9.2): trained largely on proxy "

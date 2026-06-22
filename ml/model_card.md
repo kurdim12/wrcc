@@ -1,177 +1,176 @@
 # Model Card — Palm Guard acoustic activity detector
 
-> **Honesty summary.** Once populated, every number in this card is a **proxy
-> metric** — measured on a **grouped** (recording-level) held-out split of open
-> proxy corpora (ASPID activity/clean + ESC-50 noise augmentation) — **not "RPW
-> accuracy."** No airborne real-RPW audio is used in training or evaluation.
-> Real-RPW INMP441 field validation is the next step, not something these numbers
-> establish. *Status: not yet populated — serving currently runs the heuristic
-> baseline.*
+> **Honesty summary.** Every number in this card is a **PROXY metric**, measured
+> by **grouped cross-validation** (recording-level, no leakage) on the open
+> **ASPID** stored-product-insect corpus (MIT). It is **NOT "RPW accuracy,"** it
+> is **not field-validated**, and the recordings are all the **`silence`**
+> condition. The positive class is real **insect-larvae feeding/chewing**
+> (Tenebrio/Tribolium/Callosobruchus) vs **No-Insects** controls — a *functional*
+> proxy for RPW boring/feeding, but not RPW itself. No airborne real-RPW audio is
+> used. Real-RPW INMP441 field validation is the next step, not something these
+> numbers establish.
 
 **Task:** binary, acoustic-primary — `activity` (boring/feeding present) vs
-`clean` (no insect activity) from a ~1 s window → `p_activity ∈ [0,1]`.
-Species ID is explicitly **out of scope** for v1 (we don't have labelled RPW
-audio to support it honestly).
+`clean` (no insect activity) from a ~1 s window → `p_activity ∈ [0,1]`. Species
+ID is explicitly **out of scope** for v1 (we have no labelled RPW audio).
+
+**What the v1 model learned (be precise):** `cnn-aspid-v1` discriminates
+**stored-product insect larvae chewing/feeding** (ASPID `Tenebrio molitor`,
+`Tribolium confusum`, `Callosobruchus maculatus` larvae) from **No-Insects**
+controls, on close-mic recordings in the **`silence`** condition. Larvae
+chewing/feeding is acoustically much closer to RPW larvae boring inside a trunk
+than flying-insect wingbeats are — so this is a *stronger* proxy than an
+insect-vs-environment classifier — but it is still a proxy: different species,
+clean lab condition, airborne mic.
 
 ---
 
-## ⚠️ Current status: NO TRAINED MODEL YET — heuristic baseline in use
+## ✅ Current status: trained proxy (`cnn-aspid-v1`), grouped-CV evaluated
 
-As of this commit there is **no `.tflite` and no trained `saved_model/` in the
-repo**, and therefore **no real evaluation metrics exist**. The serving service
-(`ml/serve/app.py`) runs a **transparent heuristic baseline**
-(`model_version = "heuristic-baseline-v0"`, `calibrated = false`): it measures
-how much the feeding-band mel rows (~0.5–4 kHz) stand out from the rest of a
-per-clip-normalized log-mel patch. It is a shape detector, **not** a validated
-classifier.
+A real CNN was trained and evaluated via the reproducible pipeline
+(`ml/prepare/aspid_intervals.py` → `ml/train/train_cv.py`). Metrics are in
+`eval_report/metrics.json` and filled below.
 
-Per the honesty mandate (§2/§9): **the dashboard shows a probability with a
-"heuristic"/"proxy-validated" badge and never a fabricated accuracy number.**
-This card will be filled with real numbers only after `train.py` runs on a real
-held-out set and writes `eval_report/metrics.json`.
+> ⚠️ The trained artifacts (`export/model.keras`, `saved_model/`, int8 TFLite)
+> and `eval_report/metrics.json` are **gitignored and NOT shipped** — a fresh
+> clone still serves the transparent `heuristic-baseline-v0`. These numbers are
+> **reproducible** (ASPID is MIT; scripts are committed), not bundled.
+
+> ⚠️ **Why cross-validation, not a single split.** Only the cleanly time-alignable
+> ASPID subset is used (see Data), giving **27 leak-safe groups** (logged
+> intervals). A single grouped train/test split leaves only ~5 test recordings,
+> and its ROC-AUC swung **0.26–0.85** purely with the training seed — noise, not
+> signal. Grouped **5-fold CV** evaluates every recording out-of-fold once and
+> pools the predictions, with per-fold variance reported so the small-group
+> uncertainty stays visible.
 
 ## Intended use / limits (read before quoting any number)
 
-- **Airborne mic ≠ guaranteed larvae detection.** INMP441 is an airborne MEMS
-  mic; RPW larvae feed *inside* the trunk (structure-borne sound). Reliable
-  mainly in **quiet / close / night** conditions. Not a farm-wide, all-weather
-  detector.
-- **Proxy validation only.** No large open dataset of airborne real-RPW exists
-  (see `prepare/DATASETS.md`). v1 trains on **functional proxies** (stored-grain
-  weevils, wood borers boring/feeding) + ambient-noise augmentation. Any metric
-  produced is a **proxy metric** and must be labelled as such everywhere.
-- **Operating point favors precision** — a false dose is costly (it pesticides a
-  healthy palm). Dosing is human-armed + confirmed regardless (§3).
+- **Airborne mic ≠ guaranteed larvae detection.** INMP441 is airborne; RPW larvae
+  feed *inside* the trunk (structure-borne). Reliable mainly **quiet / close /
+  night**. Not a farm-wide, all-weather detector.
+- **Proxy only.** v1 trains on ASPID stored-product insect larvae (a functional
+  proxy for boring/feeding), not real airborne RPW. Every metric is a **proxy
+  metric** and must be labelled as such — never "RPW accuracy."
+- **`silence` condition only.** The cleanly-alignable ASPID subset is all the
+  `silence` noise condition; robustness to farm noise is **not** measured here
+  (ESC-50 noise augmentation via `train.py --esc50` is the path to that, and is
+  not applied in this estimate).
+- **Operating point favors precision** — a false positive triggers a pesticide
+  micro-dose on a healthy palm. Dosing is human-armed + human-confirmed
+  regardless (§3); the model is one gate, not the trigger.
 
-## Data (proxy corpora — fill from the run)
+## Data (proxy corpus — ASPID, grouped by logged interval)
 
-| split | source(s) | recordings | clips | activity:clean |
-|-------|-----------|-----------:|------:|---------------:|
-| train | ASPID (proxy) | `__` | `__` | `__:__` |
-| val   | ASPID (proxy) | `__` | `__` | `__:__` |
-| test  | ASPID (proxy) | `__` | `__` | `__:__` |
+| split | source | recordings | clips | activity:clean |
+|-------|--------|-----------:|------:|---------------:|
+| all (grouped 5-fold CV) | ASPID (proxy) | 27 | 11066 | 6216:4850 |
+| — activity | larvae feeding | 20 | 6216 | — |
+| — clean | No-Insects controls | 7 | 4850 | — |
 
-Splits grouped by `recording_id` (no clip from one recording in two splits).
-ESC-50 is mixed in as **noise augmentation only** (CC BY-NC — non-commercial).
+`recording_id` = the **logged experiment interval** (one condition); all clips
+from one interval stay within a single CV fold, so no clip leaks across folds
+(§9.4). Each fold tests 3–7 recordings; pooled over 5 folds, **all 27** are
+evaluated out-of-fold. (Recording/clip counts above come from the
+`manifest_to_db --report` corpus index; the performance metrics come from
+`eval_report/metrics.json`.)
 
-**`clean` class composition depends on `--negative-policy`:**
-- `clean` (default): quiet-palm controls **plus** non-insect distractors
-  (e.g. "Talking", "Sweep") folded in as hard negatives — chosen to buy field
-  precision against daytime-farm noise.
-- `drop`: `clean` = quiet controls only; distractors excluded.
-
-Document which policy this run used (in Run provenance below) — it changes what
-`clean` means.
+**Source / provenance.** ASPID / SPIDB raw research export (`aspids_log.csv` +
+device-timestamped session WAVs). The log is a sparse interval annotation with no
+filename column, so `aspid_intervals.py` aligns each WAV to its logged interval by
+timestamp (a recorder-clock glitch affected only 2 of 1091 sessions and drops out
+naturally). One mic channel (**Ch0**) is used to avoid 8× near-duplicate channels;
+each WAV is trimmed to its logged window; non-insect distractor targets
+(`Noise NN dB`, `White Noise`, `Ronald Reagan Speech`, `Talking`, `Sweep`) are
+folded into `clean` as hard negatives. **62% of WAVs fall outside any logged
+interval and are dropped unlabeled** (never guessed). Features: firmware-matched
+40×32 HTK log-mel.
 
 ### Data sources & licenses
 
 | Corpus | Role | License | Note |
 |--------|------|---------|------|
-| ASPID / SPIDB | primary proxy (activity vs clean) | MIT | commercial-OK |
-| InsectSound1000 | (pretrain — **not used**, no clean class) | **CC BY 4.0** | resolved at DOI `10.5073/20231024-173119-0` (OpenAgrar) → `creativecommons.org/licenses/by/4.0/`; Kaggle's "Unknown" was a mirror gap. Still **not used** — no clean/negative class |
-| ESC-50 | noise augmentation only | **CC BY-NC** | non-commercial — fine for WRCC, flag for product |
+| ASPID / SPIDB | **primary proxy** (activity vs clean) | **MIT** | commercial-OK; used here |
+| ESC-50 | noise augmentation (available, not used in this estimate) | CC BY-NC | non-commercial — augmentation only, never a class, never republished |
+| InsectSound1000 | pretrain — **not used** | CC BY 4.0 | no clean/negative class |
 
 ## Features
 
 HTK-mel log-mel patch, **40 × 32**, `sr=16000, n_fft=1024, hop=512, fmin=200,
 fmax=8000`, per-clip mean-var normalization. Identical filterbank in
-`ml/features/melspec.py` and `firmware/.../acoustic.cpp` (and mirrored in
-`config.h`). See `ml/features/params.py`.
+`ml/features/melspec.py` and `firmware/.../acoustic.cpp` (mirrored in `config.h`).
+See `ml/features/params.py`.
 
-## Metrics (proxy — populated by `train.py` on the grouped test set)
+## Metrics (proxy — from `eval_report/metrics.json`)
 
-> **All numbers below are PROXY metrics**, measured on a held-out **grouped**
-> (recording-level) test split of open proxy corpora (ASPID activity/clean +
-> ESC-50 noise augmentation). They are **NOT** "RPW accuracy." No airborne
-> real-RPW audio was used in training or evaluation. Real-RPW field validation
-> on INMP441 hardware is the next step, not something these numbers establish.
->
-> Status: ⬜ not yet populated — fill only from `eval_report/metrics.json`.
+> **All numbers below are PROXY metrics**, pooled out-of-fold over a grouped
+> 5-fold CV of ASPID activity/clean (`silence` condition). **NOT** "RPW accuracy,"
+> **NOT** field-validated.
 
-### Run provenance (fill from the training run)
+### Run provenance
 
 | Field | Value |
 |-------|-------|
-| Model version | `__________` (e.g. `cnn-aspid-v1`) |
-| Trained on | ASPID (proxy) — activity vs clean |
-| Pretrain | **skipped** — InsectSound1000 has no clean/silence class (no fabricated negative) |
-| Noise augmentation | ESC-50 `audio/` via `--esc50` (CC BY-NC — augmentation only) |
-| `--negative-policy` | `__________` (`clean` = distractors folded in as hard negatives / `drop`) |
-| Split | grouped by `recording_id` (no recording in two splits) |
-| Threshold (chosen) | `__________` (precision-favoring — see below) |
+| Model version | `cnn-aspid-v1` |
+| Trained on | ASPID (proxy) — larvae feeding vs No-Insects, `silence` condition |
+| Evaluation | grouped 5-fold CV; pooled out-of-fold over all 27 recordings (11066 clips) |
+| Noise augmentation | none in this estimate (ESC-50 available via `train.py --esc50`) |
+| Threshold (chosen) | **0.223** — precision-favoring, selected on pooled OOF |
 | Eval source file | `eval_report/metrics.json` |
 
 ### Headline (proxy) metrics
 
 | Metric (proxy) | Value |
 |----------------|------:|
-| ROC-AUC | `____` |
-| PR-AUC | `____` |
-| Precision @ chosen threshold | `____` |
-| Recall @ chosen threshold | `____` |
-| F1 @ chosen threshold | `____` |
+| ROC-AUC (pooled OOF) | **0.905** |
+| PR-AUC (pooled OOF) | **0.926** |
+| Per-fold ROC-AUC | 0.944 / 0.819 / 0.948 / 0.840 / 0.822 → **0.875 ± 0.059** |
+| Precision @ threshold 0.223 | **0.800** |
+| Recall @ threshold 0.223 | **0.899** |
+| F1 @ threshold 0.223 | **0.846** |
 
-### Confusion matrix @ chosen threshold (proxy, grouped test)
+### Confusion matrix @ threshold 0.223 (proxy, pooled OOF, n=11066)
 
 |              | pred clean | pred activity |
 |--------------|-----------:|--------------:|
-| **true clean**    | `____` (TN) | `____` (FP) |
-| **true activity** | `____` (FN) | `____` (TP) |
+| **true clean**    | 3454 (TN) | 1396 (FP) |
+| **true activity** | 630 (FN)  | 5586 (TP) |
 
 ### Threshold selection (precision-favoring)
 
 A false positive triggers a pesticide micro-dose on a healthy palm, so the
-operating point is chosen to **favor precision** off the proxy PR curve.
+operating point favors precision off the proxy PR curve.
 
-- Target precision: `____` (state the precision floor aimed for)
-- Resulting recall: `____` (the recall cost paid for that precision)
-- Chosen threshold: `____`
-- Rationale: false-dose asymmetry — a false positive pesticides a healthy tree;
-  a false negative is recoverable on the next listening window. Dosing is also
-  human-armed + human-confirmed regardless (§3), so the model is one gate, not
-  the trigger.
+- Target precision: **0.80** (the precision floor aimed for)
+- Resulting recall: **0.899** (the recall cost paid for that precision)
+- Chosen threshold: **0.223**
+- Selection set: the **pooled out-of-fold predictions** (each recording was
+  held out when scored). This is mildly optimistic — the threshold is tuned on
+  the same pooled set it is reported on — so treat the threshold-free **ROC-AUC
+  0.905 / PR-AUC 0.926** as the robust headline and the operating point as
+  indicative.
+- Rationale: false-dose asymmetry — a false positive pesticides a healthy tree; a
+  false negative is recoverable on the next listening window. Dosing is also
+  human-armed + human-confirmed regardless (§3).
 
 ### Per-noise-condition breakdown (proxy, support-gated)
 
-> Axis is **noise condition** (ASPID's categorical `noise` column), **not a
-> measured SNR/dB**. Calling it SNR would overclaim. A row is reported only if
-> it clears the support floor in the grouped test split; sparser conditions are
-> collapsed into **`other`**. `n_recordings` / `n_clips` shown so support is
-> visible and a low-n row is never mistaken for a stable metric.
-
-**Support floor (lock from real post-split counts):** ≥ `__` distinct
-recordings AND ≥ `__` test clips. (Starting proposal: ≥6–8 recordings, ≥50
-clips — confirm against the `--inspect` distribution and post-split counts.)
+The cleanly time-alignable ASPID subset is **entirely the `silence` condition**
+(the log's Noise/Factory/Crowd/Helicopter intervals did not time-align to any
+recording, so they are absent). The single supported row:
 
 | Noise condition | n_recordings | n_clips | ROC-AUC | PR-AUC | Precision | Recall | F1 |
 |-----------------|-------------:|--------:|--------:|-------:|----------:|-------:|---:|
-| silence         | `__` | `__` | `__` | `__` | `__` | `__` | `__` |
-| `__________`    | `__` | `__` | `__` | `__` | `__` | `__` | `__` |
-| `__________`    | `__` | `__` | `__` | `__` | `__` | `__` | `__` |
-| **other (folded < floor)** | `__` | `__` | `__` | `__` | `__` | `__` | `__` |
+| silence         | 27 | 11066 | 0.905 | 0.926 | 0.800 | 0.899 | 0.846 |
 
-_All rows: proxy metrics on the grouped held-out test set. Conditions below the
-support floor are folded into `other` rather than reported as standalone rows._
-
-## Pipeline smoke-test on TOY data (Tier 2 / Task 5)
-
-The full `prepare → features → train → export → serve` path has been run
-end-to-end on a **tiny synthetic corpus** (`ml/prepare/make_toy_corpus.py`):
-obviously-fake tone-burst "activity" vs noise "clean" WAVs. This produced
-`export/model.keras`, a SavedModel, and `export/model_int8.tflite`, and the
-serving service auto-loaded the trained model (`/health` → `model_loaded:true`,
-`model_version:"TOY-DATA-not-real-v0"`, `calibrated:false`) with `/score`
-returning from it.
-
-> ⚠️ **TOY DATA — NOT REAL METRICS.** This only proves the pipeline runs; any
-> number from it is meaningless and is labelled TOY everywhere (the UI badge,
-> `eval_report/metrics.json` note, and `model_version`). All toy artifacts are
-> gitignored/regenerable. Real corpora (`prepare/DATASETS.md`) + your own
-> INMP441 clips are the drop-in replacement — same commands, real numbers.
+_Noise-condition robustness is therefore **not** measured here. ESC-50 noise
+augmentation (`train.py --esc50`) is the route to it; field noise robustness needs
+your own INMP441 clips._
 
 ## Highest-value next step (§9.10)
 
-Record **your own INMP441 clips** (palm log + mic, controlled activity if
-available, plenty of clean farm ambient) and (a) fine-tune and (b) **validate**
-on them. Metrics on *your* mic in *your* conditions are far more credible to a
-judge than any proxy AUC.
+This is a strong *proxy* but still a proxy (stored-product insects, clean lab
+condition, airborne mic). To make the number credible for RPW: record **your own
+INMP441 clips** (palm log + mic, controlled activity if available, plenty of clean
+farm ambient) and (a) fine-tune and (b) **validate** on them. Metrics on *your*
+mic in *your* conditions are far more credible to a judge than any proxy AUC.

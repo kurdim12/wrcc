@@ -10,8 +10,8 @@ Verdicts: ✅ supported · ⚠️ supported only with nuance · ❌ must NOT cla
 
 | # | Claim | Code reality | Verdict |
 |---|-------|--------------|---------|
-| 1 | "Trained AI/ML model detects RPW" | No trained model in repo. `ml/serve` runs `heuristic-baseline-v0` (`calibrated:false`); fusion uses `SA=100·P(activity)` with a heuristic fallback. Pipeline proven only on **toy** data. | ❌ Say "ML pipeline + acoustic model **architecture** ready; today a transparent heuristic baseline; proxy-validation is the next step." |
-| 2 | Any "% accuracy / AUC / detection rate" | No real metrics exist; `eval_report/` is empty. Toy run is labelled meaningless. | ❌ Quote **no number**. The old "70-80% accuracy" was removed from the UI. |
+| 1 | "Trained AI/ML model detects RPW" | A reproducible **proxy** model (`cnn-aspid-v1`) is trained + grouped-CV-evaluated on ASPID (stored-product insect **larvae feeding** vs No-Insects, MIT). Artifacts are gitignored, so a fresh clone still serves `heuristic-baseline-v0`. **Not** RPW-trained, **not** field-validated. | ⚠️ Say "acoustic model trained + cross-validated on an open **proxy** (insect-larvae feeding vs clean); a **proxy** result, **not RPW**; field validation is the next step." |
+| 2 | Any "% accuracy / AUC / detection rate" | Real **proxy** metrics now exist: grouped 5-fold CV **ROC-AUC 0.905 / PR-AUC 0.926** on ASPID activity-vs-clean (`silence` condition). No RPW or field metric exists. | ⚠️ Quote **only as a proxy number, explicitly labelled** (e.g. "ROC-AUC 0.905 on an open insect-activity proxy — not RPW, not field-validated"). Never as RPW accuracy. |
 | 3 | "Detects RPW larvae inside the trunk" | Airborne INMP441; larvae are structure-borne. Reliable mainly quiet/close/night. | ⚠️ Say "flags **acoustic activity consistent with boring/feeding**, most reliably in quiet/close/night." |
 | 4 | "Multi-sensor fusion (acoustic + vibration + thermal + VOC)" | Real: `riskScore.js` fuses SA (ML/heuristic) + SV (SW-420) + ST (DS18B20) + SVOC (BME680), adaptive weights. | ✅ |
 | 5 | "Human-confirmed targeted micro-dosing, no autonomous spraying" | Dose requires `device.armed` + confirm; caps on **both** server + device; verified by 19 tests. | ✅ (lead with this — it's a strength) |
@@ -26,8 +26,11 @@ Verdicts: ✅ supported · ⚠️ supported only with nuance · ❌ must NOT cla
 | 14 | "RPW signature at ~4.5 kHz" (old) | **Removed.** Literature puts feeding ~0.5–4 kHz; the model owns the spectral call. UI shows a "feeding band (guide)". | ❌ Don't cite a fixed RPW frequency as the detector. |
 
 ## Claims the report/deck MUST NOT make (until earned)
-- Any **accuracy / AUC / precision / recall number** (no validated model).
-- "Trained on RPW audio" or "validated on RPW" (it's proxy/heuristic; no model trained).
+- Any accuracy / AUC / precision / recall number **presented as RPW or field
+  performance** (proxy numbers are fine only when explicitly labelled proxy +
+  named corpus, e.g. "ROC-AUC 0.905 on the ASPID insect-activity proxy").
+- "Trained on RPW audio" or "validated on RPW" (it's a stored-product-insect
+  **proxy** model; no RPW audio, no field validation).
 - "Autonomous treatment / auto-spray" (it's human-confirmed by design).
 - "Mesh network", "500 m range", "X-month battery life", "field-tested".
 - A specific detection **lead time** ("3–6 months") as a measured result.
@@ -41,7 +44,8 @@ Verdicts: ✅ supported · ⚠️ supported only with nuance · ❌ must NOT cla
   number; the system states its own limits.
 - End-to-end live pipeline (capture → log-mel → score → fuse → alert → confirm →
   dose → history), resilient to ML-down, backend-restart, and socket drops.
-- A reproducible ML pipeline (prepare → train → export → serve) **proven to run**
-  (on toy data), ready for real proxy corpora + your-own INMP441 clips.
+- A reproducible ML pipeline (prepare → train → export → serve), now **trained +
+  grouped-CV-evaluated on a real open proxy** (ASPID insect-larvae feeding vs
+  clean): **ROC-AUC 0.905 / PR-AUC 0.926 (proxy)**. Next: your-own INMP441 clips.
 - The clearest next step, owned out loud: **record real INMP441 data and
   field-validate** (the line to lead with, §14).
