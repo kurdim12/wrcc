@@ -127,10 +127,13 @@ the team's own design.)*
 1. **On-device features:** 16 kHz audio → hand-written 1024-pt FFT → **40×32
    log-mel** patch (identical filterbank in firmware and `ml/features`,
    `PG_FEATURE_VERSION = logmel-40x32-v1`).
-2. **Acoustic activity model:** the scorer returns `p_activity ∈ [0,1]`. A trained
-   CNN is the target; today a **transparent heuristic baseline** runs
-   (`heuristic-baseline-v0`, `calibrated=false`) — explicitly **not** a validated
-   classifier. No hardcoded "RPW = X kHz" rule; the model owns the spectral call.
+2. **Acoustic activity model:** the scorer returns `p_activity ∈ [0,1]`. A
+   reproducible CNN proxy (`cnn-aspid-v1`) is trained + grouped-CV-evaluated on
+   ASPID (insect-larvae feeding vs No-Insects): **proxy ROC-AUC 0.905 / PR-AUC
+   0.926** (see `model_card.md`). Its artifacts are gitignored, so a fresh clone
+   still serves the **transparent heuristic baseline** (`heuristic-baseline-v0`,
+   `calibrated=false`). The number is a **proxy** — not RPW, not field-validated.
+   No hardcoded "RPW = X kHz" rule; the model owns the spectral call.
 3. **Multi-sensor expert architecture (not a black box):**
 
 ```mermaid
@@ -209,11 +212,12 @@ Two independent guards — **server caps** (`doseEngine`) and **device failsafes
   unit-checked. Green CI (safety + expert tests + ML toy-smoke + frontend build).
 - **Full loop demonstrated** (detect → fuse → alert → arm → confirm → dose →
   history) via a seeded 16-node demo farm + scripted spike.
-- **Not claimed:** no validated RPW accuracy / no ROC-AUC / no precision-recall —
-  there is no trained, field-validated model yet (`eval_report/` is empty in a
-  clone; the serving model is the labelled heuristic). The training pipeline is
-  complete and smoke-tested on toy data; proxy metrics (ASPID + ESC-50) will be
-  reported as proxy in `model_card.md`.
+- **Measured (proxy only):** grouped 5-fold CV on the open ASPID stored-product-
+  insect corpus gives **ROC-AUC 0.905 / PR-AUC 0.926** for larvae-feeding vs clean
+  (`silence` condition), reported as a **proxy** in `model_card.md`. **Not
+  claimed:** no validated **RPW** accuracy and no **field** metric — these proxy
+  numbers are neither RPW nor field-validated, and the trained artifacts are
+  gitignored, so a fresh clone serves the labelled heuristic baseline.
 
 ## 3.8 Challenges
 
