@@ -8,6 +8,23 @@ metrics and fills `ml/model_card.md`. It never fabricates a number.
 
 ---
 
+## Step 0 — get the project onto this machine (DO THIS FIRST)
+The training code (`ml/prepare/…`, `ml/train/…`, etc.) lives **in the repo**, so
+clone it before anything else. In a terminal (PowerShell / cmd / bash) with `git`:
+```bash
+git clone https://github.com/kurdim12/wrcc.git
+cd wrcc
+git checkout claude/elegant-keller-aurxdw      # branch with the latest work
+```
+- **Private repo?** Authenticate first: `gh auth login` (GitHub CLI), or paste a
+  GitHub Personal Access Token when `git` prompts for a password.
+- **No git installed?** Install it (`winget install Git.Git` on Windows) — or
+  download the repo ZIP from GitHub and unzip it, then `cd` in.
+
+Then **open Claude Code inside the `wrcc/` folder** (`claude` in that directory)
+so it can see every file. All commands below assume you're in the repo, and the
+`python -m …` commands run from inside `ml/` (Step 1 does `cd ml`).
+
 ## 0. Hard rules (do not violate)
 1. **No fabricated metrics.** Every number is a **PROXY** metric on a grouped
    held-out split of open proxy corpora — **never** "RPW accuracy" / field-proven.
