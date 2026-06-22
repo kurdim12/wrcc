@@ -55,6 +55,25 @@ daily-cap + nonce before it ever energises the pump, plus a physical disarm that
 hard-cuts the pump. Two independent guards is the right posture for anything that
 releases a chemical.
 
+### Q5b. "Is it actually autonomous, or remote-controlled?" (Rules 5.1.1 / 5.1.3)
+**Honest answer.** Detection and the risk *decision* are autonomous: each node
+samples its own sensors, runs the 1024-pt FFT and acoustic-activity scoring on
+the ESP32, and decides risk with no operator. In the on-device autonomy build
+(`PG_ONBOARD_AUTONOMY`) the node also decides to **request a dose on its own** —
+the server is only monitoring/audit, not the control loop — and it can run fully
+hands-off (`auto_confirm`). The one step we deliberately keep human-confirmed is
+the **irreversible chemical action**: a false dose pesticides a healthy palm, so
+we gate that as a safety/ethics choice (which the rulebook explicitly rewards),
+**not** as remote control. The robot decides; the human authorises the chemical.
+
+### Q5c. "Did your team write this code?" (Rule 5.3)
+**Honest answer.** We used an AI coding assistant as a tool — like an IDE,
+compiler, or Stack Overflow. The team conceived the system, designed the
+hardware and the multi-sensor architecture, made every engineering decision, and
+**understands and can modify every line** — happy to open any file and explain
+or change it live. We don't hide the tool-use; we own the result. (No third-party
+or coach wrote the solution.)
+
 ### Q6. "How do you know it's RPW and not some other insect or machinery?"
 **Honest answer.** For v1 we don't do **species ID** — we'd need labelled RPW
 audio we don't have, so claiming species classification would be dishonest. v1

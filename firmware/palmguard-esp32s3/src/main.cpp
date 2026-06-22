@@ -17,6 +17,7 @@
 #include "sensors/vibration.h"
 #include "sensors/thermal.h"
 #include "sensors/env.h"
+#include "decision/onboard_decision.h"   // header-only; autonomy path (default-off)
 
 #include "actuation/pump.h"
 #include "actuation/led.h"
@@ -197,6 +198,21 @@ void loop() {
 
   DoseStatus dose{};
   dose_fill_status(dose);
+
+#if PG_ONBOARD_AUTONOMY
+  // Autonomy path (§5.1.1/5.1.3): the NODE decides locally — detect -> risk ->
+  // request dose — with no server in the control loop. The dose still passes
+  // dose_fsm's local failsafes (arm + caps + nonce). Default-off; logic is
+  // host-validated, on-hardware behaviour is a bench-validation step.
+  {
+    static int pg_streak = 0;
+    uint32_t now_s = (uint32_t)(millis() / 1000);
+    int local_risk = pg_onboard_risk(ac, vib.vib_rms, vib.vib_dom_hz);
+    if (pg_onboard_decide(local_risk, pg_streak, dose_is_armed())) {
+      dose_handle_cmd(true, PG_DOSE_PUMP_MS_DEF, pg_onboard_nonce(now_s), now_s);
+    }
+  }
+#endif
 
 #if PG_EMIT_SERIAL
   emitSerialJson(ac, vib, th, env, dose, batt);

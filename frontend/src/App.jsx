@@ -14,7 +14,6 @@ import Intelligence        from './pages/Intelligence.jsx';
 import Sidebar             from './components/Sidebar.jsx';
 import Header              from './components/Header.jsx';
 import PalmDetailDrawer    from './components/PalmDetailDrawer.jsx';
-import AIAssistant         from './components/AIAssistant.jsx';
 import ToastContainer      from './components/ToastContainer.jsx';
 import LiveBadge           from './components/LiveBadge.jsx';
 import DoseConfirmModal    from './components/DoseConfirmModal.jsx';
@@ -167,7 +166,6 @@ export default function App() {
                    onClick={() => setSelected(null)} />
             )}
             <PalmDetailDrawer palm={selectedPalm} onClose={() => setSelected(null)} showToast={addToast} />
-            <AIAssistant deviceId={selectedPalm?.device_id} />
             {/* Human-in-the-loop dose gate — global so a pending dose surfaces on any page */}
             <DoseConfirmModal showToast={addToast} />
           </div>
