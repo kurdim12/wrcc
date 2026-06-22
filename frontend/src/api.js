@@ -69,8 +69,4 @@ export const api = {
   // Reports
   reportsList:   () => json('/reports/list').then(d => d.reports),
   reportUrl:     (id) => `${BASE}/reports/${id}.csv`,
-
-  // AI Chat (OpenRouter)
-  chatStatus:    () => json('/chat/status'),
-  chat:          (body) => json('/chat', { method: 'POST', body: JSON.stringify(body) }),
 };
