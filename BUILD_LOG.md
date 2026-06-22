@@ -3,6 +3,27 @@
 One bullet per session: what changed, what's verified working, what's stubbed.
 Honesty mandate (§2): nothing here claims a metric that wasn't measured.
 
+## Session 6 — expert architecture, compliance hardening, competition docs
+
+- **Multi-sensor expert architecture** added (backend `services/experts/*` +
+  `engines/*` + `intelligence.js`): Acoustic / Vibration / Environment /
+  Sensor-Health experts → Risk Fusion Engine → Dose Safety Engine → Explanation.
+  Additive over the proven risk/dose path (19 safety tests untouched); +10 new
+  expert/fusion unit tests. New `Intelligence Layer` dashboard page.
+- **On-device autonomy path** (`src/decision/onboard_decision.h`, flag
+  `PG_ONBOARD_AUTONOMY`, default-off): the node computes local risk and can
+  request a dose itself, server reduced to monitoring; dose still passes the
+  device FSM failsafes. Decision logic **host-compiled + unit-checked** (g++);
+  on-hardware integration is a documented bench step (not yet flashed here).
+- **Removed the optional LLM chat assistant** (OpenRouter) — it was never in the
+  control path; removed to keep the solution unambiguously the team's own.
+- **ML serve** gained honesty/schema fields (model_family, validation_status,
+  claim_guardrail, feature_version, confidence); baseline still TF-free.
+- **Docs:** project report draft, 90-s video script, tech stack, Windows runbook,
+  Path-A training prompt; README slogan + explicit Theme 1 — Agriculture.
+- Tooling note: this repo was built with an AI coding assistant; the team owns,
+  understands, and can modify the code (see JUDGE_QA Q5c).
+
 ## Session 1 — rebuild foundation + actuation loop + ML service (Phases 0–2)
 
 ### Phase 0 — Foundation ✅ (DoD met)

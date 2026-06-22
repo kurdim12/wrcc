@@ -110,6 +110,16 @@
 #define PG_DOSE_MAX_PER_DAY   4      // rolling-24h cap
 #define PG_DOSE_PUMP_MS_DEF   2000   // default dose duration if cmd omits pump_ms
 
+// ─── On-device autonomy (§5.1.1/5.1.3) ─────────────────────────────────
+// When 1, the NODE decides locally (detect -> risk -> request dose) with the
+// server reduced to monitoring/audit; the dose still passes dose_fsm's local
+// failsafes. Default 0 (server-authoritative). Logic in src/decision/
+// onboard_decision.h is host-validated; on-hardware integration is a
+// documented bench-validation step (docs/BENCH_BRINGUP.md).
+#ifndef PG_ONBOARD_AUTONOMY
+#define PG_ONBOARD_AUTONOMY   0
+#endif
+
 // ─── I2S audio ─────────────────────────────────────────────────────────
 #define PG_AUDIO_SR        16000
 // 1024 samples = 64 ms @ 16 kHz; matches the in-firmware FFT length so we

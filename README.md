@@ -3,8 +3,10 @@
 
   # Palm Guard
 
+  ### *"Hear the weevil before the palm falls."*
   ### Early RPW acoustic risk detection + human-confirmed micro-dosing  
   #### A self-powered robotic node for precision date-palm protection
+  #### WRCC 2026 · Open Category · **Theme 1 — Agriculture**
 
   <br />
 
