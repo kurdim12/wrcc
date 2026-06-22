@@ -71,7 +71,9 @@ A real CNN was trained and evaluated via the reproducible pipeline
 `recording_id` = the **logged experiment interval** (one condition); all clips
 from one interval stay within a single CV fold, so no clip leaks across folds
 (§9.4). Each fold tests 3–7 recordings; pooled over 5 folds, **all 27** are
-evaluated out-of-fold.
+evaluated out-of-fold. (Recording/clip counts above come from the
+`manifest_to_db --report` corpus index; the performance metrics come from
+`eval_report/metrics.json`.)
 
 **Source / provenance.** ASPID / SPIDB raw research export (`aspids_log.csv` +
 device-timestamped session WAVs). The log is a sparse interval annotation with no
