@@ -3,6 +3,62 @@
 One bullet per session: what changed, what's verified working, what's stubbed.
 Honesty mandate (§2): nothing here claims a metric that wasn't measured.
 
+## Session 7 — first REAL proxy model trained (ASPID + ESC-50), grouped-CV metrics
+
+Replaces the long-standing "no trained model / `heuristic-baseline-v0`" status: a
+real model is now trained, cross-validated, and exported — labelled **proxy**
+throughout (**NOT RPW, NOT field-validated**). Trained artifacts +
+`eval_report/metrics.json` stay **gitignored**, so a fresh clone still serves the
+heuristic; the committed scripts make the numbers reproducible. Env: `ml/.venv` on
+**Python 3.12** + **TF 2.21** (CPU-only on native Windows; the CNN is ~26 k params).
+No safety code touched.
+
+- **ASPID strong proxy (`cnn-aspid-v1`) — the headline.** User supplied the ~101 GB
+  ASPID raw export. It is NOT the filename-indexed corpus `aspid_prepare.py` assumed:
+  a sparse 165-row `aspids_log.csv` (time intervals, no filename column) over
+  ~1.09 k device-timestamped session dirs (11.7 k WAVs, 8 mic channels). **New
+  `ml/prepare/aspid_intervals.py`** aligns each WAV to its logged interval by
+  filename timestamp (recorder-clock glitch hit only **2 of 1091** sessions and
+  drops out naturally — verified), folds non-insect distractors (`Noise`/`White
+  Noise`/`Reagan Speech`/`Talking`/`Sweep`) into `clean` as hard negatives (the
+  `--inspect` warning is satisfied), groups by **logged interval** (leak-safe), uses
+  one channel (Ch0), trims to the logged window. **62 % of WAVs fall outside any
+  logged interval and are dropped unlabeled** (never guessed) → 27 recordings /
+  11 066 clips (6216 activity : 4850 clean), all the `silence` condition.
+- **Grouped 5-fold CV (`ml/train/train_cv.py`), not a single split.** A single
+  grouped split left only ~5 test recordings and its ROC-AUC swung **0.26–0.85 with
+  the training seed alone** — noise, not signal. CV scores every recording
+  out-of-fold once and pools: **ROC-AUC 0.905 / PR-AUC 0.926** (per-fold
+  0.819–0.948, 0.875 ± 0.059), precision-favoring point **P 0.80 / R 0.90 / F1 0.85
+  @ thr 0.223**, confusion `[[TN 3454, FP 1396],[FN 630, TP 5586]]`. Final model
+  retrained on all data + exported; **`serve` loads `cnn-aspid-v1`**
+  (`model_loaded:true`, `calibrated:false`). Operating point chosen on pooled OOF
+  (mildly optimistic; ROC/PR-AUC are threshold-free) — disclosed in the card.
+- **ESC-50 no-download weak proxy (`cnn-esc50-stream-v1`).** Built earlier in the
+  session (before ASPID was provided): **`ml/prepare/stream_esc50.py`** (HF stream
+  with local-clone fallback — HF needs `torchcodec` here, so it used the local
+  ESC-50) + **`ml/train/train_stream.py`** train an insect(flying)-vs-non-insect
+  classifier — ROC-AUC 0.831 on ~8 positive test clips. A deliberately **WEAK**,
+  demo-grade proxy (ESC-50 = **CC BY-NC**, non-commercial; augmentation-grade only);
+  kept as the no-download fallback path.
+- **`train.py` eval upgraded** (backward-compatible): optional `--target-precision`
+  selects a precision-favoring threshold on **val** (not test), a support-gated
+  **per-condition** breakdown (n_recordings/n_clips + full metrics), and a
+  reproducible `set_random_seed`.
+- **Docs to proxy reality:** `ml/model_card.md` rewritten (ASPID activity-vs-clean,
+  MIT; silence-only + small-group/CV-variance + threshold-on-OOF caveats; the
+  per-condition table is a single `silence` row). `docs/PROJECT_REPORT.md` +
+  `docs/CLAIMS_AUDIT.md` claims #1/#2 updated: a reproducible proxy model now exists
+  with grouped-CV proxy numbers — quote **only as a proxy**, never RPW accuracy or
+  field-validated. int8 TFLite (36 KB) re-exported (gitignored).
+- **Verified by a 4-lens adversarial review** (every number traces to
+  `metrics.json`; no RPW/field overclaim; ASPID MIT / ESC-50 CC BY-NC framing;
+  leak-safe split + threshold-on-val + nothing fabricated) — all pass, no blockers.
+  Merged to `main` (`3e2eb0e`).
+- **Next (unchanged honesty line):** record own **INMP441** clips → fine-tune +
+  validate on the real mic; that is what turns a proxy AUC into a field-credible
+  number.
+
 ## Session 6 — expert architecture, compliance hardening, competition docs
 
 - **Multi-sensor expert architecture** added (backend `services/experts/*` +
