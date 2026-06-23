@@ -302,6 +302,8 @@ html { scroll-behavior: smooth; }
 
 /* ── Orchard map (MapLibre) markers + control restyle ─────────────────── */
 .om-canvas { background: #06090B; }
+/* Subtle vignette to fold the aerial into the dark command-center frame. */
+.om-veil { background: radial-gradient(120% 95% at 50% 38%, transparent 48%, rgba(6,9,11,0.5) 100%); }
 .orchard-marker {
   width: 18px; height: 18px; padding: 0; border: 0; background: transparent;
   cursor: pointer; display: grid; place-items: center;

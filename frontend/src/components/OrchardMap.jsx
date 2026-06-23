@@ -10,23 +10,23 @@ const band = (s) => (s >= 80 ? 'critical' : s >= 55 ? 'high' : s >= 30 ? 'watch'
 const COLOR = { normal: '#20C07E', watch: '#E0A93B', high: '#E2683A', critical: '#FF5A4D', treated: '#3B8FE0' };
 const colorFor = (p) => (p.treated ? COLOR.treated : COLOR[band(Math.round(p.risk_score ?? 0))]);
 
+// Free ESRI World Imagery — real satellite/aerial tiles, no API key required.
+// Slightly darkened (raster-opacity over a near-black canvas) so it sits inside
+// the command-center theme and the glow markers stay legible.
 const DARK_STYLE = {
   version: 8,
   sources: {
-    carto: {
+    sat: {
       type: 'raster',
-      tiles: [
-        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-        'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-      ],
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
       tileSize: 256,
-      attribution: '© OpenStreetMap contributors © CARTO',
+      maxzoom: 19,
+      attribution: 'Imagery © Esri, Maxar, Earthstar Geographics',
     },
   },
   layers: [
     { id: 'bg', type: 'background', paint: { 'background-color': '#06090B' } },
-    { id: 'carto', type: 'raster', source: 'carto', paint: { 'raster-opacity': 0.9 } },
+    { id: 'sat', type: 'raster', source: 'sat', paint: { 'raster-opacity': 0.82, 'raster-saturation': -0.15, 'raster-contrast': 0.05 } },
   ],
 };
 
@@ -82,7 +82,7 @@ export default function OrchardMap({ palms = [], onSelectPalm, selectedPalm, hei
         markersRef.current.push(new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(map));
         bounds.extend([p.lng, p.lat]);
       });
-      if (!bounds.isEmpty()) map.fitBounds(bounds, { padding: 72, maxZoom: 18.5, duration: 600 });
+      if (!bounds.isEmpty()) map.fitBounds(bounds, { padding: 90, maxZoom: 17, duration: 600 });
     };
     if (map.loaded()) draw(); else map.once('load', draw);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,5 +91,10 @@ export default function OrchardMap({ palms = [], onSelectPalm, selectedPalm, hei
   if (failed) {
     return <PalmGridMap palms={palms} onSelectPalm={onSelectPalm} selectedPalm={selectedPalm} height={height} />;
   }
-  return <div ref={ref} className={`om-canvas w-full ${height}`} />;
+  return (
+    <div className={`relative w-full ${height}`}>
+      <div ref={ref} className="om-canvas absolute inset-0" />
+      <div className="om-veil absolute inset-0 pointer-events-none" />
+    </div>
+  );
 }
