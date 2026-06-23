@@ -75,8 +75,8 @@ export const DoseConfirmModal = ({ showToast }) => {
             {isLive ? <AlertTriangle size={16} className="shrink-0 mt-0.5" /> : <Droplets size={16} className="shrink-0 mt-0.5" />}
             <span>
               {isLive
-                ? 'LIVE MODE. Confirm only after physical inspection or an approved field protocol. The model score is not a standalone pesticide decision; a false dose harms a healthy palm.'
-                : 'WRCC demo mode: clear water only. The model score is an acoustic activity estimate (proxy/heuristic), not a standalone pesticide decision.'}
+                ? 'LIVE MODE. Confirm only after physical inspection or an approved field protocol. The model score is not a standalone treatment decision; a false dose harms a healthy palm.'
+                : 'WRCC demo mode: clear water only. The model score is an acoustic activity estimate (proxy/heuristic), not a standalone treatment decision.'}
             </span>
           </div>
 
@@ -87,7 +87,7 @@ export const DoseConfirmModal = ({ showToast }) => {
             </button>
             <button disabled={busy} onClick={() => act(() => api.confirmDose(dose.id, 'operator'), 'confirmed')}
               className="focus-ring flex-1 py-3 rounded-lg font-bold bg-crit text-bone hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2">
-              <ShieldCheck size={18} /> {isLive ? 'Confirm dose' : 'Confirm clear-water dose'}
+              <ShieldCheck size={18} /> {isLive ? 'Confirm treatment dose' : 'Confirm Clear-Water Demo Dose'}
             </button>
           </div>
           {queue.length > 1 && <div className="text-center hud-label">{queue.length - 1} more pending</div>}

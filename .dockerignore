@@ -1,0 +1,32 @@
+# Keep the build context small and reproducible. Deps are reinstalled cleanly
+# inside the image, and the frontend is rebuilt there too.
+.git
+.github
+**/node_modules
+*.log
+
+# Local runtime artifacts. In production the DB lives on the mounted disk
+# (PG_DB_PATH), and frontend/dist is rebuilt inside the image.
+backend/data
+frontend/dist
+.vite
+
+# ML corpora + trained artifacts (large, gitignored, not used by the web app —
+# production serves the heuristic baseline by design).
+ml/data
+ml/export
+ml/eval_report
+
+# Firmware build outputs + hardware/3D/video binaries.
+firmware/palmguard-esp32s3/.pio
+firmware/palmguard-esp32s3/.vscode
+*.stl
+*.mp4
+
+# Large repo-root media + the PDF report — not needed by the running app.
+# (NOTE: frontend/public/*.jpg|*.png ARE kept — the dashboard uses them.)
+LOGO PALM.png
+dashboard-preview.png
+device-render.png
+system-architecture.png
+Palm-Guard-Report-FINAL.pdf

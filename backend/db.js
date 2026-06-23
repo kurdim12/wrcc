@@ -6,11 +6,15 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dataDir = path.join(__dirname, 'data');
-const dbPath = process.env.PG_DB_PATH || path.join(dataDir, 'palmguard.db');
+const defaultDataDir = path.join(__dirname, 'data');
+const dbPath = process.env.PG_DB_PATH || path.join(defaultDataDir, 'palmguard.db');
 const schemaPath = path.join(__dirname, 'schema.sql');
 
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+// Ensure the directory for the actual DB path exists. This covers both the
+// default backend/data dir and a custom PG_DB_PATH (e.g. a mounted volume in
+// production, or a temp path used by tests).
+const dbDir = path.dirname(dbPath);
+if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
 
 const db = new DatabaseSync(dbPath);
 db.exec('PRAGMA journal_mode = WAL');

@@ -5,6 +5,8 @@ import { useDevices } from '../hooks/useDevices.js';
 import { useDoses } from '../hooks/useDoses.js';
 import { useSystemMode } from '../hooks/useSystemMode.js';
 import { TreatmentLockCard } from '../components/TreatmentLockCard.jsx';
+import { SafetyStatusCard } from '../components/ui/SafetyStatusCard.jsx';
+import { PageHeader } from '../components/ui/Primitives.jsx';
 
 const now = () => Math.floor(Date.now() / 1000);
 const fmtTime = (ts) => (ts ? new Date(ts * 1000).toLocaleString() : '—');
@@ -13,13 +15,6 @@ const STATUS = {
   done:      'bg-forest-400/20 text-forest-400', failed: 'bg-crit/15 text-crit',
   cancelled: 'bg-muted/15 text-muted',
 };
-
-// The four guarantees the gate enforces — stated plainly, no hedging.
-const GUARANTEES = [
-  'Human confirmation required before any dose is released.',
-  'Independent caps on BOTH server and device — max doses/day, cooldown, pump ceiling.',
-  'The model score is an activity estimate, NOT a standalone pesticide decision.',
-];
 
 export default function Doses({ showToast }) {
   const { devices, refresh } = useDevices();
@@ -59,50 +54,14 @@ export default function Doses({ showToast }) {
 
   return (
     <div className="space-y-6">
-      {/* ── Safety Gate hero ─────────────────────────────────────────── */}
-      <div className="instrument overflow-hidden border-l-4 border-crit">
-        <div className="p-5 md:p-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-crit/12 text-crit flex items-center justify-center shrink-0">
-              <ShieldAlert size={24} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h2 className="font-bold text-xl text-charcoal dark:text-bone">Treatment Safety Gate</h2>
-                <span className={`hud-label px-2.5 py-1 rounded-full border ${
-                  armedCount ? 'text-caution border-caution/40 bg-caution/10' : 'text-forest-400 border-forest-400/40 bg-forest-400/10'}`}>
-                  {armedCount ? `${armedCount} node${armedCount === 1 ? '' : 's'} armed` : 'all nodes locked'}
-                </span>
-                {!isLive && (
-                  <span className="hud-label px-2.5 py-1 rounded-full border text-gold border-gold/40 bg-gold/10 flex items-center gap-1.5">
-                    <Droplets size={12} /> clear water only
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-muted mt-1 max-w-3xl">
-                Actuation is locked behind a human. Nothing here sprays autonomously — arming only <em>enables</em> a
-                request, and a dose is released only after explicit confirmation.
-              </p>
-            </div>
-          </div>
-
-          {/* guarantees */}
-          <div className="grid md:grid-cols-3 gap-2 mt-4">
-            {GUARANTEES.map((g) => (
-              <div key={g} className="instrument-inset px-3 py-2.5 flex items-start gap-2">
-                <CheckCircle2 size={15} className="text-forest-400 shrink-0 mt-0.5" />
-                <span className="text-[12px] leading-snug text-charcoal/80 dark:text-bone/80">{g}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* live counters */}
-          <div className="flex flex-wrap gap-2.5 mt-4">
-            <Counter icon={ShieldCheck} label="Armed nodes" value={`${armedCount} / ${devices.length}`} tone={armedCount ? 'caution' : 'muted'} />
-            <Counter icon={Lock} label="Pending requests" value={pending.length} tone={pending.length ? 'caution' : 'muted'} />
-            <Counter icon={Syringe} label="Doses · 24h" value={doses24h} tone="muted" />
-          </div>
-        </div>
+      {/* ── Safety Gate status ───────────────────────────────────────── */}
+      <PageHeader title="Treatment Safety Gate"
+        subtitle="Actuation is locked behind a human — arming only enables a request; a dose is released only after explicit operator confirmation. Demo uses clear water only." />
+      <SafetyStatusCard mode={mode} armed={armedCount > 0} cooldown={false} />
+      <div className="flex flex-wrap gap-2.5">
+        <Counter icon={ShieldCheck} label="Armed nodes" value={`${armedCount} / ${devices.length}`} tone={armedCount ? 'caution' : 'muted'} />
+        <Counter icon={Lock} label="Pending requests" value={pending.length} tone={pending.length ? 'caution' : 'muted'} />
+        <Counter icon={Syringe} label="Doses · 24h" value={doses24h} tone="muted" />
       </div>
 
       {/* ── Pending actions queue ────────────────────────────────────── */}

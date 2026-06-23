@@ -20,18 +20,24 @@ import DoseConfirmModal    from './components/DoseConfirmModal.jsx';
 import SystemStatusStrip   from './components/SystemStatusStrip.jsx';
 import ErrorBoundary       from './components/ErrorBoundary.jsx';
 
-// Mission-control page titles (ids unchanged so routing/contracts stay intact).
-const PAGE_TITLES = {
-  overview: 'Mission Overview', palms: 'Palm Roster', alerts: 'Alerts / Incidents',
-  doses: 'Treatment Control', network: 'Orchard Nervous System',
-  spectrogram: 'Tree Stethoscope', reports: 'Evidence Locker',
-  intelligence: 'Intelligence Layer',
+// Clear, judge-friendly page titles + plain-English subtitles. Creative names
+// kept as subtitles. (ids unchanged so routing/contracts stay intact.)
+const PAGE_META = {
+  overview:     { title: 'Command Center', subtitle: 'Mission Overview — orchard at a glance' },
+  intelligence: { title: 'AI Decision',    subtitle: 'Intelligence Layer — why the system flagged a palm' },
+  palms:        { title: 'Trees',          subtitle: 'Palm Roster — fleet of monitored palms' },
+  alerts:       { title: 'Incidents',      subtitle: 'Alerts & Events — what needs attention' },
+  doses:        { title: 'Safety Gate',    subtitle: 'Treatment Control — human-confirmed, clear-water demo' },
+  network:      { title: 'Network',        subtitle: 'Orchard Nervous System — device & link health' },
+  spectrogram:  { title: 'Acoustic Lab',   subtitle: 'Tree Stethoscope — listening inside the trunk' },
+  reports:      { title: 'Reports',        subtitle: 'Evidence Locker — judge-ready proof' },
 };
 
 import { useTheme }        from './hooks/useTheme.js';
 import { useToast }        from './hooks/useToast.js';
 import { useAlerts }       from './hooks/useAlerts.js';
 import { useSystemMode }   from './hooks/useSystemMode.js';
+import { useFarmStats }    from './hooks/useFarmStats.js';
 import { api }             from './api.js';
 import { socket, onEvent } from './socket.js';
 
@@ -55,6 +61,8 @@ export default function App() {
   const { toasts, addToast }          = useToast();
   const { alerts: activeAlerts }      = useAlerts('active');
   const sysMode                       = useSystemMode();
+  const { stats }                     = useFarmStats();
+  const [lastUpdate, setLastUpdate]   = useState(null);
 
   // Establish socket once the app mounts so backend events stream early
   useEffect(() => { socket(); }, []);
@@ -67,8 +75,10 @@ export default function App() {
   useEffect(() => {
     if (view !== 'dashboard') return;
     refreshPalms();
+    const stamp = () => setLastUpdate(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    stamp();
     const interval = setInterval(refreshPalms, 15000);
-    const off1 = onEvent('live:reading', refreshPalms);
+    const off1 = onEvent('live:reading', () => { refreshPalms(); stamp(); });
     const off2 = onEvent('live:alert',   refreshPalms);
     return () => { clearInterval(interval); off1(); off2(); };
   }, [view]);
@@ -137,19 +147,21 @@ export default function App() {
             <div className="flex-1 flex flex-col min-w-0">
               <SystemStatusStrip mode={sysMode.mode} />
               <Header
-                pageTitle={PAGE_TITLES[page] || page}
+                pageTitle={PAGE_META[page]?.title || page}
+                pageSubtitle={PAGE_META[page]?.subtitle}
                 onOpenSidebar={() => setSidebarOpen(true)}
                 dark={dark}
                 toggleTheme={toggleTheme}
                 alertCount={activeAlerts.length}
                 onBellClick={() => setPage('alerts')}
-                context={selectedPalm?.id}
+                devicesOnline={stats ? `${stats.onlineDevices ?? 0}/${stats.totalDevices ?? 0}` : null}
+                lastUpdate={lastUpdate}
                 rightExtras={<LiveBadge mode={sysMode.mode} size="md" />}
               />
 
               <main className="flex-1 overflow-y-auto p-4 md:p-6 xl:p-8 max-w-[1800px] mx-auto w-full">
                 <ErrorBoundary>
-                  {page === 'overview'    && <Overview palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} onAlertClick={handleAlertClick} onGotoAlerts={() => setPage('alerts')} sysMode={sysMode} />}
+                  {page === 'overview'    && <Overview palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} onAlertClick={handleAlertClick} onGotoAlerts={() => setPage('alerts')} onGotoSafety={() => setPage('doses')} sysMode={sysMode} />}
                   {page === 'palms'       && <Palms palms={palms} onSelectPalm={setSelected} />}
                   {page === 'alerts'      && <Alerts onAlertClick={handleAlertClick} showToast={addToast} />}
                   {page === 'doses'       && <Doses showToast={addToast} />}
