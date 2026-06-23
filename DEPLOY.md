@@ -7,11 +7,33 @@ survives restarts and redeploys. Requires **Node 22+** (built-in `node:sqlite`).
 
 ## What's in the repo
 
-- **`render.yaml`** — Render Blueprint: native Node 22 web service, build +
-  start commands, health check, env vars, and a 1 GB disk at `/var/data`.
-- **`Dockerfile` + `.dockerignore`** — portable single-service image (Node 22)
-  for Fly.io / Railway / Docker-on-Render. Not used by the native Render
-  Blueprint above.
+- **`Dockerfile` + `.dockerignore`** — portable single-service image (Node 22).
+  Used by Railway (and Docker-on-Render / Fly.io). Installs backend + frontend
+  deps, builds the frontend, runs the backend which serves `frontend/dist`.
+- **`railway.json`** — Railway config: Dockerfile builder + `/api/v1/health`
+  health check. (Volume + env vars are set in the Railway dashboard.)
+- **`render.yaml`** — Render Blueprint: native Node 22 web service + a 1 GB disk
+  at `/var/data`. An alternative to Railway; not used when deploying to Railway.
+
+## Railway (recommended — single service + volume)
+
+1. Push your branch (done): `git push origin claude/elegant-keller-aurxdw`.
+2. Railway → **New Project → Deploy from GitHub repo** → **kurdim12/wrcc** →
+   branch **`claude/elegant-keller-aurxdw`**. Railway uses the `Dockerfile`.
+3. Service → **Variables** → add `PG_DB_PATH = /data/palmguard.db`.
+   Do **not** set `PORT` (Railway injects it; the server reads it). `NODE_ENV`
+   is already `production` from the Dockerfile.
+4. Service → **Volumes** → add a volume mounted at **`/data`** (so the SQLite
+   file persists across restarts/redeploys).
+5. Service → **Settings → Networking** → **Generate Domain** for a public URL.
+6. **Redeploy** so the volume + `PG_DB_PATH` take effect.
+7. (Optional, populated demo) once live, run the seeder against the volume —
+   easiest via the Railway CLI: `railway run npm run seed:farm --prefix backend`.
+
+### Redeploy on Railway
+
+`git push origin claude/elegant-keller-aurxdw` → Railway auto-builds the new
+commit. The volume (and your DB) persists across deploys.
 
 ## First deploy (Render dashboard)
 
