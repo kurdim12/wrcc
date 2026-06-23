@@ -31,7 +31,7 @@ export const Sidebar = ({ currentPage, setPage, user, onLogout, isOpen, setIsOpe
           <img src="/logo.png" className="w-5 h-5 brightness-0 invert" alt="" />
         </div>
         <div className="leading-tight min-w-0">
-          <div className="font-display font-bold tracking-wide text-[13px] cm-ink">PALM GUARD</div>
+          <div className="font-bold tracking-wide text-[13px] cm-ink">PALM GUARD</div>
           <div className="cm-mono text-[10px]" style={{ color: 'var(--cm-forest)', letterSpacing: '0.12em' }}>CASEMAP</div>
         </div>
         <button className="ml-auto lg:hidden" onClick={() => setIsOpen(false)}><X size={18} className="cm-muted" /></button>
@@ -43,7 +43,7 @@ export const Sidebar = ({ currentPage, setPage, user, onLogout, isOpen, setIsOpe
           const badge = item.id === 'alerts' && alertCount > 0 ? alertCount : null;
           return (
             <button key={item.id} onClick={() => { setPage(item.id); setIsOpen(false); }}
-              className="focus-ring w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 relative text-[13px] font-medium hover:translate-x-0.5"
+              className="focus-ring w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors relative text-[13px] font-medium"
               style={active
                 ? { background: 'var(--cm-green-soft)', color: 'var(--cm-forest)' }
                 : { color: 'var(--cm-muted)' }}>

@@ -42,7 +42,7 @@ const Kicker = ({ children }) => (
 const SectionHead = ({ tag, title, sub }) => (
   <div className="max-w-2xl mb-12">
     <div className="hud-label text-forest-400 mb-3">{tag}</div>
-    <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-charcoal dark:text-bone mb-4">{title}</h2>
+    <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-charcoal dark:text-bone mb-4">{title}</h2>
     {sub && <p className="text-base md:text-lg text-muted leading-relaxed">{sub}</p>}
   </div>
 );
@@ -55,7 +55,7 @@ const LandingNav = ({ onLogin, dark, toggleTheme }) => {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <button className="flex items-center gap-2.5" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <img src={ASSETS.logo} alt="" className="h-8 w-auto" />
-          <span className="font-display font-bold text-lg tracking-tight text-charcoal dark:text-bone">Palm Guard</span>
+          <span className="font-bold text-lg tracking-tight text-charcoal dark:text-bone">Palm Guard</span>
           <span className="hidden sm:inline hud-label text-forest-400">· LTI</span>
         </button>
         <div className="hidden md:flex items-center gap-8">
@@ -141,9 +141,9 @@ const Hero = ({ onLogin }) => (
     <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center relative z-10">
       <div className="animate-fade-in-up">
         <Kicker>Living Telemetry Interface</Kicker>
-        <h1 className="mt-6 font-display text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] text-charcoal dark:text-bone">
+        <h1 className="mt-6 text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] text-charcoal dark:text-bone">
           Hear the weevil
-          <span className="block text-gradient-forest">before the palm falls.</span>
+          <span className="block text-forest-400">before the palm falls.</span>
         </h1>
         <p className="mt-6 text-lg text-muted leading-relaxed max-w-xl">
           A solar, per-tree node listens inside the trunk for Red Palm Weevil feeding, scores
@@ -188,7 +188,7 @@ const ThreatSection = () => (
             <span className="absolute top-4 left-4 hud-label text-crit instrument-inset px-2.5 py-1">without detection</span>
           </div>
           <div className="p-5">
-            <h3 className="font-display font-bold text-lg text-charcoal dark:text-bone flex items-center gap-2"><X size={16} className="text-crit" /> Silent until it's terminal</h3>
+            <h3 className="font-bold text-lg text-charcoal dark:text-bone flex items-center gap-2"><X size={16} className="text-crit" /> Silent until it's terminal</h3>
             <p className="text-sm text-muted mt-1.5">Internal damage is irreversible once symptoms surface. A lost palm is years of growth gone.</p>
           </div>
         </div>
@@ -199,7 +199,7 @@ const ThreatSection = () => (
             <span className="absolute top-4 left-4 hud-label text-bone instrument-inset px-2.5 py-1">with palm guard</span>
           </div>
           <div className="p-5">
-            <h3 className="font-display font-bold text-lg text-charcoal dark:text-bone flex items-center gap-2"><ShieldCheck size={16} className="text-forest-400" /> Flagged before the crown shows it</h3>
+            <h3 className="font-bold text-lg text-charcoal dark:text-bone flex items-center gap-2"><ShieldCheck size={16} className="text-forest-400" /> Flagged before the crown shows it</h3>
             <p className="text-sm text-muted mt-1.5">Acoustic + multi-sensor early warning targets one tree — not the whole orchard.</p>
           </div>
         </div>
@@ -225,12 +225,12 @@ const HowSection = () => (
       />
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {SENSORS.map((s, i) => (
-          <div key={s.label} className="instrument lift p-5 animate-fade-in-up" style={{ animationDelay: `${i * 0.08}s` }}>
+          <div key={s.label} className="instrument p-5 animate-fade-in-up" style={{ animationDelay: `${i * 0.08}s` }}>
             <div className="w-11 h-11 rounded-xl bg-forest/10 dark:bg-forest-400/10 flex items-center justify-center mb-3">
               <s.icon size={20} className="text-forest-400" />
             </div>
             <div className="hud-label text-forest-400">sensor {i + 1}</div>
-            <h3 className="font-display font-bold text-charcoal dark:text-bone">{s.label}</h3>
+            <h3 className="font-bold text-charcoal dark:text-bone">{s.label}</h3>
             <p className="text-sm text-muted mt-1.5 leading-relaxed">{s.desc}</p>
           </div>
         ))}
@@ -270,12 +270,12 @@ const HonestySection = () => (
       />
       <div className="grid md:grid-cols-3 gap-4">
         {HONESTY.map((c, i) => (
-          <div key={c.title} className="instrument lift p-6 animate-fade-in-up" style={{ animationDelay: `${i * 0.08}s` }}>
+          <div key={c.title} className="instrument p-6 animate-fade-in-up" style={{ animationDelay: `${i * 0.08}s` }}>
             <div className="w-11 h-11 rounded-xl bg-gold/10 flex items-center justify-center mb-4">
               <c.icon size={20} className="text-gold" />
             </div>
             <div className="hud-label text-forest-400">{c.tag}</div>
-            <h3 className="font-display font-bold text-lg text-charcoal dark:text-bone mt-1">{c.title}</h3>
+            <h3 className="font-bold text-lg text-charcoal dark:text-bone mt-1">{c.title}</h3>
             <p className="text-sm text-muted mt-2 leading-relaxed">{c.body}</p>
             <div className="mt-4 hud-label text-caution instrument-inset inline-block px-2.5 py-1">{c.chip}</div>
           </div>
@@ -303,11 +303,11 @@ const MissionControlSection = ({ onLogin }) => (
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {WORKSPACES.map((w, i) => (
           <button key={w.name} onClick={onLogin}
-            className="focus-ring text-left instrument lift p-5 hover:border-forest-400/40 transition-colors animate-fade-in-up" style={{ animationDelay: `${i * 0.08}s` }}>
+            className="focus-ring text-left instrument p-5 hover:border-forest-400/40 transition-colors animate-fade-in-up" style={{ animationDelay: `${i * 0.08}s` }}>
             <div className="w-11 h-11 rounded-xl bg-forest/10 dark:bg-forest-400/10 flex items-center justify-center mb-3">
               <w.icon size={20} className="text-forest-400" />
             </div>
-            <h3 className="font-display font-bold text-charcoal dark:text-bone">{w.name}</h3>
+            <h3 className="font-bold text-charcoal dark:text-bone">{w.name}</h3>
             <p className="text-sm text-muted mt-1.5 leading-relaxed">{w.desc}</p>
           </button>
         ))}
@@ -336,7 +336,7 @@ const CtaSection = ({ onLogin }) => (
       <img src={ASSETS.product} alt="" className="absolute -right-10 -bottom-10 w-48 opacity-20 rotate-[200deg] pointer-events-none" />
       <div className="relative z-10">
         <Kicker>ready when you are</Kicker>
-        <h2 className="mt-5 font-display text-3xl md:text-5xl font-bold tracking-tight text-charcoal dark:text-bone">Protect every palm. Target every dose.</h2>
+        <h2 className="mt-5 text-3xl md:text-5xl font-bold tracking-tight text-charcoal dark:text-bone">Protect every palm. Target every dose.</h2>
         <p className="mt-4 text-muted max-w-xl mx-auto">Step into the live mission-control deck — seeded demo orchard, real safety workflow, zero fabricated metrics.</p>
         <button onClick={onLogin} className="focus-ring mt-8 px-9 py-4 rounded-full bg-forest text-bone font-bold text-lg inline-flex items-center gap-2 hover:bg-forest-600 transition-colors">
           Open Live Dashboard <ArrowRight size={18} />
@@ -352,7 +352,7 @@ const Footer = () => (
     <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div className="flex items-center gap-2.5">
         <img src={ASSETS.logo} alt="" className="h-7 w-auto opacity-80" />
-        <span className="font-display font-bold text-charcoal dark:text-bone">Palm Guard</span>
+        <span className="font-bold text-charcoal dark:text-bone">Palm Guard</span>
         <span className="hud-label">· Living Telemetry Interface</span>
       </div>
       <div className="hud-label text-center md:text-right">

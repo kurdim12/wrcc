@@ -5,9 +5,8 @@ import { PageHeader } from '../components/ui/Primitives.jsx';
 // reusable SpectrogramConsole (scrolling spectrogram, feeding-band guide, VU,
 // 16-band bars, P(activity), honest caveats).
 export const LiveSpectrogram = () => (
-  <div className="space-y-4 stagger">
-    <PageHeader
-      title={<span className="text-gradient-forest">Acoustic Lab</span>}
+  <div className="space-y-4">
+    <PageHeader title="Acoustic Lab"
       subtitle="Tree stethoscope — Palm Guard listens for internal acoustic patterns that may indicate abnormal trunk activity. The score is a proxy activity estimate, not confirmed RPW." />
     <SpectrogramConsole />
   </div>

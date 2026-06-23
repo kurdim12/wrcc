@@ -36,8 +36,6 @@ export const ConnectionThreadMap = ({ palms = [], devices = [], onSelect, height
 
   const counts = nodes.reduce((a, p) => { const s = nodeState(p, byId.get(p.device_id)); a[s] = (a[s] || 0) + 1; return a; }, {});
 
-  const linkCount = nodes.length;
-
   return (
     <div className={`instrument scanlines relative ${height} overflow-hidden`}>
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
@@ -56,10 +54,7 @@ export const ConnectionThreadMap = ({ palms = [], devices = [], onSelect, height
           const s = nodeState(p, dev);
           const a = pos(p, i);
           return (
-            <g key={p.id} className="cursor-pointer group" onClick={() => onSelect?.(p)}>
-              {/* hover/focus halo */}
-              <circle cx={a.x} cy={a.y} r="3.4" fill="none" stroke={STATE[s].c} strokeWidth="0.4"
-                      vectorEffect="non-scaling-stroke" className="opacity-0 group-hover:opacity-70 transition-opacity" />
+            <g key={p.id} className="cursor-pointer" onClick={() => onSelect?.(p)}>
               {s === 'online' && <circle cx={a.x} cy={a.y} r="2.6" fill={STATE[s].c} opacity="0.25" className="animate-heartbeat" />}
               <circle cx={a.x} cy={a.y} r="1.5" fill={STATE[s].c}>
                 <title>{`${p.id} · ${STATE[s].label} · batt ${dev?.battery_pct ?? '?'}% · rssi ${dev?.rssi ?? '?'}`}</title>
@@ -69,29 +64,19 @@ export const ConnectionThreadMap = ({ palms = [], devices = [], onSelect, height
         })}
         {/* gateway hub */}
         <g>
-          <circle cx={gw.x} cy={gw.y} r="3.4" fill="none" stroke="#19A66A" strokeWidth="0.3" strokeOpacity="0.4" vectorEffect="non-scaling-stroke" />
           <circle cx={gw.x} cy={gw.y} r="2.2" fill="#0A5C44" stroke="#19A66A" strokeWidth="0.4" />
         </g>
       </svg>
 
-      <div className="absolute top-3 left-4 flex items-center gap-2">
-        <span className="w-6 h-6 rounded-lg bg-forest/10 dark:bg-forest-400/10 text-forest-400 flex items-center justify-center"><Radio size={12} /></span>
-        <span className="font-display tracking-tight text-[13px] font-semibold text-charcoal dark:text-bone">Orchard nervous system</span>
-      </div>
-      <div className="absolute top-3 right-4 cm-mono text-[10px] text-muted">{linkCount} {linkCount === 1 ? 'link' : 'links'}</div>
-
-      <div className="absolute bottom-3 left-4 flex flex-wrap gap-x-3 gap-y-1.5">
+      <div className="absolute top-3 left-4 hud-label flex items-center gap-2"><Radio size={12} /> orchard nervous system</div>
+      <div className="absolute bottom-3 left-4 flex flex-wrap gap-3">
         {Object.entries(STATE).map(([k, v]) => (
-          <span key={k} className="flex items-center gap-1.5 text-[10px] text-muted">
-            <span className="w-2 h-2 rounded-full" style={{ background: v.c }} /> {v.label}
-            {counts[k] ? <span className="cm-mono text-charcoal/70 dark:text-bone/70">({counts[k]})</span> : null}
+          <span key={k} className="flex items-center gap-1 text-[10px] text-muted">
+            <span className="w-2 h-2 rounded-full" style={{ background: v.c }} /> {v.label} {counts[k] ? `(${counts[k]})` : ''}
           </span>
         ))}
       </div>
-      <div className="absolute bottom-3 right-4 flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full" style={{ background: '#0A5C44', boxShadow: '0 0 0 1.5px rgba(25,166,106,0.6)' }} />
-        <span className="hud-label">gateway</span>
-      </div>
+      <div className="absolute bottom-3 right-4 hud-label">gateway</div>
     </div>
   );
 };

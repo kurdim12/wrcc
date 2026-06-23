@@ -10,7 +10,7 @@ export const SectionCard = ({ title, subtitle, action, children, className = '',
     {(title || action) && (
       <header className="flex items-start justify-between gap-3 px-4 sm:px-5 pt-4">
         <div className="min-w-0">
-          {title && <h3 className="font-display text-[15px] font-semibold text-charcoal dark:text-bone leading-tight tracking-tight">{title}</h3>}
+          {title && <h3 className="text-[15px] font-semibold text-charcoal dark:text-bone leading-tight">{title}</h3>}
           {subtitle && <p className="text-xs text-muted mt-0.5 leading-snug">{subtitle}</p>}
         </div>
         {action && <div className="shrink-0">{action}</div>}
@@ -25,7 +25,7 @@ export const SectionCard = ({ title, subtitle, action, children, className = '',
 export const PageHeader = ({ title, subtitle, actions, children }) => (
   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-1">
     <div className="min-w-0">
-      <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-charcoal dark:text-bone">{title}</h2>
+      <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal dark:text-bone">{title}</h2>
       {subtitle && <p className="text-sm text-muted mt-1 max-w-2xl leading-snug">{subtitle}</p>}
       {children}
     </div>
@@ -88,7 +88,7 @@ export const MetricTile = ({ label, value, unit, trend, icon: Icon, status = 'mu
   const trendNum = typeof trend === 'number' ? trend : null;
   const TrendIcon = trendNum == null ? null : trendNum > 0 ? ArrowUpRight : trendNum < 0 ? ArrowDownRight : Minus;
   return (
-    <div className="instrument lift p-4 flex flex-col gap-2">
+    <div className="instrument p-4 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="hud-label">{label}</span>
         {Icon && <Icon size={16} className={TONE_TEXT[status] || 'text-muted'} />}
@@ -113,7 +113,7 @@ export const ChartCard = ({ title, subtitle, legend, action, children, className
   <div className={`instrument p-4 sm:p-5 ${className}`}>
     <div className="flex items-start justify-between gap-3 mb-3">
       <div>
-        <h3 className="font-display text-sm font-semibold text-charcoal dark:text-bone leading-tight tracking-tight">{title}</h3>
+        <h3 className="text-sm font-semibold text-charcoal dark:text-bone leading-tight">{title}</h3>
         {subtitle && <p className="text-xs text-muted mt-0.5">{subtitle}</p>}
       </div>
       <div className="flex items-center gap-3">

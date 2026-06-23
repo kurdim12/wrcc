@@ -60,14 +60,14 @@ export const Alerts = ({ onAlertClick, showToast }) => {
   const resolve = async (e, id) => { e.stopPropagation(); try { await api.resolveAlert(id); showToast?.('Incident resolved', 'success'); refresh(); } catch (err) { showToast?.(err.message, 'warning'); } };
 
   return (
-    <div className="space-y-5 stagger">
+    <div className="space-y-4 animate-fade-in-up">
       <PageHeader title="Incidents"
         subtitle="A timeline of what needs attention — newest first. Review, acknowledge, and resolve events."
         actions={
           <div className="flex gap-1 instrument p-1 overflow-x-auto">
             {FILTERS.map(([v, lbl]) => (
               <button key={v} onClick={() => setView(v)}
-                className={`focus-ring px-3 py-1.5 rounded-md text-sm font-bold whitespace-nowrap transition-colors ${view === v ? 'bg-forest text-bone shadow-sm' : 'text-muted hover:text-charcoal dark:hover:text-bone'}`}>{lbl}</button>
+                className={`focus-ring px-3 py-1.5 rounded-md text-sm font-bold whitespace-nowrap transition-colors ${view === v ? 'bg-forest text-bone' : 'text-muted hover:text-charcoal dark:hover:text-bone'}`}>{lbl}</button>
             ))}
           </div>
         } />
@@ -75,12 +75,12 @@ export const Alerts = ({ onAlertClick, showToast }) => {
       {shown.length === 0 ? (
         <div className="instrument"><EmptyState icon={AlertTriangle} title="Orchard nominal" hint={`No ${view === 'all' ? 'active' : view} incidents right now.`} /></div>
       ) : (
-        <div className="space-y-7">
+        <div className="space-y-6">
           {groups.map((g) => (
             <div key={g.label}>
-              <div className="flex items-center gap-3 mb-3">
-                <span className="font-display text-[11px] font-semibold tracking-[0.14em] uppercase text-muted">{g.label}</span>
-                <span className="hairline flex-1" />
+              <div className="flex items-center gap-2 mb-3">
+                <span className="hud-label">{g.label}</span>
+                <span className="h-px flex-1 bg-muted/15" />
                 <StatusPill status={view === 'resolved' ? 'safe' : 'pending'} dot={false}>
                   {g.items.length} {view === 'resolved' ? 'resolved' : 'active'}
                 </StatusPill>
@@ -88,7 +88,7 @@ export const Alerts = ({ onAlertClick, showToast }) => {
               <div className="relative ml-2 pl-6 border-l-2 border-muted/15 space-y-3">
                 {g.items.map((a) => (
                   <div key={a.id} className="relative">
-                    <span className="absolute -left-[31px] top-5 w-3.5 h-3.5 rounded-full ring-4 ring-bone dark:ring-ink-900"
+                    <span className="absolute -left-[30px] top-5 w-3 h-3 rounded-full ring-4 ring-bone dark:ring-ink-900"
                           style={{ background: sevColor(a.severity) }} />
                     <IncidentCard
                       alert={a}

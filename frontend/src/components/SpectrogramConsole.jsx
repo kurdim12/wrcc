@@ -163,27 +163,22 @@ export const SpectrogramConsole = ({ deviceId: controlled, onDeviceChange }) => 
 
   return (
     <div className="instrument p-4 md:p-5">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 pb-4 border-b border-muted/15">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="w-8 h-8 rounded-lg bg-forest/10 dark:bg-forest-400/10 text-forest-400 flex items-center justify-center shrink-0">
-            <AudioLines size={17} />
-          </span>
-          <div className="min-w-0">
-            <span className="font-display tracking-tight font-semibold text-charcoal dark:text-bone block leading-tight">Tree Stethoscope</span>
-            <span className="hud-label">INMP441 · 1024-pt FFT · 16×500 Hz</span>
-          </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2 text-charcoal dark:text-bone">
+          <AudioLines size={18} className="text-forest-400" />
+          <span className="font-bold">Tree Stethoscope</span>
+          <span className="hud-label ml-2">INMP441 · 1024-pt FFT · 16×500 Hz</span>
         </div>
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2">
           <div className="relative">
             <select value={deviceId} onChange={(e) => (controlled ? onDeviceChange?.(e.target.value) : setInternal(e.target.value))}
-                    aria-label="Select device"
                     className="focus-ring appearance-none instrument-inset px-3 py-2 pr-9 text-sm font-bold text-charcoal dark:text-bone cursor-pointer">
               {devices.length === 0 && <option value="">no devices</option>}
               {devices.map((d) => <option key={d.id} value={d.id}>{d.id}{d.id.startsWith('PG-DEMO') ? ' (demo)' : ''}</option>)}
             </select>
             <ChevronDown size={15} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted" />
           </div>
-          <span className={`hud-label flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${streaming ? 'text-forest-600 dark:text-forest-400 border-forest-400/30 bg-forest-400/10' : 'text-muted border-muted/25 bg-muted/8'}`}>
+          <span className={`hud-label flex items-center gap-1 ${streaming ? 'text-forest-400' : 'text-muted'}`}>
             <span className={`w-2 h-2 rounded-full ${streaming ? 'bg-forest-400 animate-heartbeat' : 'bg-muted'}`} />
             {streaming ? 'streaming' : 'idle'}
           </span>
@@ -192,26 +187,21 @@ export const SpectrogramConsole = ({ deviceId: controlled, onDeviceChange }) => 
 
       <div className="grid lg:grid-cols-[1fr_auto] gap-5 items-start">
         <Spectrogram queueRef={queueRef} alert={alert} />
-        <div className="flex lg:flex-col gap-4 items-center lg:w-44">
+        <div className="flex lg:flex-col gap-4 items-center">
           <VuMeter rmsDb={latest?.ac_rms} />
-          <div className="instrument-inset px-4 py-3 text-center w-full">
+          <div className="text-center">
             <div className="hud-label">acoustic activity</div>
-            <div className="cm-mono text-2xl font-bold mt-0.5" style={{ color: (latest?.sa ?? 0) >= 61 ? '#C94A3A' : (latest?.sa ?? 0) >= 31 ? '#C2A14D' : '#19A66A' }}>
+            <div className="telemetry-num text-2xl font-bold" style={{ color: (latest?.sa ?? 0) >= 61 ? '#C94A3A' : (latest?.sa ?? 0) >= 31 ? '#C2A14D' : '#19A66A' }}>
               {pAct != null ? `P=${Number(pAct).toFixed(2)}` : '–'}
             </div>
-            <div className="hud-label mb-2">SA = 100·P(activity)</div>
+            <div className="hud-label mb-1">SA = 100·P(activity)</div>
             <ModelCaveatBadge modelVersion={latest?.model_version} modelSource={latest?.model_source} calibrated={latest?.calibrated} size="xs" />
           </div>
         </div>
       </div>
 
       <div className="mt-6">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="font-display tracking-tight text-[13px] font-semibold text-charcoal dark:text-bone">16-band spectrum</span>
-          <span className="hud-label flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-sm" style={{ background: '#C2A14D' }} /> feeding band ~0.5–4 kHz
-          </span>
-        </div>
+        <div className="hud-label mb-1">16-band spectrum · highlighted = feeding band (~0.5–4 kHz)</div>
         <SpectrumBars bands={latest?.bands16} alert={alert} />
       </div>
 

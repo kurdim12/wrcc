@@ -26,11 +26,11 @@ const ExpertCard = ({ icon: Icon, title, kind, expert, healthMode = false }) => 
     : score >= 75 ? '#C94A3A' : score >= 50 ? '#D89B2B' : score >= 25 ? '#C2A14D' : '#19A66A';
   const reasons = healthMode ? [...(expert.faults || []), ...(expert.warnings || [])] : (expert.reasons || []);
   return (
-    <div className="instrument lift p-4 flex flex-col gap-2">
+    <div className="instrument p-4 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${tone}22`, color: tone }}><Icon size={16} /></span>
-          <div><div className="font-display font-bold tracking-tight text-sm text-charcoal dark:text-bone leading-tight">{title}</div><div className="hud-label">{kind}</div></div>
+          <span className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${tone}22`, color: tone }}><Icon size={16} /></span>
+          <div><div className="font-bold text-sm text-charcoal dark:text-bone">{title}</div><div className="hud-label">{kind}</div></div>
         </div>
         {healthMode
           ? (ok ? <CheckCircle2 size={18} className="text-forest-400" /> : <AlertTriangle size={18} className="text-crit" />)
@@ -80,7 +80,7 @@ export default function Intelligence({ deviceId: controlled }) {
   const recDose = f?.recommendation === 'prepare_human_confirmed_dose';
 
   return (
-    <div className="space-y-5 stagger">
+    <div className="space-y-5">
       {/* header + device picker */}
       <PageHeader title="AI Decision"
         subtitle="Why the system flagged this palm — multi-sensor evidence, explainable, not a black box."
@@ -107,7 +107,7 @@ export default function Intelligence({ deviceId: controlled }) {
           </div>
           <div className="mt-3">
             <div className="hud-label">recommendation</div>
-            <div className="font-display text-xl font-bold tracking-tight mt-0.5" style={{ color: recDose ? tone : undefined }}>{f ? (REC_LABEL[f.recommendation] || f.recommendation) : 'awaiting telemetry…'}</div>
+            <div className="text-xl font-bold mt-0.5" style={{ color: recDose ? tone : undefined }}>{f ? (REC_LABEL[f.recommendation] || f.recommendation) : 'awaiting telemetry…'}</div>
           </div>
           {recDose && <div className="mt-2 text-[12px] text-caution flex items-center gap-1.5"><ShieldAlert size={14} /> advisory only — arm + human confirmation + caps still required</div>}
         </div>
@@ -115,7 +115,7 @@ export default function Intelligence({ deviceId: controlled }) {
 
       {/* expert cards */}
       <div>
-        <div className="font-display hud-label tracking-tight mb-2">expert models</div>
+        <div className="hud-label mb-2">expert models</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
           <ExpertCard icon={AudioLines}  title="Acoustic Activity"     kind="primary signal"    expert={ex?.acoustic} />
           <ExpertCard icon={Waves}       title="Vibration Validation"  kind="corroboration"     expert={ex?.vibration} />
@@ -126,7 +126,7 @@ export default function Intelligence({ deviceId: controlled }) {
 
       {/* decision flow */}
       <div className="instrument p-4">
-        <div className="font-display hud-label tracking-tight mb-3">decision flow</div>
+        <div className="hud-label mb-3">decision flow</div>
         <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
           <FlowStep label="Sensors" sub="mic·IMU·temp·VOC" />
           <FlowStep label="Experts" sub="4 models" tone="#19A66A" />
@@ -140,7 +140,7 @@ export default function Intelligence({ deviceId: controlled }) {
       {/* explanation + safety */}
       <div className="grid lg:grid-cols-2 gap-4">
         <div className="instrument p-4">
-          <div className="font-display hud-label tracking-tight mb-2">explanation</div>
+          <div className="hud-label mb-2">explanation</div>
           <p className="text-sm leading-relaxed text-charcoal/85 dark:text-bone/85">{intel?.explanation || 'Awaiting the first fused decision…'}</p>
           {intel?.model && (
             <div className="mt-3 flex flex-wrap gap-1.5">
@@ -152,7 +152,7 @@ export default function Intelligence({ deviceId: controlled }) {
         </div>
 
         <div className="instrument p-4">
-          <div className="flex items-center gap-2 mb-2"><Syringe size={15} className="text-crit" /><div className="font-display hud-label tracking-tight">safety — human-gated, capped, clear water (demo)</div></div>
+          <div className="flex items-center gap-2 mb-2"><Syringe size={15} className="text-crit" /><div className="hud-label">safety — human-gated, capped, clear water (demo)</div></div>
           {safety ? (
             <div>
               <SafetyRow label="Node armed" value={safety.caps.armed ? 'ARMED' : 'disarmed'} ok={safety.caps.armed ? null : true} />

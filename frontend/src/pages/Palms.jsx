@@ -44,18 +44,18 @@ export const Palms = ({ palms = [], onSelectPalm }) => {
   const FILTERS = [['all', 'All'], ['low', 'Healthy'], ['medium', 'Watch'], ['high', 'High'], ['critical', 'Critical']];
 
   return (
-    <div className="space-y-4 stagger">
+    <div className="space-y-4">
       <div>
-        <h2 className="font-display text-xl tracking-tight"><span className="text-gradient-forest">Trees</span></h2>
+        <h2 className="cm-title text-xl">Trees</h2>
         <p className="text-[13px] cm-muted mt-0.5">Palm roster and tree-health overview.</p>
       </div>
 
       {/* filters */}
       <div className="flex flex-col md:flex-row gap-2.5 md:items-center">
         <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 cm-muted pointer-events-none" size={16} />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by Palm ID…" aria-label="Search palms by ID"
-            className="focus-ring w-full pl-9 pr-3 py-2 text-[13px] cm-raised cm-ink rounded-lg" style={{ outline: 'none' }} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 cm-muted" size={16} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by Palm ID…"
+            className="focus-ring w-full pl-9 pr-3 py-2 text-[13px] cm-raised cm-ink" style={{ outline: 'none' }} />
         </div>
         <div className="flex gap-1 cm-surface p-1 rounded-lg overflow-x-auto">
           {FILTERS.map(([v, lbl]) => (
@@ -64,7 +64,7 @@ export const Palms = ({ palms = [], onSelectPalm }) => {
               style={filter === v ? { background: 'var(--cm-forest)', color: '#fff' } : { color: 'var(--cm-muted)' }}>{lbl}</button>
           ))}
         </div>
-        <div className="md:ml-auto inline-flex items-center gap-1.5 text-[12px] cm-muted cm-raised px-3 py-2 rounded-lg whitespace-nowrap">
+        <div className="md:ml-auto inline-flex items-center gap-1.5 text-[12px] cm-muted cm-raised px-3 py-2 rounded-lg">
           Sort: Risk Score (High → Low) <ChevronDown size={13} />
         </div>
       </div>
@@ -84,7 +84,7 @@ export const Palms = ({ palms = [], onSelectPalm }) => {
                   const online = (dev?.computed_status || dev?.status) === 'online';
                   return (
                     <tr key={p.id} onClick={() => setSelId(p.id)}
-                      className="border-b cm-divide cursor-pointer transition-colors hover:bg-[var(--cm-green-soft)]"
+                      className="border-b cm-divide cursor-pointer transition-colors"
                       style={active ? { background: 'var(--cm-green-soft)' } : undefined}>
                       <td className="px-3 py-2.5 font-semibold cm-ink cm-mono whitespace-nowrap">{p.id}</td>
                       <td className="px-3 py-2.5 cm-muted whitespace-nowrap">{p.block || 'B'} / {p.row_idx != null ? `R${p.row_idx + 1}` : '—'}</td>
@@ -96,15 +96,7 @@ export const Palms = ({ palms = [], onSelectPalm }) => {
                     </tr>
                   );
                 })}
-                {rows.length === 0 && (
-                  <tr><td colSpan={7} className="px-4 py-12">
-                    <div className="flex flex-col items-center justify-center text-center">
-                      <TreesIcon size={26} className="cm-muted opacity-60 mb-2" />
-                      <p className="font-display text-[14px] font-semibold cm-ink tracking-tight">No palms match</p>
-                      <p className="text-[12px] cm-muted mt-1">Adjust filters, or run <span className="cm-mono">npm run seed:farm</span> to seed the demo orchard.</p>
-                    </div>
-                  </td></tr>
-                )}
+                {rows.length === 0 && <tr><td colSpan={7} className="px-4 py-10 text-center cm-muted text-[13px]">No palms match. Run <span className="cm-mono">npm run seed:farm</span> to seed the demo orchard.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -114,7 +106,7 @@ export const Palms = ({ palms = [], onSelectPalm }) => {
         {sel && (
           <div className="cm-raised flex flex-col">
             <div className="px-4 py-3 border-b cm-divide flex items-center gap-3">
-              <span className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--cm-green-soft)', color: 'var(--cm-forest)' }}><TreesIcon size={20} /></span>
+              <span className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--cm-green-soft)', color: 'var(--cm-forest)' }}><TreesIcon size={20} /></span>
               <div className="min-w-0">
                 <div className="cm-mono font-bold cm-ink">{sel.id}</div>
                 <div className="text-[11px] cm-muted">Block {sel.block || 'B'} • {sel.row_idx != null ? `Row ${sel.row_idx + 1}` : 'Row —'}{sel.age_years != null ? ` • Age ${sel.age_years} yrs` : ''}</div>
@@ -141,9 +133,9 @@ export const Palms = ({ palms = [], onSelectPalm }) => {
 
       {/* bottom cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="cm-raised lift p-4"><div className="cm-label mb-1.5">Risk Over Time</div><div className="text-[12px] cm-muted leading-snug">{sel?.id || '—'} — trend builds as readings accumulate.</div></div>
-        <div className="cm-raised lift p-4"><div className="cm-label mb-1.5">Last Inspections</div><div className="text-[12px] cm-muted leading-snug">No field inspections logged for {sel?.id || 'this palm'} yet.</div></div>
-        <div className="cm-raised lift p-4 flex items-center gap-2"><MapPin size={14} style={{ color: 'var(--cm-forest)' }} className="shrink-0" /><div className="text-[12px] cm-muted leading-snug">Row map — Block {sel?.block || 'B'}{sel?.row_idx != null ? `, Row ${sel.row_idx + 1}` : ''}</div></div>
+        <div className="cm-raised p-4"><div className="cm-label mb-1">Risk Over Time</div><div className="text-[12px] cm-muted">{sel?.id || '—'} — trend builds as readings accumulate.</div></div>
+        <div className="cm-raised p-4"><div className="cm-label mb-1">Last Inspections</div><div className="text-[12px] cm-muted">No field inspections logged for {sel?.id || 'this palm'} yet.</div></div>
+        <div className="cm-raised p-4 flex items-center gap-2"><MapPin size={14} style={{ color: 'var(--cm-forest)' }} /><div className="text-[12px] cm-muted">Row map — Block {sel?.block || 'B'}{sel?.row_idx != null ? `, Row ${sel.row_idx + 1}` : ''}</div></div>
       </div>
     </div>
   );
