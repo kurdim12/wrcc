@@ -1,24 +1,30 @@
 # Palm Guard - ESP32-S3 Firmware
 
-PlatformIO project for the sensor node. Reads INMP441 (acoustic), MPU6050 (vibration), DS18B20 (trunk core temperature), and BME680 (temperature, humidity, pressure, gas/VOC), runs an on-device FFT for the acoustic features, and POSTs a small JSON payload to the backend every 30 s.
+PlatformIO project for the sensor node. Reads INMP441 (acoustic), an SW-420 LM393 analog vibration module (corroboration), DS18B20 (trunk core temperature), and BME680 (temperature, humidity, pressure, gas/VOC), runs an on-device FFT for the acoustic features, and POSTs a small JSON payload to the backend every 30 s.
 
 ## Wiring
 
+Pins below mirror `include/config.h` (the single source of truth — see also
+[`../../docs/HARDWARE.md`](../../docs/HARDWARE.md)).
+
 | Sensor       | ESP32-S3 GPIO | Notes                                       |
 |--------------|---------------|---------------------------------------------|
-| INMP441 SCK  | GPIO 14       | I2S BCLK                                    |
-| INMP441 WS   | GPIO 15       | I2S LRCK                                    |
-| INMP441 SD   | GPIO 16       | I2S DATA in (avoid GPIO 26-32: internal flash) |
+| INMP441 SCK  | GPIO 9        | I2S BCLK                                     |
+| INMP441 WS   | GPIO 10       | I2S LRCK                                     |
+| INMP441 SD   | GPIO 11       | I2S DATA in                                  |
 | INMP441 L/R  | GND           | left channel only                           |
 | INMP441 VDD  | 3V3           |                                             |
-| BME680 SDA   | GPIO 8        | shared I2C bus, addr 0x77 (or 0x76)         |
-| BME680 SCL   | GPIO 9        | shared I2C bus                              |
-| MPU6050 SDA  | GPIO 8        | shared I2C bus, addr 0x68                   |
-| MPU6050 SCL  | GPIO 9        | shared I2C bus                              |
-| DS18B20 DATA | GPIO 4        | needs 4.7 kΩ pull-up to 3.3 V               |
+| SW-420 A0    | GPIO 4        | **analog** vibration envelope on ADC1 (not I2C); corroboration only |
+| BME680 SDA   | GPIO 8        | I2C, addr 0x77 (or 0x76)                     |
+| BME680 SCL   | GPIO 18       | I2C                                          |
+| DS18B20 DATA | GPIO 0        | needs 4.7 kΩ pull-up to 3.3 V               |
+| Pump gate    | GPIO 5        | MOSFET gate (LEDC PWM-capable)               |
+| Status LED   | GPIO 48       | WS2812 onboard addressable LED               |
 | Battery ADC  | GPIO 1        | optional, voltage divider on Li-Po cell     |
 
-All sensors share 3.3 V and GND with the ESP32-S3.
+All sensors share 3.3 V and GND with the ESP32-S3. The vibration sensor is an
+**SW-420 (LM393 comparator module) read as an analog envelope on the ADC** — not
+an I²C IMU, and not a calibrated accelerometer (corroboration signal only).
 
 ## First-time setup
 
@@ -37,7 +43,7 @@ You should see, within 10-15 s:
 
 ```
 ============================================
- Palm Guard PG-001  fw 0.1.0
+ Palm Guard PG-001  fw 2.0.0
 ============================================
 [wifi] connecting to '...'..
 [wifi] connected, IP=192.168.100.183, RSSI=-58

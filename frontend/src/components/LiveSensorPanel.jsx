@@ -166,9 +166,9 @@ export const LiveSensorPanel = ({ deviceId }) => {
         icon={Waves}
         color={{ bg: 'bg-cyan-100 dark:bg-cyan-500/10', text: 'text-cyan-600 dark:text-cyan-400', hex: '#06b6d4' }}
         sensor="Vibration"
-        source="MPU6050 · I2C"
+        source="SW-420 · analog"
         primary={latest?.vib_rms}
-        primaryUnit="g RMS"
+        primaryUnit="rms (a.u.)"
         decimals={3}
         sub={subVibration}
         history={history}

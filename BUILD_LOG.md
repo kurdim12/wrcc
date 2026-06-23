@@ -3,6 +3,49 @@
 One bullet per session: what changed, what's verified working, what's stubbed.
 Honesty mandate (§2): nothing here claims a metric that wasn't measured.
 
+## Session 8 — report & repo consistency fix (work-order brief)
+
+Scientific/factual + consistency pass across the whole repo (grep-driven, not just
+listed lines). No safety code touched; 29 tests green; frontend builds.
+
+- **Vibration sensor → SW-420 everywhere (Option B, default).** Report (§2/§3.3),
+  dashboard UI (`LiveSensorPanel` source + unit `rms (a.u.)`, `LandingPage`),
+  `ARCHITECTURE.md` (data-flow + SV formula reframed: uncalibrated analog envelope,
+  not g-RMS), `INTELLIGENCE_LAYER`, `BOOTH_PLAN`, `README`, firmware `README`
+  (pins synced to config.h: I2S 9/10/11, SW-420 ADC GPIO4, DS18B20 GPIO0, BME680
+  SDA8/SCL18, fw 2.0.0), `schema.sql`, `mock_device.py`, `detect.cpp` (NOT-FOUND
+  line clarified). Stale `ESP32_SETUP.md` (MPU6050 I²C wiring) replaced with a
+  redirect to HARDWARE.md. Remaining MPU6050 strings are history/diagnostic/
+  upgrade-path only. `TODO(zaid)`: confirm Option B vs a real MPU6050 (Option A).
+- **Vibration 5–25 Hz justified** as a heuristic low-frequency mechanical-impulse
+  corroboration window (NOT an RPW signature; acoustic feeding band ~0.5–4 kHz on
+  the INMP441/SA path) — `ARCHITECTURE.md` + firmware `onboard_decision.h`.
+- **Test count = 29 (19 dose-safety + 10 expert/fusion)** wherever a total was meant
+  (`ci.yml`, `JUDGE_QA` ×3, `INTELLIGENCE_LAYER`, report appendix); explicit
+  "19 dose-safety" subset refs kept.
+- **Model status unified.** `JUDGE_QA` Q2/Q11 + `README` badge/rows + `ml/README`
+  + `DATASET_SELECTION` now state: heuristic ships by default, a proxy CNN
+  `cnn-aspid-v1` (proxy ROC-AUC ≈ 0.90, PR-AUC 0.926) exists, gitignored, NOT RPW /
+  not field-validated. (`model_card.md` already correct.)
+- **Early-detection innovation preserved + framed.** Report §4.1 restores the
+  **30–90-day** lead as a **cited design target** (RPW biology: weeks-to-months
+  internal feeding; ~12-day acoustic detectability) — not a measured device result;
+  `CLAIMS_AUDIT` claim #6 aligned. (BMC PDF "70%+" / "30–90 days" / LoRa→roadmap
+  fixes flagged for Zaid — external binary.)
+- **[FILL] consolidated from repo:** institution (University of Petra / IEEE UoP),
+  full References list (El-Sabea 2009 + Mankin DOI + ASPID/ESC-50/InsectSound1000 +
+  Osterwalder), FAO/economic figure, hardware figures (device-render/system model,
+  captioned as model per 5.1.5), indicative priced BOM (~$55–90/node), team-photo
+  caption + TODO.
+- **Roles:** `[confirm]` removed; technical split kept; no business-officer titles
+  (grep confirmed none). Full-team credit in README. No "Water Guard" string (none).
+- **Firmware build:** added `Adafruit BME680` + `Adafruit Unified Sensor` to
+  `platformio.ini` `lib_deps_common` (env.cpp needs them; default build was missing
+  them).
+- **PDF page-check is the open item:** report ≈ 3.3 k words → ~7–9 pp estimated
+  (well under 20), but Mermaid-rendered export + the hard ≤20-page confirm is left
+  to Zaid (pandoc undercounts Mermaid) — TODO in the report header.
+
 ## Session 7 — first REAL proxy model trained (ASPID + ESC-50), grouped-CV metrics
 
 Replaces the long-standing "no trained model / `heuristic-baseline-v0`" status: a

@@ -129,6 +129,28 @@ See `ml/features/params.py`.
 | Recall @ threshold 0.223 | **0.899** |
 | F1 @ threshold 0.223 | **0.846** |
 
+### CV variance & uncertainty (read the spread, not just the point)
+
+The headline is a point estimate over a **small number of independent units —
+27 recordings, not 11066 clips.** Clips are ~1 s windows of those recordings
+(heavily overlapping, same insects/mic/session), so the **effective sample size
+is the recording count**, not the clip count; the large clip total buys no extra
+statistical power.
+
+- **Honest band:** per-fold ROC-AUC ranges **0.819–0.948** (mean 0.875, sd
+  0.059). Read the result as **≈0.90 ± ~0.06**, not a precise 0.905.
+- **Why a single split was unreliable:** a single grouped split leaves only ~5
+  test recordings, and ROC-AUC over ~5 correlated recordings is dominated by a
+  couple of recording-level idiosyncrasies — its value swung **0.26–0.85 with the
+  training seed alone** (same split, different model init/augmentation). CV
+  removes that by scoring **every** recording out-of-fold exactly once and
+  pooling, so the estimate uses all 27 recordings instead of one unlucky draw.
+- **Still a modest base:** even pooled, 27 recordings (20 activity / 7 clean) is
+  small and `clean` is the minority; the sd above is the residual uncertainty. A
+  larger/multi-condition corpus — or your own INMP441 clips — would tighten it.
+  Treat the threshold-free **ROC-AUC / PR-AUC** as the robust signal and the
+  operating point as indicative.
+
 ### Confusion matrix @ threshold 0.223 (proxy, pooled OOF, n=11066)
 
 |              | pred clean | pred activity |

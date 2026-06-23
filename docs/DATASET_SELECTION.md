@@ -4,7 +4,9 @@
 model (replacing `heuristic-baseline-v0`), and document the choice honestly
 enough to survive a domain-expert judge. The methodology *is* part of what we
 show. See also `ml/prepare/DATASETS.md` (link list) and `ml/model_card.md`
-(current status: no trained model yet).
+(current status: a reproducible **proxy** CNN `cnn-aspid-v1` is trained on ASPID —
+proxy ROC-AUC ≈ 0.90, **not RPW, not field-validated**; a fresh clone still serves
+the heuristic baseline since artifacts are gitignored).
 
 ---
 

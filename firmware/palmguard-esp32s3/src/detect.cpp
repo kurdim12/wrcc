@@ -230,7 +230,7 @@ void setup() {
     if (ds_pin >= 0) Serial.printf("    #define PG_ONEWIRE_PIN      %d\n", ds_pin);
     Serial.println();
     if (!bme_addr) Serial.println("  ! BME680 NOT FOUND - check VCC/GND + SDO->GND + CS->3V3.");
-    if (!mpu_addr) Serial.println("  ! MPU6050 NOT FOUND - check VCC/GND + AD0->GND.");
+    if (!mpu_addr) Serial.println("  (optional) no MPU6050 on I2C - expected: vibration is the analog SW-420 on the ADC, not an I2C IMU.");
     if (ds_pin < 0) Serial.println("  ! DS18B20 NOT FOUND - check 4.7 kOhm pull-up between DATA and 3V3.");
   } else {
     Serial.println(F("\nNo sensors detected. Verify shared 3V3 + GND + sensor pull-ups, then re-run."));

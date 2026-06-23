@@ -37,7 +37,7 @@ is the centerpiece on the table, front-and-center. Everything else supports that
 ```
 
 ## Table — the live "robot" station (front-center)
-1. **The node** (ESP32-S3 + INMP441 + MPU6050 + DS18B20 + BME680 + NeoPixel)
+1. **The node** (ESP32-S3 + INMP441 + SW-420 + DS18B20 + BME680 + NeoPixel)
    **mounted/clamped to a ~30–40 cm section of palm trunk or hardwood log** so the
    acoustic coupling and "inside the trunk" story are physical, not abstract.
 2. **The actuator, plumbed and visible:** the metered pump → clear-tubing →
