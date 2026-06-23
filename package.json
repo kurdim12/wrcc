@@ -3,6 +3,12 @@
   "version": "2.0.0",
   "private": true,
   "description": "Palm Guard — solar ESP32-S3 node for acoustic Red Palm Weevil early-warning + human-confirmed targeted micro-dosing. Honest, proxy-validated.",
+  "author": "Abdalrahman Ali Ahmad AL-Kurdi (https://github.com/kurdim12)",
+  "contributors": [
+    "Abdalrahman Ali Ahmad AL-Kurdi <abdalrhmankurdi12@gmail.com> (https://github.com/kurdim12)",
+    "Abdalrahman Alaa Jihad AL-Haymouni (https://github.com/aboodhaymouni)",
+    "Zaid Mahmoud Rajab Abu Al-Shaar (https://github.com/ZaidAbuAlshaar)"
+  ],
   "engines": {
     "node": ">=22"
   },
