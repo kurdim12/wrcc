@@ -171,7 +171,7 @@ export const ChartCard = ({ title, subtitle, action, children, height = 'h-44', 
   <div className={`cm-raised p-4 ${className}`}>
     <div className="flex items-start justify-between gap-2 mb-2">
       <div>
-        <div className="text-[13px] font-semibold cm-ink leading-tight">{title}</div>
+        <div className="font-display text-[13px] font-semibold cm-ink leading-tight tracking-tight">{title}</div>
         {subtitle && <div className="text-[11px] cm-muted">{subtitle}</div>}
       </div>
       {action}

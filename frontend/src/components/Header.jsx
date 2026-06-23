@@ -18,7 +18,7 @@ export const Header = ({
         </div>
         <div className="hidden md:block h-6 w-px" style={{ background: 'var(--cm-border)' }} />
         <div className="min-w-0">
-          <div className="text-[13px] font-semibold cm-ink truncate leading-tight">{pageTitle}</div>
+          <div className="font-display text-[13px] font-semibold cm-ink truncate leading-tight tracking-tight">{pageTitle}</div>
           {pageSubtitle && <div className="hidden lg:block text-[11px] cm-muted truncate leading-tight">{pageSubtitle}</div>}
         </div>
       </div>

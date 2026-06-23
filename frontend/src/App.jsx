@@ -162,6 +162,7 @@ export default function App() {
 
               <main className="flex-1 overflow-y-auto p-4 md:p-5 xl:p-6 max-w-[1800px] mx-auto w-full">
                 <ErrorBoundary>
+                  <div key={page} className="animate-fade-in-up">
                   {page === 'overview'    && <CaseMap palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} onGotoSafety={() => setPage('doses')} sysMode={sysMode} />}
                   {page === 'palms'       && <Palms palms={palms} onSelectPalm={setSelected} />}
                   {page === 'alerts'      && <Alerts onAlertClick={handleAlertClick} showToast={addToast} />}
@@ -170,6 +171,7 @@ export default function App() {
                   {page === 'reports'     && <Reports showToast={addToast} />}
                   {page === 'spectrogram' && <LiveSpectrogram />}
                   {page === 'intelligence' && <Intelligence deviceId={selectedPalm?.device_id} />}
+                  </div>
                 </ErrorBoundary>
               </main>
             </div>
