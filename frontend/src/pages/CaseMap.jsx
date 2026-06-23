@@ -59,19 +59,25 @@ export default function CaseMap({ palms = [], onSelectPalm, selectedPalm, onGoto
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 stagger">
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-4">
         {/* map workspace */}
         <div className="cm-raised overflow-hidden flex flex-col">
-          <div className="px-3 py-2.5 border-b cm-divide flex items-center gap-1.5 flex-wrap">
-            {FILTERS.map(([v, lbl]) => (
-              <button key={v} onClick={() => setFilter(v)}
-                className="focus-ring px-2.5 py-1 rounded-md text-[12px] font-semibold transition-colors"
-                style={filter === v ? { background: 'var(--cm-forest)', color: '#fff' } : { color: 'var(--cm-muted)', background: 'var(--cm-surface)', border: '1px solid var(--cm-border-soft)' }}>
-                {lbl}
-              </button>
-            ))}
-            <button className="focus-ring ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] font-semibold cm-muted" style={{ border: '1px solid var(--cm-border)' }}>
+          <div className="px-3 py-2.5 border-b cm-divide flex items-center gap-2 flex-wrap">
+            <span className="cm-label mr-0.5 hidden sm:inline">Filter</span>
+            {FILTERS.map(([v, lbl]) => {
+              const active = filter === v;
+              return (
+                <button key={v} onClick={() => setFilter(v)} aria-pressed={active}
+                  className="focus-ring px-2.5 py-1 rounded-md text-[12px] font-semibold transition-all duration-200"
+                  style={active
+                    ? { background: 'var(--cm-forest)', color: '#fff', border: '1px solid var(--cm-forest)', boxShadow: '0 2px 8px -3px rgba(18,60,44,0.55)' }
+                    : { color: 'var(--cm-muted)', background: 'var(--cm-surface)', border: '1px solid var(--cm-border-soft)' }}>
+                  {lbl}
+                </button>
+              );
+            })}
+            <button className="focus-ring ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] font-semibold cm-muted transition-colors hover:text-[var(--cm-ink)]" style={{ border: '1px solid var(--cm-border)' }}>
               <Layers size={13} /> Layers
             </button>
           </div>
@@ -79,20 +85,20 @@ export default function CaseMap({ palms = [], onSelectPalm, selectedPalm, onGoto
           <div className="relative" style={{ background: 'var(--cm-green-soft)' }}>
             <PalmGridMap palms={filtered} onSelectPalm={onSelectPalm} selectedPalm={selectedPalm} height="h-[300px] sm:h-[440px]" />
 
-            {/* zoom controls (visual) */}
-            <div className="absolute top-3 right-3 flex flex-col cm-raised overflow-hidden">
-              <button className="focus-ring p-1.5 cm-muted hover:text-[var(--cm-forest)]"><Plus size={15} /></button>
-              <span className="h-px" style={{ background: 'var(--cm-border)' }} />
-              <button className="focus-ring p-1.5 cm-muted hover:text-[var(--cm-forest)]"><Minus size={15} /></button>
+            {/* zoom controls (visual) — vertically centred so they clear the map legend */}
+            <div className="absolute top-1/2 -translate-y-1/2 right-3 flex flex-col cm-raised overflow-hidden">
+              <button className="focus-ring p-1.5 cm-muted transition-colors hover:text-[var(--cm-forest)] hover:bg-[var(--cm-green-soft)]"><Plus size={15} /></button>
+              <span className="h-px" style={{ background: 'var(--cm-border-soft)' }} />
+              <button className="focus-ring p-1.5 cm-muted transition-colors hover:text-[var(--cm-forest)] hover:bg-[var(--cm-green-soft)]"><Minus size={15} /></button>
             </div>
 
             {/* legend */}
-            <div className="absolute bottom-3 left-3 cm-raised px-3 py-2">
-              <div className="cm-label mb-1.5">Risk</div>
-              <div className="flex flex-col gap-1">
+            <div className="absolute bottom-3 left-3 cm-raised px-3 py-2.5">
+              <div className="cm-label font-display tracking-tight mb-1.5">Risk</div>
+              <div className="flex flex-col gap-1.5">
                 {LEGEND.map((l) => (
-                  <span key={l.label} className="inline-flex items-center gap-1.5 text-[11px] cm-ink">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: l.c }} />{l.label}
+                  <span key={l.label} className="inline-flex items-center gap-2 text-[11px] cm-ink leading-none">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: l.c, boxShadow: `0 0 0 2px ${l.c}26` }} />{l.label}
                   </span>
                 ))}
               </div>
@@ -100,7 +106,7 @@ export default function CaseMap({ palms = [], onSelectPalm, selectedPalm, onGoto
 
             {/* scale + farm tag */}
             <div className="absolute bottom-3 right-3 cm-raised px-2.5 py-1 text-[10px] cm-mono cm-muted flex items-center gap-1.5">
-              <Crosshair size={11} /> Ain Farm • Block B
+              <Crosshair size={11} className="text-[var(--cm-forest)]" /> Ain Farm • Block B
             </div>
           </div>
         </div>
@@ -122,9 +128,18 @@ export default function CaseMap({ palms = [], onSelectPalm, selectedPalm, onGoto
 
       {/* bottom tray: Evidence · Tasks · Proof Log */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="cm-raised p-4"><EvidenceSummary title="Evidence" /></div>
-        <div className="cm-raised p-4"><OperatorTasks title="Tasks" tasks={tasks} /></div>
-        <div className="cm-raised p-4"><ProofLog title="Proof Log" events={proof} /></div>
+        <div className="cm-raised p-4">
+          <div className="cm-label font-display tracking-tight mb-2">Evidence</div>
+          <EvidenceSummary title="" />
+        </div>
+        <div className="cm-raised p-4">
+          <div className="cm-label font-display tracking-tight mb-2">Tasks</div>
+          <OperatorTasks title="" tasks={tasks} />
+        </div>
+        <div className="cm-raised p-4">
+          <div className="cm-label font-display tracking-tight mb-2">Proof Log</div>
+          <ProofLog title="" events={proof} />
+        </div>
       </div>
     </div>
   );

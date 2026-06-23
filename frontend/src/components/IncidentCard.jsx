@@ -16,25 +16,25 @@ export const IncidentCard = ({ alert, doseStatus, reading = {}, onClick, onAck, 
   const crit = alert.severity === 'critical';
   return (
     <div onClick={onClick}
-      className="instrument p-4 cursor-pointer hover:border-forest-400/40 transition-colors">
+      className="instrument lift p-4 cursor-pointer hover:border-forest-400/40">
       <div className="flex items-start gap-4">
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${crit ? 'bg-crit/15 text-crit' : 'bg-caution/15 text-caution'}`}>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${crit ? 'bg-crit/15 text-crit' : 'bg-caution/15 text-caution'}`}>
           {crit ? <AlertTriangle size={20} /> : <Activity size={20} />}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-bold text-charcoal dark:text-bone telemetry-num">{alert.device_id}</span>
+            <span className="font-display font-bold tracking-tight text-charcoal dark:text-bone telemetry-num">{alert.device_id}</span>
             <span className="hud-label instrument-inset px-1.5 py-0.5">{alert.type}</span>
             <Badge type={severityType(alert.severity)} text={alert.severity} />
             {doseStatus && <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-caution/15 text-caution flex items-center gap-1"><Syringe size={10} /> dose {doseStatus}</span>}
-            <span className="hud-label ml-auto">{fmtAgo(alert.ts)}</span>
+            <span className="hud-label cm-mono ml-auto pl-2">{fmtAgo(alert.ts)}</span>
           </div>
-          <p className="text-sm text-charcoal/80 dark:text-bone/80 mt-1">{alert.message}</p>
+          <p className="text-sm text-charcoal/80 dark:text-bone/80 mt-1 leading-snug">{alert.message}</p>
         </div>
         {alert.status === 'active' && (onAck || onResolve) && (
           <div className="flex gap-1 shrink-0">
-            {onAck && <button onClick={(e) => onAck(e, alert.id)} title="Acknowledge" className="focus-ring p-2 rounded-lg hover:bg-forest-400/10 text-forest-400"><Check size={16} /></button>}
-            {onResolve && <button onClick={(e) => onResolve(e, alert.id)} title="Resolve" className="focus-ring p-2 rounded-lg hover:bg-forest-400/10 text-forest-400"><Check size={16} className="stroke-[3]" /></button>}
+            {onAck && <button onClick={(e) => onAck(e, alert.id)} title="Acknowledge" aria-label="Acknowledge incident" className="focus-ring p-2 rounded-lg hover:bg-forest-400/10 text-forest-400 transition-colors"><Check size={16} /></button>}
+            {onResolve && <button onClick={(e) => onResolve(e, alert.id)} title="Resolve" aria-label="Resolve incident" className="focus-ring p-2 rounded-lg hover:bg-forest-400/10 text-forest-400 transition-colors"><Check size={16} className="stroke-[3]" /></button>}
           </div>
         )}
       </div>

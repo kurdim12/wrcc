@@ -1,10 +1,10 @@
-import { Signal, WifiOff, BatteryMedium, Radio } from 'lucide-react';
+import { Signal, WifiOff, BatteryMedium, Radio, Cpu, Clock, Network as NetworkIcon } from 'lucide-react';
 import { ConnectionThreadMap } from '../components/ConnectionThreadMap.jsx';
-import { PageHeader, MetricTile } from '../components/ui/Primitives.jsx';
+import { PageHeader, MetricTile, StatusPill, EmptyState } from '../components/ui/Primitives.jsx';
 import { useDevices } from '../hooks/useDevices.js';
 
 const now = () => Math.floor(Date.now() / 1000);
-const dotColor = (s) => (s === 'online' ? 'bg-forest-400' : s === 'idle' ? 'bg-gold' : s === 'offline' ? 'bg-crit' : 'bg-muted');
+const STATUS_PILL = { online: 'online', idle: 'watch', offline: 'offline' };
 const fmtAgo = (ts) => {
   if (!ts) return 'never';
   const d = now() - ts;
@@ -27,7 +27,7 @@ export const Network = ({ palms = [], onSelectPalm }) => {
   const avgRssi = avg('rssi');
 
   return (
-    <div className="space-y-5 animate-fade-in-up">
+    <div className="space-y-5 stagger">
       <PageHeader title="Network" subtitle="Orchard nervous system — device connectivity, battery and link health." />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -40,40 +40,90 @@ export const Network = ({ palms = [], onSelectPalm }) => {
       <ConnectionThreadMap palms={palms} devices={devices} onSelect={onSelectPalm} />
 
       <div className="instrument p-0 overflow-hidden">
-        <div className="px-5 py-3 border-b border-muted/15 flex justify-between items-center">
-          <span className="hud-label">mesh nodes</span>
-          <span className="telemetry-num text-xs text-muted">{devices.length} devices · {devices.filter((d) => (d.computed_status || d.status) === 'online').length} online</span>
+        <div className="px-5 py-3.5 border-b border-muted/15 flex justify-between items-center">
+          <h3 className="font-display tracking-tight text-[15px] font-semibold text-charcoal dark:text-bone">Mesh nodes</h3>
+          <span className="telemetry-num text-xs text-muted">{devices.length} devices · {online} online</span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead><tr className="hud-label border-b border-muted/10">
-              <th className="p-4">Device</th><th className="p-4">Status</th><th className="p-4">Battery</th>
-              <th className="p-4">RSSI</th><th className="p-4">Firmware</th><th className="p-4">Palm</th><th className="p-4">Last seen</th>
-            </tr></thead>
-            <tbody>
-              {devices.map((d) => {
-                const s = d.computed_status || d.status || 'unknown';
-                const palm = palmById.get(d.id);
-                return (
-                  <tr key={d.id} onClick={() => palm && onSelectPalm?.(palm)}
-                      className="border-b border-muted/8 hover:bg-muted/5 cursor-pointer">
-                    <td className="p-4 font-semibold text-charcoal dark:text-bone telemetry-num">{d.id}</td>
-                    <td className="p-4"><span className="flex items-center gap-2"><span className={`w-2 h-2 rounded-full ${dotColor(s)}`} /><span className="capitalize text-muted">{s}</span></span></td>
-                    <td className="p-4 telemetry-num">{d.battery_pct != null ? `${d.battery_pct}%` : '—'}</td>
-                    <td className="p-4 telemetry-num">{d.rssi != null ? `${d.rssi} dBm` : '—'}</td>
-                    <td className="p-4 telemetry-num text-xs text-muted">{d.fw_version || '—'}</td>
-                    <td className="p-4">{d.palm_id || '—'}</td>
-                    <td className="p-4 telemetry-num text-xs text-muted">{fmtAgo(d.last_seen)}</td>
-                  </tr>
-                );
-              })}
-              {devices.length === 0 && <tr><td colSpan={7} className="p-8 text-center hud-label">no nodes online</td></tr>}
-            </tbody>
-          </table>
-        </div>
+        {devices.length === 0 ? (
+          <EmptyState icon={NetworkIcon} title="No nodes online" hint="Devices appear here as soon as they register with the gateway." />
+        ) : (
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {devices.map((d) => {
+              const s = d.computed_status || d.status || 'unknown';
+              const palm = palmById.get(d.id);
+              const clickable = !!palm;
+              const batt = d.battery_pct;
+              return (
+                <div
+                  key={d.id}
+                  role={clickable ? 'button' : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  onClick={() => clickable && onSelectPalm?.(palm)}
+                  onKeyDown={(e) => { if (clickable && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onSelectPalm?.(palm); } }}
+                  className={`instrument-inset p-3.5 flex flex-col gap-3 ${clickable ? 'lift focus-ring cursor-pointer' : ''}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-8 h-8 rounded-lg bg-forest/10 dark:bg-forest-400/10 text-forest-400 flex items-center justify-center shrink-0">
+                        <Cpu size={16} />
+                      </span>
+                      <div className="min-w-0">
+                        <div className="telemetry-num text-sm font-semibold text-charcoal dark:text-bone truncate">{d.id}</div>
+                        <div className="hud-label">{d.palm_id ? `palm ${d.palm_id}` : 'unassigned'}</div>
+                      </div>
+                    </div>
+                    <StatusPill status={STATUS_PILL[s] || 'neutral'}>{s}</StatusPill>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
+                    <Field label="battery">
+                      <span className={`telemetry-num text-sm font-semibold ${
+                        batt == null ? 'text-muted'
+                        : batt < 20 ? 'text-crit'
+                        : batt < 35 ? 'text-caution'
+                        : 'text-forest-600 dark:text-forest-400'}`}>
+                        {batt != null ? `${batt}%` : '—'}
+                      </span>
+                    </Field>
+                    <Field label="rssi">
+                      <span className="telemetry-num text-sm font-semibold text-charcoal dark:text-bone">
+                        {d.rssi != null ? `${d.rssi} dBm` : '—'}
+                      </span>
+                    </Field>
+                    <Field label="firmware">
+                      <span className="telemetry-num text-xs text-muted truncate block">{d.fw_version || '—'}</span>
+                    </Field>
+                    <Field label="last seen">
+                      <span className="telemetry-num text-xs text-muted inline-flex items-center gap-1">
+                        <Clock size={11} /> {fmtAgo(d.last_seen)}
+                      </span>
+                    </Field>
+                  </div>
+
+                  {batt != null && (
+                    <div className="h-1 rounded-full bg-muted/15 overflow-hidden" aria-hidden="true">
+                      <span
+                        className={`block h-full rounded-full ${
+                          batt < 20 ? 'bg-crit' : batt < 35 ? 'bg-caution' : 'bg-forest-400'}`}
+                        style={{ width: `${Math.max(2, Math.min(100, batt))}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
+const Field = ({ label, children }) => (
+  <div className="flex flex-col gap-0.5">
+    <span className="hud-label">{label}</span>
+    {children}
+  </div>
+);
 
 export default Network;

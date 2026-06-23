@@ -9,11 +9,12 @@ import { useDevices } from '../hooks/useDevices.js';
 const VB_W = 320, VB_H = 200;
 const PAD_X = 30, PAD_TOP = 26, PAD_BOT = 46;   // bottom room for the gateway
 
+// Semantic status palette (matches the CaseMap legend / status pills).
 const TONES = {
-  high:    '#C94A3A',
-  medium:  '#C2A14D',
-  low:     '#19A66A',
-  offline: '#8C9B91',
+  high:    '#C05621',   // high risk → orange
+  medium:  '#B7791F',   // watch → gold
+  low:     '#2F7D46',   // healthy → green
+  offline: '#8C9B91',   // offline / stale → slate-sage
 };
 const LEGEND = [
   ['low', 'healthy'], ['medium', 'watch'], ['high', 'critical'], ['offline', 'offline / stale'],
@@ -55,15 +56,19 @@ export const PalmGridMap = ({ palms = [], onSelectPalm, selectedPalm, height = '
     <div className={`instrument relative overflow-hidden ${height}`}>
       {/* status chip */}
       <div className="absolute top-3 left-3 z-10 instrument-inset px-3 py-1.5 flex items-center gap-2">
-        <Radio size={12} className="text-forest-400" />
+        <span className="relative flex h-2 w-2 shrink-0">
+          <span className="absolute inline-flex h-full w-full rounded-full animate-heartbeat" style={{ background: TONES.low }} />
+          <span className="relative inline-flex h-2 w-2 rounded-full" style={{ background: TONES.low }} />
+        </span>
         <span className="hud-label text-muted">{nodes.length} palms · 1 gateway{counts.high ? ` · ${counts.high} critical` : ''}</span>
       </div>
 
       {/* legend */}
-      <div className="absolute top-3 right-3 z-10 instrument-inset px-3 py-2 space-y-1">
+      <div className="absolute top-3 right-3 z-10 instrument-inset px-3 py-2 space-y-1.5 min-w-[132px]">
+        <div className="hud-label font-display tracking-tight mb-0.5">Orchard risk</div>
         {LEGEND.map(([k, lbl]) => (
           <div key={k} className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: TONES[k] }} />
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: TONES[k], boxShadow: `0 0 0 2px ${TONES[k]}26` }} />
             <span className="hud-label">{lbl}</span>
             <span className="telemetry-num text-[10px] text-muted ml-auto">{counts[k] || 0}</span>
           </div>
@@ -76,8 +81,8 @@ export const PalmGridMap = ({ palms = [], onSelectPalm, selectedPalm, height = '
             <path d="M20 0H0V20" fill="none" stroke="#8C9B91" strokeOpacity="0.10" strokeWidth="0.5" />
           </pattern>
           <radialGradient id="gw-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#19A66A" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#19A66A" stopOpacity="0" />
+            <stop offset="0%" stopColor="#2F7D46" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#2F7D46" stopOpacity="0" />
           </radialGradient>
         </defs>
 
@@ -94,11 +99,15 @@ export const PalmGridMap = ({ palms = [], onSelectPalm, selectedPalm, height = '
 
         {/* gateway / base station */}
         <circle cx={gw.x} cy={gw.y} r="22" fill="url(#gw-glow)" />
+        <circle cx={gw.x} cy={gw.y} r="12" fill="none" stroke="#2F7D46" strokeWidth="0.6" strokeOpacity="0.45">
+          <animate attributeName="r" values="12;20;12" dur="3.2s" repeatCount="indefinite" />
+          <animate attributeName="stroke-opacity" values="0.45;0;0.45" dur="3.2s" repeatCount="indefinite" />
+        </circle>
         <rect x={gw.x - 6} y={gw.y - 6} width="12" height="12" rx="2" transform={`rotate(45 ${gw.x} ${gw.y})`}
-              fill="#0A5C44" stroke="#19A66A" strokeWidth="1.2" />
+              fill="#123C2C" stroke="#2F7D46" strokeWidth="1.2" />
         <circle cx={gw.x} cy={gw.y} r="2.4" fill="#19A66A" />
         <text x={gw.x} y={gw.y + 16} textAnchor="middle" fill="#8C9B91"
-              style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 6, letterSpacing: '0.12em' }}>GATEWAY</text>
+              style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 6, letterSpacing: '0.16em', fontWeight: 600 }}>GATEWAY</text>
 
         {/* palm nodes */}
         {nodes.map((n) => {
@@ -107,13 +116,23 @@ export const PalmGridMap = ({ palms = [], onSelectPalm, selectedPalm, height = '
           const crit = n.tone === 'high';
           const lowBat = n.battery != null && n.battery < 25 && n.tone !== 'offline';
           return (
-            <g key={n.id} onClick={() => onSelectPalm?.(n)} style={{ cursor: 'pointer' }}>
+            <g key={n.id} role="button" tabIndex={0}
+               onClick={() => onSelectPalm?.(n)}
+               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectPalm?.(n); } }}
+               className="palm-marker focus:outline-none"
+               style={{ cursor: 'pointer', transformBox: 'fill-box', transformOrigin: 'center', transition: 'transform .2s cubic-bezier(.16,1,.3,1)' }}
+               onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.18)'; }}
+               onMouseLeave={(e) => { e.currentTarget.style.transform = ''; }}
+               onFocus={(e) => { e.currentTarget.style.transform = 'scale(1.18)'; }}
+               onBlur={(e) => { e.currentTarget.style.transform = ''; }}>
               {/* generous invisible hit area */}
               <circle cx={n.x} cy={n.y} r="13" fill="transparent" />
               {/* halo */}
-              <circle cx={n.x} cy={n.y} r={sel ? 11 : 9} fill={c} fillOpacity={crit ? 0.16 : 0.10} />
+              <circle cx={n.x} cy={n.y} r={sel ? 11 : 9} fill={c} fillOpacity={crit ? 0.16 : 0.10}
+                      style={{ transition: 'r .2s ease, fill-opacity .2s ease' }} />
               <circle cx={n.x} cy={n.y} r={sel ? 11 : 9} fill="none" stroke={c}
-                      strokeOpacity={n.tone === 'offline' ? 0.5 : 0.85} strokeWidth={sel ? 1.6 : 1.1} />
+                      strokeOpacity={n.tone === 'offline' ? 0.5 : 0.85} strokeWidth={sel ? 1.6 : 1.1}
+                      style={{ transition: 'r .2s ease, stroke-width .2s ease, stroke-opacity .2s ease' }} />
               {crit && (
                 <circle cx={n.x} cy={n.y} r="9" fill="none" stroke={c} strokeWidth="1">
                   <animate attributeName="r" values="9;15;9" dur="2s" repeatCount="indefinite" />
@@ -122,7 +141,8 @@ export const PalmGridMap = ({ palms = [], onSelectPalm, selectedPalm, height = '
               )}
               {/* core */}
               <circle cx={n.x} cy={n.y} r={sel ? 4.2 : 3.4} fill={c}
-                      stroke="#FFFDF6" strokeOpacity="0.5" strokeWidth="0.6" />
+                      stroke="#FFFDF6" strokeOpacity="0.5" strokeWidth="0.6"
+                      style={{ transition: 'r .2s ease' }} />
               {/* selection ring */}
               {sel && (
                 <circle cx={n.x} cy={n.y} r="15" fill="none" stroke={c} strokeWidth="1.2" strokeDasharray="3 3">
@@ -135,7 +155,7 @@ export const PalmGridMap = ({ palms = [], onSelectPalm, selectedPalm, height = '
               {/* label */}
               <text x={n.x} y={n.y - (sel ? 15 : 12)} textAnchor="middle"
                     fill={sel ? c : '#8C9B91'} fillOpacity={sel ? 1 : 0.8}
-                    style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: sel ? 6.5 : 5.5, fontWeight: sel ? 700 : 400 }}>
+                    style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: sel ? 6.5 : 5.5, fontWeight: sel ? 700 : 500, letterSpacing: '0.04em', transition: 'fill-opacity .2s ease' }}>
                 {n.id?.replace('P-', '')}
               </text>
             </g>

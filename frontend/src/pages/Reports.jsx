@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Download, RefreshCw, Package, Syringe, FlaskConical, HeartPulse,
-  AlertTriangle, BatteryMedium, Hash, Clock, ShieldCheck,
+  AlertTriangle, BatteryMedium, Hash, Clock, ShieldCheck, FolderArchive,
 } from 'lucide-react';
 import { api } from '../api.js';
 import { PageHeader } from '../components/ui/Primitives.jsx';
@@ -81,7 +81,7 @@ export const Reports = ({ showToast }) => {
   const total = Object.values(counts).reduce((s, v) => s + (v || 0), 0);
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 stagger">
       <PageHeader title="Reports" subtitle="Evidence locker — judge-ready, reproducible proof. Export the full archive as timestamped CSVs." />
 
       {/* ── Featured: WRCC Evidence Pack ─────────────────────────────── */}
@@ -92,7 +92,7 @@ export const Reports = ({ showToast }) => {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="font-bold text-xl text-charcoal dark:text-bone">WRCC Evidence Pack</h2>
+              <h2 className="font-display tracking-tight font-bold text-xl text-charcoal dark:text-bone">WRCC Evidence Pack</h2>
               <span className="hud-label px-2.5 py-1 rounded-full border text-gold border-gold/40 bg-gold/10">judge-ready bundle</span>
             </div>
             <p className="text-sm text-muted mt-1 max-w-2xl">
@@ -107,11 +107,12 @@ export const Reports = ({ showToast }) => {
           </div>
           <div className="flex gap-2 shrink-0">
             <button onClick={() => { setBump((n) => n + 1); showToast?.('Manifest refreshed', 'success'); }}
-              className="focus-ring px-4 py-2.5 instrument-inset text-charcoal dark:text-bone rounded-lg font-bold flex items-center gap-2 text-sm">
+              aria-label="Refresh manifest"
+              className="focus-ring px-4 py-2.5 instrument-inset text-charcoal dark:text-bone rounded-lg font-bold flex items-center gap-2 text-sm hover:bg-muted/10 transition-colors">
               <RefreshCw size={16} /> Refresh
             </button>
             <button onClick={evidencePack}
-              className="focus-ring px-5 py-2.5 bg-gold text-ink-900 hover:opacity-90 rounded-lg font-bold flex items-center gap-2 text-sm">
+              className="focus-ring px-5 py-2.5 bg-gold text-ink-900 hover:opacity-90 rounded-lg font-bold flex items-center gap-2 text-sm transition-opacity">
               <Download size={16} /> Export Evidence Pack
             </button>
           </div>
@@ -120,16 +121,21 @@ export const Reports = ({ showToast }) => {
 
       {/* ── Manifest ─────────────────────────────────────────────────── */}
       <div>
-        <div className="hud-label mb-2">evidence manifest · {REPORTS.length + 1} artifacts</div>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-display tracking-tight text-[15px] font-semibold text-charcoal dark:text-bone">Evidence manifest</h3>
+          <span className="hud-label">{REPORTS.length + 1} artifacts</span>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {REPORTS.map((r) => (
-            <div key={r.id} className="instrument p-4 flex gap-4">
+          {REPORTS.map((r) => {
+            const empty = r.count === 0;
+            return (
+            <div key={r.id} className="instrument lift p-4 flex gap-4">
               <div className="w-10 h-10 rounded-xl bg-forest/10 dark:bg-forest-400/10 text-forest-400 flex items-center justify-center shrink-0">
                 <r.icon size={20} />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-bold text-charcoal dark:text-bone">{r.name}</h3>
+                  <h3 className="font-display tracking-tight font-semibold text-charcoal dark:text-bone">{r.name}</h3>
                   <span className="hud-label instrument-inset px-1.5 py-0.5">{r.window}</span>
                 </div>
                 <p className="text-[12px] text-muted mt-1 leading-snug">{r.desc}</p>
@@ -142,18 +148,26 @@ export const Reports = ({ showToast }) => {
                     <span className="hud-label flex items-center gap-1"><Clock size={11} /> {fmtClock(asOf)}</span>
                   </div>
                   {r.href ? (
-                    <a href={r.href} className="focus-ring px-3 py-2 border border-muted/30 rounded-lg font-bold text-xs text-charcoal dark:text-bone hover:bg-muted/10 flex items-center gap-1.5">
+                    <a href={r.href} aria-label={`Download ${r.name} CSV`}
+                       className="focus-ring px-3 py-2 border border-muted/30 rounded-lg font-bold text-xs text-charcoal dark:text-bone hover:bg-muted/10 hover:border-forest-400/40 transition-colors flex items-center gap-1.5">
                       <Download size={14} /> CSV
                     </a>
                   ) : (
-                    <button onClick={r.onClick} className="focus-ring px-3 py-2 border border-muted/30 rounded-lg font-bold text-xs text-charcoal dark:text-bone hover:bg-muted/10 flex items-center gap-1.5">
+                    <button onClick={r.onClick} aria-label={`Export ${r.name} CSV`}
+                       className="focus-ring px-3 py-2 border border-muted/30 rounded-lg font-bold text-xs text-charcoal dark:text-bone hover:bg-muted/10 hover:border-forest-400/40 transition-colors flex items-center gap-1.5">
                       <Download size={14} /> CSV
                     </button>
                   )}
                 </div>
+                {empty && (
+                  <div className="hud-label mt-2 flex items-center gap-1.5 text-muted">
+                    <FolderArchive size={11} /> no records yet — exports an empty manifest
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+            );
+          })}
 
           {/* Model Audit — honest, no fabricated metrics. */}
           <div className="instrument p-4 flex gap-4 md:col-span-2 border-dashed border border-muted/30">
@@ -162,7 +176,7 @@ export const Reports = ({ showToast }) => {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-bold text-charcoal dark:text-bone">Model Audit Summary</h3>
+                <h3 className="font-display tracking-tight font-semibold text-charcoal dark:text-bone">Model Audit Summary</h3>
                 <span className="hud-label px-1.5 py-0.5 rounded border border-caution/40 text-caution bg-caution/10">proxy model · not field-validated</span>
               </div>
               <p className="text-[12px] text-muted mt-1 leading-snug max-w-3xl">
