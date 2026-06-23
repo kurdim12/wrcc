@@ -12,6 +12,7 @@ import * as alerts from './services/alertEngine.js';
 import * as retention from './services/retention.js';
 import * as demoMode from './services/demoMode.js';
 import * as doseEngine from './services/doseEngine.js';
+import { seedIfEmpty } from './scripts/seedFarm.js';
 
 import readingsRouter from './routes/readings.js';
 import devicesRouter  from './routes/devices.js';
@@ -87,6 +88,13 @@ cron.schedule('* * * * *', () => alerts.checkOfflineDevices());
 cron.schedule('30 2 * * *', () => retention.runMaintenance());   // 02:30 daily
 // Expire stale doses (device never acked a 'sent' dose; un-confirmed 'pending').
 setInterval(() => { try { doseEngine.expireStale(); } catch (e) { console.error('[dose] expire:', e.message); } }, 15000);
+
+// Populate a credible demo farm on first boot when the DB is empty
+// (PG_SEED_ON_EMPTY=1 is set in the Dockerfile for production). No-op once the
+// farm exists, so it never clobbers persisted data on later restarts.
+if (process.env.PG_SEED_ON_EMPTY === '1') {
+  try { seedIfEmpty(); } catch (e) { console.error('[seed] skipped:', e.message); }
+}
 
 // Auto-fallback: when no real ESP32 reports for 60s, an internal generator
 // drives demo data through the same ingestion pipeline. Stops on first real POST.

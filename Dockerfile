@@ -22,9 +22,8 @@ RUN npm run build --prefix frontend
 #    0.0.0.0. PG_DB_PATH must point at the mounted persistent disk/volume so the
 #    SQLite file survives restarts and redeploys.
 ENV NODE_ENV=production
+# Seed a populated demo farm on first boot when the DB is empty (no-op once
+# seeded). Set here so production auto-populates; tests/local runs don't.
+ENV PG_SEED_ON_EMPTY=1
 EXPOSE 10000
-# Run node directly (NOT via `npm start`) so SIGTERM reaches Node and the
-# graceful-shutdown handler runs — npm as PID 1 doesn't forward signals, which
-# left containers killed by SIGTERM on every restart/redeploy.
-WORKDIR /app/backend
-CMD ["node", "--no-warnings=ExperimentalWarning", "server.js"]
+CMD ["npm", "start", "--prefix", "backend"]
