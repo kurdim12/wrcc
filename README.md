@@ -14,7 +14,7 @@
   [![Platform](https://img.shields.io/badge/Edge-ESP32--S3-003F2E?style=for-the-badge)]()
   [![Backend](https://img.shields.io/badge/Backend-Node.js%20%2B%20SQLite-C2A14D?style=for-the-badge)]()
   [![Dashboard](https://img.shields.io/badge/Dashboard-React%20%2B%20Vite-003F2E?style=for-the-badge)]()
-  [![ML](https://img.shields.io/badge/ML-Heuristic%20Baseline-C2A14D?style=for-the-badge)]()
+  [![ML](https://img.shields.io/badge/ML-Heuristic%20%2B%20Proxy%20CNN%20(0.90%20AUC%2C%20proxy)-C2A14D?style=for-the-badge)]()
 
   <br />
 
@@ -63,7 +63,7 @@ Built for the **World Robot Caspian Cup — WRCC 2026, Baku**.
   </tr>
   <tr>
     <td><strong>Current ML Status</strong></td>
-    <td>Clearly labelled heuristic baseline. No trained real-RPW model is claimed yet.</td>
+    <td>Heuristic baseline ships by default; a proxy CNN (<code>cnn-aspid-v1</code>) is trained + grouped-CV-evaluated on open ASPID (proxy ROC-AUC ≈ 0.90, PR-AUC 0.926). Proxy only — <strong>not RPW, not field-validated</strong>; artifacts gitignored so a clone serves the heuristic.</td>
   </tr>
 </table>
 
@@ -172,7 +172,7 @@ additive `intelligence` field (backwards-compatible). Full details, payload
 examples and the capability-vs-roadmap table: [`docs/INTELLIGENCE_LAYER.md`](docs/INTELLIGENCE_LAYER.md).
 
 > Palm Guard is a solar ESP32-S3 node that listens inside the palm with an
-> INMP441 mic, fused with MPU6050 vibration, DS18B20 trunk temperature and a
+> INMP441 mic, fused with SW-420 analog vibration, DS18B20 trunk temperature and a
 > BME680 environmental sensor. The ESP32 runs a 1024-point FFT in firmware to
 > build a 40×32 log-mel fingerprint, posts readings to a Node.js + Socket.io
 > backend, and a React/Vite mission-control dashboard shows the system live.
@@ -340,7 +340,9 @@ pip install -r requirements.txt
 uvicorn serve.app:app --port 8001
 ```
 
-The current scorer is a **heuristic baseline**, not a trained RPW model.
+A fresh clone serves the **heuristic baseline** (the trained proxy CNN
+`cnn-aspid-v1` artifacts are gitignored). Neither is a field-validated RPW
+model — the proxy number (ROC-AUC ≈ 0.90 on open ASPID) is labelled proxy.
 
 ### 2. Start the backend
 
@@ -457,8 +459,9 @@ pio run -e detect -t upload
 | Dashboard | Working |
 | Mock device | Working |
 | Dosing workflow | Working in host + mock flow |
-| ML scorer | Heuristic baseline live |
-| Trained RPW model | Not yet |
+| ML scorer | Heuristic baseline live (default) |
+| Trained proxy model | `cnn-aspid-v1` — ROC-AUC ≈ 0.90 (proxy, gitignored) |
+| Field-validated RPW model | Not yet (next: own INMP441 clips) |
 | Firmware code | Written to spec |
 | Hardware flashing | Pending |
 | Bench test | Pending |
@@ -565,6 +568,6 @@ Solar ESP32-S3 palm node for early RPW acoustic risk scoring and human-confirmed
 
 ### Precision protection for every palm.
 
-**Built by Abdelrahman Kurdi — vcoders / IEEE UoP / University of Petra**
+**Built by Team VCoders — Abdalrahman AL-Haymouni · Abdalrahman AL-Kurdi · Zaid Abu Al-Shaar — IEEE UoP / University of Petra**
 
 </div>

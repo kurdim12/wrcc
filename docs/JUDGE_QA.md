@@ -17,14 +17,16 @@ decides. The honest upgrade path is a contact/probe transducer; the airborne
 node is the low-cost, per-tree starting point.
 
 ### Q2. "What's your model's accuracy / AUC?"
-**Honest answer.** We don't quote one, because we haven't earned one yet. There
-is **no trained model in the system today** — the scorer runs a clearly-labelled
-heuristic baseline (`heuristic-baseline-v0`, marked *uncalibrated*). Quoting an
-accuracy now would be dishonest. What we *can* show is that the full ML pipeline
-(prepare → train → export → serve) **runs end-to-end** (we proved it on toy
-data, labelled TOY), and that real metrics will be reported on a **grouped,
-held-out test set, split by recording**, and labelled **proxy** until we have
-real RPW audio.
+**Honest answer.** Two things ship. By **default** a fresh clone serves a
+transparent **heuristic baseline** (`heuristic-baseline-v0`, *uncalibrated*). We
+**additionally** trained a **proxy CNN** (`cnn-aspid-v1`), grouped-cross-validated
+(recording-level, leak-safe) on the open **ASPID** insect-larvae-feeding corpus:
+**proxy ROC-AUC ≈ 0.90 ± 0.06, PR-AUC 0.926**. That is a **proxy** number —
+insect-larvae feeding vs clean, **not RPW** and **not field-validated** — and we
+label it that way every time. Trained artifacts are gitignored, so a clone still
+serves the heuristic; the committed scripts make the number reproducible. We do
+**not** claim a validated RPW or field accuracy — that comes only after we record
+real RPW audio on our own INMP441.
 
 ### Q3. "So there's no real training data?"
 **Honest answer.** Correct, and that's the hard part of this problem — there is
@@ -44,7 +46,8 @@ an unvalidated detector would pesticide a *healthy* palm, so dosing requires
 human (the confirm modal shows the tree, fused risk, and the proxy caveat).
 Beyond that, hard caps are enforced **independently on the server and on the
 device** — max doses/day, a cooldown, a max single-dose duration, and
-anti-replay on the command nonce. We have **19 automated tests** proving each
+anti-replay on the command nonce. We have **19 dose-safety tests** (of **29
+automated tests** total — the other 10 cover the expert/fusion layer) proving each
 guard blocks an over-cap / replayed / disarmed dose on its own.
 
 ### Q5. "Two layers of caps — isn't that redundant?"
@@ -116,9 +119,11 @@ hardware, so we won't present it as done.
 ### Q11. "What's genuinely real vs demo today?"
 **Honest answer.** Real and tested: the end-to-end pipeline (capture → log-mel →
 score → multi-sensor fusion → 7-rule alerts → armed+confirmed dose → history),
-the dual-guard dose safety (19 tests), offline/degradation resilience, and a
-reproducible ML pipeline. Not yet: a trained model (heuristic today), flashed
-firmware, and field data. We can point to each in the code.
+the dual-guard dose safety (19 of our 29 automated tests), offline/degradation resilience, and a
+reproducible ML pipeline that produced a **proxy CNN** (`cnn-aspid-v1`, proxy
+ROC-AUC ≈ 0.90). Default serving is still the heuristic baseline (proxy artifacts
+gitignored). Not yet: a **field/RPW-validated** model, flashed firmware, and field
+data. We can point to each in the code.
 
 ---
 
@@ -133,7 +138,7 @@ firmware, and field data. We can point to each in the code.
 ## Safe, strong claims (verified — say these with confidence)
 - Acoustic + multi-sensor **early-warning** with **human-armed + confirmed**
   targeted dosing; caps enforced independently on server **and** device (19/19
-  tests pass).
+  dose-safety tests pass; 29 automated tests total).
 - **Honest by design**: probability + proxy/heuristic badge, never an accuracy
   number; the system states its own limits.
 - Live pipeline resilient to ML-down, backend restart, and socket drops.

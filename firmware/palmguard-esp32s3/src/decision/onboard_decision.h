@@ -60,6 +60,10 @@ static inline float pg_onboard_activity(const AcousticFeatures &ac) {
 // Thermal/VOC context stays server-side; this is the on-device, real-time signal.
 static inline int pg_onboard_risk(const AcousticFeatures &ac, float vib_rms, float vib_dom_hz) {
     const float sa = 100.0f * pg_onboard_activity(ac);
+    // vib_rms = uncalibrated SW-420 analog envelope (not g). 5-25 Hz is a HEURISTIC
+    // corroboration window for low-frequency mechanical impulses transmitted to the
+    // trunk surface — NOT an RPW frequency signature (the larval acoustic feeding
+    // band ~0.5-4 kHz is owned by the INMP441/SA path). SV is corroboration only.
     const float rmsTerm = 60.0f * tanhf(vib_rms / 0.15f);
     const float freqMatch = (vib_dom_hz >= 5.0f && vib_dom_hz <= 25.0f) ? 40.0f : 0.0f;
     const float sv = pg_clipf(rmsTerm + freqMatch, 0.0f, 100.0f);

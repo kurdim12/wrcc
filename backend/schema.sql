@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS readings (
   pres          REAL,
   gas_kohm      REAL,
 
-  -- vibration (MPU6050)
+  -- vibration (SW-420 analog module; uncalibrated envelope, corroboration only)
   vib_rms       REAL,
   vib_pk        REAL,
   vib_dom_hz    REAL,

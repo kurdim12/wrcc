@@ -14,7 +14,9 @@ uvicorn serve.app:app --port 8001
 # POST /score   {mel:[...1280]} -> {p_activity, model_version, calibrated}
 ```
 
-With no trained model present, `/score` runs the **heuristic baseline**
+With no trained-model artifacts present in a fresh clone (they're gitignored; a
+**proxy CNN `cnn-aspid-v1`** — proxy ROC-AUC ≈ 0.90 — is reproducible via the
+training scripts), `/score` runs the **heuristic baseline**
 (`heuristic-baseline-v0`, `calibrated=false`). The backend (`services/fusion.js`)
 calls it per reading and falls back to its own heuristic if the service is down
 — ingestion never blocks (§9.11).

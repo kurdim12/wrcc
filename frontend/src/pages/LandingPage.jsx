@@ -211,7 +211,7 @@ const ThreatSection = () => (
 // ─── 2) How it listens (pipeline) ────────────────────────────────────
 const SENSORS = [
   { icon: Radio, label: 'Acoustic', desc: 'INMP441 MEMS mic captures feeding micro-sounds; on-device FFT → 40×32 log-mel patch (200 Hz–8 kHz).' },
-  { icon: Waves, label: 'Vibration', desc: 'MPU6050 picks up trunk micro-vibration that wind alone does not explain.' },
+  { icon: Waves, label: 'Vibration', desc: 'SW-420 analog vibration sensor corroborates trunk micro-vibration that wind alone does not explain.' },
   { icon: Thermometer, label: 'Trunk Δ', desc: 'DS18B20 tracks trunk-vs-ambient temperature drift around the device.' },
   { icon: Wind, label: 'VOC', desc: 'BME680 watches for chemical signatures, de-weighted during spray events.' },
 ];

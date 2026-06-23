@@ -126,7 +126,7 @@ class AcousticModel:
 
 
 class VibrationModel:
-    """MPU6050 RMS / peak / dominant frequency."""
+    """SW-420 analog vibration: RMS / peak / dominant frequency (uncalibrated envelope)."""
     def features(self, infested: bool) -> dict[str, Any]:
         if infested:
             return dict(

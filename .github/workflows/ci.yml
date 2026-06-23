@@ -7,7 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  # 19 dose-safety tests: device-side FSM gauntlet + server-side doseEngine caps.
+  # Full suite (29 tests): 19 dose-safety (device FSM gauntlet + server doseEngine
+  # caps) + 10 expert/fusion unit tests.
   safety-tests:
     runs-on: ubuntu-latest
     steps:

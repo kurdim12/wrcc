@@ -3,10 +3,18 @@
 #### Acoustic early-warning + human-confirmed targeted treatment for Red Palm Weevil
 
 **Team:** VCoders  **Members:** Abdalrahman Alaa Jihad AL-Haymouni · Abdalrahman Ali Ahmad AL-Kurdi · Zaid Mahmoud Rajab Abu Al-Shaar
-**Country:** Jordan   **Institution/School:** `[FILL before final]`
+**Country:** Jordan   **Institution/School:** University of Petra — IEEE UoP student branch, Amman, Jordan
 **Competition:** World Robot Caspian Cup (WRCC) 2026 · Open Category · **Theme 1 — Agriculture**
 **Date:** 22 June 2026   **Repository:** https://github.com/kurdim12/wrcc
-**Team photo:** `[FILL: add before final]`
+**Team photo:** *(insert before final — caption: "Team VCoders — University of Petra")*
+<!-- TODO(zaid): insert the team photo asset here, captioned "Team VCoders — University of Petra" -->
+<!-- TODO(zaid): vibration sensor standardized on SW-420 (Option B) for consistency with the BOM/firmware; confirm, or switch to a real MPU6050 (Option A) if you add the part + I2C driver. -->
+<!-- TODO(zaid): export this report to PDF with Mermaid rendered and CONFIRM <=20 single-sided pages (pandoc undercounts Mermaid — use a Mermaid-capable exporter). -->
+<!-- TODO(zaid): fix image paths if your PDF tool needs them relative to repo root (device-render.png, system-architecture.png live at the root, referenced here as ../). -->
+<!-- TODO(zaid): in Palm_Guard_BMC_A4.pdf — drop unproven "70%+", make "30-90 days" a target, mark LoRa/Mesh roadmap. -->
+<!-- TODO(zaid): confirm References items 3 & 4 exact titles/DOIs (Gutiérrez; Sci. Rep. 2020) before submission. -->
+<!-- TODO(zaid): remove these HTML comments + the (DRAFT) marker once the above are done. -->
+
 
 > **Honesty statement (read first).** Every model number in this report is a
 > **proxy** metric or is explicitly marked not-yet-measured. Palm Guard does
@@ -26,10 +34,12 @@
 
 # Part 1 — Team Introduction  *(≤1 page)*
 
-**Team VCoders** is a Jordanian student team (2–3 members + coach) building
-agritech robotics for date-palm protection.
+**Team VCoders** is a Jordanian student team (three members + coach) at the
+University of Petra (IEEE UoP student branch) building agritech robotics for
+date-palm protection. Responsibilities are divided technically (no business-officer
+titles) — each member owns a layer of the system end to end:
 
-| Member | Suggested role `[confirm]` |
+| Member | Role |
 |---|---|
 | Abdalrahman Alaa Jihad AL-Haymouni | Hardware & firmware (ESP32-S3, sensors, dose mechanism) |
 | Abdalrahman Ali Ahmad AL-Kurdi | Backend, ML pipeline & systems integration |
@@ -39,7 +49,7 @@ Every member can present and answer technical questions in English. The team
 conceived the system, designed the hardware and the multi-sensor architecture,
 and made the engineering decisions; AI coding assistants were used as tools (as
 with an IDE or compiler) and the team understands and can modify every line.
-*(Insert team photo + coach name/eligibility before final.)*
+<!-- TODO(zaid): insert team photo + coach name/eligibility before final. -->
 
 ---
 
@@ -52,7 +62,7 @@ spraying — is costly, environmentally heavy, and untargeted.
 
 **Palm Guard** is a solar-powered, per-tree **ESP32-S3 robotic node** that
 listens *inside* the trunk and fuses four physical signals — acoustic (INMP441
-MEMS mic), vibration (MPU6050 IMU), trunk temperature (DS18B20) and a
+MEMS mic), vibration (SW-420 analog module), trunk temperature (DS18B20) and a
 VOC/environment channel (BME680) — into a 0–100 risk score, then **acts** through
 a metered micro-dose pump. Sensing and the risk **decision** run autonomously on
 the node; the **irreversible chemical action** is deliberately human-confirmed
@@ -104,8 +114,15 @@ self-powered per-tree node** is what we add.
 
 ## 3.3 Mechanical construction & systems engineering
 
-- **Node:** ESP32-S3 DevKitC-1 carrying INMP441 (I²S), MPU6050 (I²C), DS18B20
-  (1-Wire), BME680 (I²C), a NeoPixel status LED, and a pump driver.
+![Palm Guard node — CAD render](../device-render.png)
+![Palm Guard system model](../system-architecture.png)
+*Figure 1–2: Palm Guard node and end-to-end system — **CAD render / system model**
+(WRCC rule 5.1.5 permits a model/prototype; these are renders, not field photos).*
+
+- **Node:** ESP32-S3 DevKitC-1 carrying INMP441 (I²S), an SW-420 analog vibration
+  module (ADC; uncalibrated envelope, corroboration only — **not** a calibrated
+  accelerometer), DS18B20 (1-Wire), BME680 (I²C), a NeoPixel status LED, and a
+  pump driver.
 - **Acoustic coupling:** the mic is mounted to couple to the trunk so internal
   feeding sound dominates over airborne noise `[FILL: photo of trunk clamp /
   coupling]`.
@@ -236,12 +253,28 @@ Two independent guards — **server caps** (`doseEngine`) and **device failsafes
 
 ## 4.1 Impact & beneficiaries
 
-Date palms are economically and culturally central across the MENA region; RPW
-causes severe tree and yield loss `[FILL: cite FAO / national figure]`.
+Date palms are economically and culturally central across the MENA region. RPW is
+a quarantine pest present in **60+ countries** (EPPO/FAO A2 list); for the Gulf
+region, management/eradication costs were estimated at **~US$5.18 million/year at
+1 % infestation, rising to ~US$25.92 million/year at 5 %** [El-Sabea, Faleiro &
+Abo-El-Saad, 2009].
+
+**Core innovation — early acoustic warning.** RPW larvae feed **inside** the trunk
+for **weeks to months** before external symptoms (crown wilting, bored holes,
+frass/oozing) become visible, and young larvae are acoustically detectable from
+**~12 days after hatching** with sensitive sensors [Sci. Rep., 2020]. Palm Guard's
+acoustic early-warning therefore **targets a 30–90-day lead over visible
+symptoms** — a **design target grounded in RPW biology and the acoustic-detection
+literature**, not a field-measured result of the current (un-flashed) prototype;
+field validation will confirm the exact lead time. Detecting this early is what
+makes **targeted, per-tree treatment** possible instead of blanket spraying — a
+**projected** reduction in avoidable tree loss and pesticide volume (pending field
+validation).
+
 Beneficiaries: **palm-farm owners** (earlier detection → fewer lost trees),
-**ministries / plant-protection programs** (targeted instead of blanket
-spraying), and **the environment** (less pesticide volume). Targeting one tree
-instead of a whole block reduces chemical use and cost.
+**ministries / plant-protection programs** (targeted instead of blanket spraying),
+and **the environment** (less pesticide volume). Treating one tree instead of a
+whole block reduces chemical use and cost.
 
 ## 4.2 Negative effects, risks & mitigations (honest)
 
@@ -301,6 +334,22 @@ Nine-block summary; full canvas in `Palm_Guard_BMC_A4.pdf`.
 > serial bridge); **LoRa / Bluetooth-Mesh** on the canvas is **roadmap**, kept
 > distinct so the business story matches the codebase.
 
+**Indicative per-node BOM** *(estimate; sourcing TBD — not a performance claim):*
+
+| Component | Qty | Unit (USD) |
+|---|---|---|
+| ESP32-S3 DevKitC-1 | 1 | 8–12 |
+| INMP441 I²S mic | 1 | 2–3 |
+| SW-420 vibration module | 1 | 1–3 |
+| DS18B20 (waterproof) | 1 | 2 |
+| BME680 | 1 | 8–15 |
+| Micro peristaltic pump (5 V) | 1 | 8–15 |
+| Logic-level MOSFET (IRLZ44N) + passives | 1 | 1–2 |
+| Solar 5 V ~1 W + CN3065 + TPS63802 + LiPo | 1 set | 15–25 |
+| WS2812 status LED | 1 | 0.5 |
+| PCB + enclosure + silicone tubing | 1 | 8–12 |
+| **Total** | | **≈ 55–90 / node** |
+
 ## 4.5 Datasets & licensing
 
 | Corpus | Role | License |
@@ -336,16 +385,36 @@ Nine-block summary; full canvas in `Palm_Guard_BMC_A4.pdf`.
 
 ## References  *(not counted toward the page limit)*
 
-`[FILL: cite — RPW economic impact (FAO/national); Mankin et al. acoustic RPW
-detection; commercial acoustic probe; ASPID dataset; ESC-50 (Piczak 2015);
-InsectSound1000 (Branding et al. 2024, DOI 10.5073/20231024-173119-0)]`
+1. El-Sabea, A.M.M.; Faleiro, J.R.; Abo-El-Saad, M.M. (2009). *The threat of red
+   palm weevil Rhynchophorus ferrugineus to date plantations of the Gulf region in
+   the Middle-East: an economic perspective.* Outlooks on Pest Management
+   20(3):131–134.
+2. Mankin, R.W. et al. — acoustic detection of red palm weevil larvae. *Insects*
+   (2023). DOI: 10.3390/insects14040339.
+3. Gutiérrez, A. et al. — spectral content of RPW boring/feeding (clicks ~0.5–4 kHz,
+   feeding energy ~2.25 kHz). `[FILL: confirm full citation]`
+4. *Early detection of red palm weevil* (acoustic, ~12-day larval detectability).
+   Scientific Reports (2020). `[FILL: confirm full citation/DOI]`
+5. ASPID / SPIDB — stored-product-insect acoustic dataset (MIT license) — proxy
+   training corpus.
+6. Piczak, K.J. (2015). *ESC: Dataset for Environmental Sound Classification.* Proc.
+   23rd ACM Int. Conf. on Multimedia. DOI: 10.1145/2733373.2806390. (noise
+   augmentation only; CC BY-NC)
+7. Branding, J. et al. (2024). *InsectSound1000: an insect sound dataset for deep
+   learning based acoustic insect recognition.* Scientific Data. DOI:
+   10.1038/s41597-024-03301-4 (dataset DOI 10.5073/20231024-173119-0). *(not used —
+   no clean/negative class.)*
+8. Osterwalder, A.; Pigneur, Y. (2010). *Business Model Generation.* Wiley.
+
+*(Items 3 and 4 have their basis in `docs/BUILD_SPEC.md`; confirm the exact
+title/DOI before final submission — do not fabricate.)*
 
 ## Appendix — How to run / test  *(not counted)*
 ```bash
 cd ml && uvicorn serve.app:app --port 8001      # optional; backend falls back if down
 cd backend && npm install && npm start           # :4000
 cd frontend && npm install && npm run dev         # :5173
-bash tests/run_all.sh                             # 19 safety + 10 expert/fusion
+bash tests/run_all.sh                             # 29 total: 19 safety + 10 expert/fusion
 ```
 Windows: [`docs/RUN_ON_WINDOWS.md`](RUN_ON_WINDOWS.md) · Demo:
 [`docs/DEMO_RUNBOOK.md`](DEMO_RUNBOOK.md) · Judge Q&A: [`docs/JUDGE_QA.md`](JUDGE_QA.md)

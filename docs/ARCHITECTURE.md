@@ -5,7 +5,7 @@
 ```
                                         +------ 30s normal / 2s stream --+
                                         |                                |
-   ESP32-S3 + INMP441 / MPU6050 / ----HTTP POST--->  Express :4000       |
+   ESP32-S3 + INMP441 / SW-420 /  ----HTTP POST--->  Express :4000       |
    DS18B20 / BME680                 /api/v1/readings    |                |
                                                         v                |
                                                    zod-validated        |
@@ -49,15 +49,23 @@
 RiskScore = wA·SA  +  wV·SV  +  wT·ST  +  wVOC·SVOC
 
   SA   = 35·click_norm + 30·band_ratio + 20·peakiness + 15·centroid_match  (INMP441)
-  SV   = 60·tanh(rms_g/0.15) + 40·spectral_match(dom_hz, 5-25 Hz)         (MPU6050)
+  SV   = 60·tanh(vib_rms/0.15) + 40·band_match(dom_hz, 5-25 Hz window)     (SW-420)
   ST   = max(0, core_c - baseline - 0.5) · 25                              (DS18B20)
   SVOC = 80·max(0, IAQ_dev - IAQ_farm) + 20·humidity_correction            (BME680)
 
   Defaults:  wA=0.40   wV=0.25   wT=0.20   wVOC=0.15
-  Adaptive:  wind > 0.5g  -> down-weight A,V; up-weight T,VOC
+  Adaptive:  high broadband vibration -> down-weight A,V; up-weight T,VOC
              amb<10 || amb>40°C -> down-weight T
              chemical event in last 72h -> down-weight VOC
   Classification:  0-30 = low, 31-60 = medium, 61-100 = high
+
+Note on SV (honest): the SW-420 is a crude LM393 analog vibration module read on
+the ADC — `vib_rms`/`vib_pk` are an uncalibrated amplitude envelope, NOT a
+calibrated accelerometer (no true g-RMS). The 5-25 Hz term is a **heuristic
+corroboration window** for the low-frequency mechanical impulses a boring larva
+transmits to the trunk surface — it is NOT an RPW frequency "signature" (the
+larval *acoustic* feeding band is ~0.5-4 kHz, owned by the INMP441/SA path). SV
+is corroboration only and never triggers a dose on its own.
 ```
 
 ## Alert rules

@@ -111,14 +111,14 @@ With no device connected, the demo driver populates the experts within seconds.
 
 ## Test it
 ```bash
-bash tests/run_all.sh                  # 19 dose-safety tests + expert/fusion unit tests
+bash tests/run_all.sh                  # 29 total: 19 dose-safety + 10 expert/fusion unit tests
 node --test tests/test_intelligence.mjs # expert/fusion only
 cd frontend && npm run build           # dashboard build
 ```
 
 ## Judge spoken paragraph
 > Palm Guard is a solar ESP32-S3 node that listens inside the palm with an
-> INMP441 mic, fused with MPU6050 vibration, DS18B20 trunk temperature and a
+> INMP441 mic, fused with SW-420 analog vibration, DS18B20 trunk temperature and a
 > BME680 environmental sensor. The ESP32 runs a 1024-point FFT in firmware to
 > build a 40×32 log-mel fingerprint, posts readings to a Node.js + Socket.io
 > backend, and a React/Vite mission-control dashboard shows the system live.
