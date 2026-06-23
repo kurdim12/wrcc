@@ -8,7 +8,7 @@ export const Header = ({
 }) => {
   const isLive = String(mode).toLowerCase() === 'live';
   return (
-    <header className="cm-app min-h-14 border-b flex items-center justify-between gap-3 px-3 lg:px-5 sticky top-0 z-30"
+    <header className="cm-app cc-blur min-h-14 border-b flex items-center justify-between gap-3 px-3 lg:px-5 sticky top-0 z-30"
       style={{ background: 'var(--cm-surface)', borderColor: 'var(--cm-border)' }}>
       <div className="flex items-center gap-3 min-w-0">
         <button onClick={onOpenSidebar} className="lg:hidden p-2 -ml-1 cm-muted"><Menu size={20} /></button>

@@ -133,7 +133,7 @@ export default function App() {
             <LandingPage onLogin={handleLogin} dark={dark} toggleTheme={toggleTheme} />
           </div>
         ) : (
-          <div className="flex h-screen overflow-hidden cm-app relative z-10">
+          <div className="flex h-screen overflow-hidden cm-app cc-shell relative z-10">
             <Sidebar
               currentPage={page}
               setPage={setPage}
@@ -145,7 +145,7 @@ export default function App() {
               onViewLanding={handleViewLanding}
             />
 
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 relative z-10">
               <SystemStatusStrip mode={sysMode.mode} />
               <Header
                 pageTitle={PAGE_META[page]?.title || page}

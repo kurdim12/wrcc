@@ -20,14 +20,14 @@ export const Sidebar = ({ currentPage, setPage, user, onLogout, isOpen, setIsOpe
   <>
     {isOpen && <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden" onClick={() => setIsOpen(false)} />}
 
-    <aside className={`cm-app fixed lg:static inset-y-0 left-0 z-50 w-[212px] flex flex-col
+    <aside className={`cm-app cc-blur fixed lg:static inset-y-0 left-0 z-50 w-[212px] flex flex-col
       transition-transform duration-300 border-r
       ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       style={{ background: 'var(--cm-surface)', borderColor: 'var(--cm-border)' }}>
 
       {/* brand */}
       <div className="px-4 py-4 flex items-center gap-2.5 cursor-pointer border-b cm-divide" onClick={() => setPage('overview')}>
-        <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--cm-forest)' }}>
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 cc-ring" style={{ background: 'var(--cm-forest)' }}>
           <img src="/logo.png" className="w-5 h-5 brightness-0 invert" alt="" />
         </div>
         <div className="leading-tight min-w-0">
@@ -43,11 +43,11 @@ export const Sidebar = ({ currentPage, setPage, user, onLogout, isOpen, setIsOpe
           const badge = item.id === 'alerts' && alertCount > 0 ? alertCount : null;
           return (
             <button key={item.id} onClick={() => { setPage(item.id); setIsOpen(false); }}
-              className="focus-ring w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors relative text-[13px] font-medium"
+              className={`focus-ring w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 relative text-[13px] font-medium ${active ? 'cc-active' : 'hover:text-[var(--cm-ink)]'}`}
               style={active
                 ? { background: 'var(--cm-green-soft)', color: 'var(--cm-forest)' }
                 : { color: 'var(--cm-muted)' }}>
-              {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r" style={{ background: 'var(--cm-forest)' }} />}
+              {active && <span className="cc-rail absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r" style={{ background: 'var(--cm-forest)' }} />}
               <item.icon size={17} className="shrink-0" />
               <span className="flex-1 text-left truncate">{item.label}</span>
               {badge != null && (

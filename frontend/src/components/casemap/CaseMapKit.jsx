@@ -42,7 +42,7 @@ export const RiskRuler = ({ score = 0, delta, showLabels = true, className = '' 
     <div className={className}>
       <div className="flex items-baseline justify-between mb-1">
         <span className="cm-label">Risk score</span>
-        <span className="cm-mono text-2xl font-bold leading-none" style={{ color: band.c }}>
+        <span className="cc-num cm-mono text-2xl font-bold leading-none" style={{ color: band.c }}>
           {s}<span className="text-sm cm-muted font-medium"> / 100</span>
         </span>
       </div>
@@ -224,7 +224,7 @@ export const PalmCaseFile = ({
         </button>
       )}
       <button onClick={onOpenSafety}
-        className="focus-ring flex-1 inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold px-3 py-2 rounded-lg text-white"
+        className="cc-btn focus-ring flex-1 inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold px-3 py-2 rounded-lg text-white"
         style={{ background: 'var(--cm-forest)' }}>
         <ShieldAlert size={14} /> Open Safety Gate
       </button>

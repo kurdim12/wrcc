@@ -213,3 +213,89 @@ html { scroll-behavior: smooth; }
 .cm-mono     { font-family: '"JetBrains Mono"', ui-monospace, SFMono-Regular, monospace; font-variant-numeric: tabular-nums; }
 .cm-label    { font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--cm-muted); font-weight: 600; }
 .cm-title    { color: var(--cm-ink); font-weight: 700; letter-spacing: -0.01em; }
+
+/* ============================================================
+   COMMAND CENTER — dark mission-control redesign (v2)
+   Scoped to .dark so light mode is untouched. Deep layered glass
+   canvas, glowing telemetry accents, real depth. Pages inherit it
+   automatically through the shared .cm-* / .instrument surfaces.
+   ============================================================ */
+:root.dark, .dark {
+  --cm-bg:          #06090B;
+  --cm-surface:     rgba(17, 28, 24, 0.52);
+  --cm-raised:      rgba(14, 23, 19, 0.70);
+  --cm-border:      rgba(110, 196, 160, 0.16);
+  --cm-border-soft: rgba(110, 196, 160, 0.09);
+  --cm-ink:         #E9F5EF;
+  --cm-muted:       #8AA194;
+  --cm-forest:      #20C07E;
+  --cm-green-soft:  rgba(32, 192, 126, 0.10);
+}
+
+/* Layered canvas: cool radial glows behind the whole dashboard. */
+.dark .cc-shell {
+  background:
+    radial-gradient(1100px 560px at 12% -12%, rgba(32,192,126,0.13), transparent 58%),
+    radial-gradient(920px 520px at 116% 4%, rgba(48,120,210,0.09), transparent 56%),
+    radial-gradient(760px 760px at 52% 124%, rgba(32,192,126,0.06), transparent 60%),
+    var(--cm-bg) !important;
+}
+/* Fine technical grid, faded toward the edges (dashboard only). */
+.dark .cc-shell::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(120,200,170,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120,200,170,0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(circle at 50% 26%, #000 0%, transparent 78%);
+  mask-image: radial-gradient(circle at 50% 26%, #000 0%, transparent 78%);
+}
+
+/* Glass panels — translucent, blurred, with a hairline top highlight. */
+.dark .cm-surface {
+  background: var(--cm-surface);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+  backdrop-filter: blur(12px) saturate(1.1);
+  border: 1px solid var(--cm-border-soft);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+.dark .cm-raised,
+.dark .instrument {
+  background: linear-gradient(180deg, rgba(23,36,30,0.82), rgba(10,17,14,0.82));
+  -webkit-backdrop-filter: blur(18px) saturate(1.18);
+  backdrop-filter: blur(18px) saturate(1.18);
+  border: 1px solid var(--cm-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 26px 50px -30px rgba(0,0,0,0.92);
+}
+.dark .cm-raised { border-radius: 14px; }
+.dark .instrument-inset {
+  background: rgba(5,9,8,0.5);
+  border: 1px solid rgba(110,196,160,0.09);
+}
+
+/* Telemetry glow helpers. */
+.dark .cc-num   { text-shadow: 0 0 22px rgba(32,192,126,0.45); }
+.dark .cc-ring  { box-shadow: 0 0 0 1px rgba(32,192,126,0.40), 0 0 28px -6px rgba(32,192,126,0.55); }
+.dark .cc-active {
+  background: linear-gradient(90deg, rgba(32,192,126,0.20), rgba(32,192,126,0.04)) !important;
+  box-shadow: inset 0 0 0 1px rgba(32,192,126,0.22), 0 0 26px -10px rgba(32,192,126,0.55) !important;
+  color: var(--cm-ink) !important;
+}
+.dark .cc-rail  { box-shadow: 0 0 14px 0 rgba(32,192,126,0.8); }
+
+/* Brighter, glowing primary buttons on dark. */
+.dark .cc-btn {
+  background: linear-gradient(180deg, #25D089, #169C66) !important;
+  box-shadow: 0 8px 24px -10px rgba(32,192,126,0.7), inset 0 1px 0 rgba(255,255,255,0.25) !important;
+  color: #04140D !important;
+}
+
+/* Glass header / rail surfaces get the blur too (inline bg stays). */
+.dark .cc-blur { -webkit-backdrop-filter: blur(16px) saturate(1.1); backdrop-filter: blur(16px) saturate(1.1); }
+
+/* Soft entrance for redesigned panels. */
+@media (prefers-reduced-motion: no-preference) {
+  .cc-in { animation: fade-in-up .5s cubic-bezier(.16,1,.3,1) both; }
+}
