@@ -14,6 +14,7 @@
     "frontend": "npm run dev --prefix frontend",
     "ml": "cd ml && uvicorn serve.app:app --port 8001",
     "mock": "python tools/mock_device.py",
+    "bridge": "python tools/serial_bridge.py",
     "seed": "python tools/seed_palms.py"
   },
   "devDependencies": {

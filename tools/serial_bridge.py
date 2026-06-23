@@ -25,6 +25,7 @@ import urllib.error
 import urllib.request
 
 import serial
+from serial.tools import list_ports
 
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -71,9 +72,31 @@ def post_json(url: str, payload: dict, echo: bool, timeout: float = 3.0) -> None
         print(f"  [bridge] post failed: {e}", flush=True)
 
 
+def autodetect_port() -> str | None:
+    """Pick the most likely ESP32-S3 serial port. Matches by Espressif USB VID
+    (0x303A) or common USB-serial bridge keywords; if exactly one port exists,
+    uses it. Returns None when ambiguous (multiple, no clear match)."""
+    ports = list(list_ports.comports())
+    if not ports:
+        return None
+    KW = ('cp210', 'ch340', 'ch910', 'wch', 'silicon labs', 'espressif',
+          'usb serial', 'usb-serial', 'usb jtag', 'usbserial', 'usbmodem', 'ttyusb', 'ttyacm')
+
+    def score(p):
+        if getattr(p, 'vid', None) == 0x303A:  # Espressif native USB
+            return 100
+        s = ' '.join(str(x or '') for x in (p.description, p.manufacturer, p.device)).lower()
+        return 50 if any(k in s for k in KW) else 0
+
+    ranked = sorted(ports, key=score, reverse=True)
+    if score(ranked[0]) > 0:
+        return ranked[0].device
+    return ports[0].device if len(ports) == 1 else None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description='Palm Guard serial->HTTP bridge')
-    ap.add_argument('--port', default='COM4')
+    ap.add_argument('--port', default='auto', help="serial port, or 'auto' to detect the ESP32 (default)")
     ap.add_argument('--baud', default=115200, type=int)
     ap.add_argument('--backend', default='http://localhost:4000')
     ap.add_argument('--echo', action='store_true', help='print every parsed line + serial debug')
@@ -81,15 +104,22 @@ def main() -> int:
     args = ap.parse_args()
 
     url = args.backend.rstrip('/') + '/api/v1/readings'
-    print(f"[bridge] {args.port}@{args.baud}  ->  {url}", flush=True)
+    print(f"[bridge] port={args.port} baud={args.baud}  ->  {url}", flush=True)
 
-    while True:
+    ser = None
+    while ser is None:
+        port = autodetect_port() if args.port == 'auto' else args.port
+        if not port:
+            avail = [f"{p.device} ({p.description})" for p in list_ports.comports()]
+            print(f"[bridge] no ESP32 port auto-detected. Available: {avail or 'none'}. "
+                  f"Plug in the node or pass --port COMx. Retrying in 3s...", flush=True)
+            time.sleep(3)
+            continue
         try:
-            ser = serial.Serial(args.port, args.baud, timeout=0.05)
-            print(f"[bridge] {args.port} opened", flush=True)
-            break
+            ser = serial.Serial(port, args.baud, timeout=0.05)
+            print(f"[bridge] {port} opened  ->  {url}", flush=True)
         except serial.SerialException as e:
-            print(f"[bridge] cannot open {args.port}: {e}. Retrying in 3s...", flush=True)
+            print(f"[bridge] cannot open {port}: {e}. Retrying in 3s...", flush=True)
             time.sleep(3)
 
     pool = ThreadPoolExecutor(max_workers=args.workers, thread_name_prefix='post')
