@@ -20,6 +20,11 @@ const db = new DatabaseSync(dbPath);
 db.exec('PRAGMA journal_mode = WAL');
 db.exec('PRAGMA synchronous = NORMAL');
 db.exec('PRAGMA foreign_keys = ON');
+// Wait up to 5s for a write lock instead of failing immediately with
+// SQLITE_BUSY. WAL handles reader/writer concurrency, but not writer/writer —
+// and this app has a few concurrent writers (ingest, the dose-expiry timer,
+// the nightly retention job).
+db.exec('PRAGMA busy_timeout = 5000');
 
 const schema = fs.readFileSync(schemaPath, 'utf-8');
 db.exec(schema);

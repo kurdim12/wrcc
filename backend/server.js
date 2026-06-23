@@ -92,16 +92,23 @@ setInterval(() => { try { doseEngine.expireStale(); } catch (e) { console.error(
 // drives demo data through the same ingestion pipeline. Stops on first real POST.
 demoMode.start();
 
-// Graceful shutdown
-const shutdown = () => {
-  console.log('\n[palm-guard] shutting down...');
-  server.close(() => {
+// Graceful shutdown. The container runs `node server.js` directly (see
+// Dockerfile) so these signals arrive here. io.close() disconnects live
+// dashboards and closes the underlying HTTP server (otherwise open WebSocket
+// connections would stall the close); a short timer force-exits as a fallback.
+let shuttingDown = false;
+const shutdown = (signal) => {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`\n[palm-guard] ${signal} received, shutting down...`);
+  io.close(() => {
     db.close();
     process.exit(0);
   });
+  setTimeout(() => { try { db.close(); } catch {} process.exit(0); }, 3000).unref();
 };
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+process.on('SIGINT',  () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 server.listen(PORT, HOST, () => {
   console.log(`
