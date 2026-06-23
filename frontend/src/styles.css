@@ -299,3 +299,40 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: no-preference) {
   .cc-in { animation: fade-in-up .5s cubic-bezier(.16,1,.3,1) both; }
 }
+
+/* ── Orchard map (MapLibre) markers + control restyle ─────────────────── */
+.om-canvas { background: #06090B; }
+.orchard-marker {
+  width: 18px; height: 18px; padding: 0; border: 0; background: transparent;
+  cursor: pointer; display: grid; place-items: center;
+}
+.orchard-marker .om-dot {
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--c);
+  border: 2px solid rgba(255,255,255,0.9);
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.35), 0 0 12px 2px var(--c);
+  transition: transform .15s cubic-bezier(.16,1,.3,1);
+}
+.orchard-marker:hover .om-dot { transform: scale(1.28); }
+.orchard-marker.is-selected .om-dot {
+  transform: scale(1.4);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.55), 0 0 20px 5px var(--c);
+}
+.orchard-marker.is-crit .om-dot { animation: om-pulse 1.6s ease-in-out infinite; }
+@keyframes om-pulse {
+  0%,100% { box-shadow: 0 0 0 2px rgba(0,0,0,.35), 0 0 10px 2px var(--c); }
+  50%     { box-shadow: 0 0 0 2px rgba(0,0,0,.35), 0 0 22px 8px var(--c); }
+}
+/* Dark-glass MapLibre controls + attribution. */
+.maplibregl-ctrl-group {
+  background: rgba(14,23,19,0.82) !important;
+  border: 1px solid rgba(110,196,160,0.20) !important;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  box-shadow: 0 8px 22px -12px rgba(0,0,0,0.8) !important;
+}
+.maplibregl-ctrl-group button + button { border-top: 1px solid rgba(110,196,160,0.14) !important; }
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(1) hue-rotate(180deg) brightness(1.15); }
+.maplibregl-ctrl-attrib {
+  background: rgba(6,9,11,0.62) !important; border-radius: 6px;
+}
+.maplibregl-ctrl-attrib, .maplibregl-ctrl-attrib a { color: #8AA194 !important; font-size: 10px; }

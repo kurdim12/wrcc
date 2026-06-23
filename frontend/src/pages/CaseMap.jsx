@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Layers, Plus, Minus, Crosshair } from 'lucide-react';
-import PalmGridMap from '../components/PalmGridMap.jsx';
+import { Layers, Crosshair } from 'lucide-react';
+import OrchardMap from '../components/OrchardMap.jsx';
 import {
   PalmCaseFile, EvidenceSummary, OperatorTasks, ProofLog, riskBand,
 } from '../components/casemap/CaseMapKit.jsx';
@@ -77,14 +77,7 @@ export default function CaseMap({ palms = [], onSelectPalm, selectedPalm, onGoto
           </div>
 
           <div className="relative" style={{ background: 'var(--cm-green-soft)' }}>
-            <PalmGridMap palms={filtered} onSelectPalm={onSelectPalm} selectedPalm={selectedPalm} height="h-[300px] sm:h-[440px]" />
-
-            {/* zoom controls (visual) */}
-            <div className="absolute top-3 right-3 flex flex-col cm-raised overflow-hidden">
-              <button className="focus-ring p-1.5 cm-muted hover:text-[var(--cm-forest)]"><Plus size={15} /></button>
-              <span className="h-px" style={{ background: 'var(--cm-border)' }} />
-              <button className="focus-ring p-1.5 cm-muted hover:text-[var(--cm-forest)]"><Minus size={15} /></button>
-            </div>
+            <OrchardMap palms={filtered} onSelectPalm={onSelectPalm} selectedPalm={selectedPalm} height="h-[300px] sm:h-[440px]" />
 
             {/* legend */}
             <div className="absolute bottom-3 left-3 cm-raised px-3 py-2">
