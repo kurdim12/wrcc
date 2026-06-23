@@ -568,6 +568,7 @@ Solar ESP32-S3 palm node for early RPW acoustic risk scoring and human-confirmed
 
 ### Precision protection for every palm.
 
-**Built by Team VCoders — Abdalrahman AL-Haymouni · Abdalrahman AL-Kurdi · Zaid Abu Al-Shaar — IEEE UoP / University of Petra**
+**Built by Team VCoders — Abdalrahman AL-Kurdi ([@kurdim12](https://github.com/kurdim12)) · Abdalrahman AL-Haymouni ([@aboodhaymouni](https://github.com/aboodhaymouni)) · Zaid Abu Al-Shaar ([@ZaidAbuAlshaar](https://github.com/ZaidAbuAlshaar)) — IEEE UoP / University of Petra**  
+See [`CONTRIBUTORS.md`](CONTRIBUTORS.md).
 
 </div>
