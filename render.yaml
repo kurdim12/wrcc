@@ -1,0 +1,35 @@
+# Render Blueprint — Palm Guard, single web service.
+# Express + Socket.IO backend serving the built React frontend on one URL, with
+# a persistent disk so the node:sqlite database survives restarts and redeploys.
+# Blueprint spec: https://render.com/docs/blueprint-spec
+#
+# Uses Render's NATIVE Node runtime (pinned to Node 22). A Dockerfile is also
+# included in the repo for portability (Fly.io / Railway / Docker-on-Render); to
+# use Docker on Render instead, set `runtime: docker` + `dockerfilePath: ./Dockerfile`
+# and drop buildCommand/startCommand.
+services:
+  - type: web
+    name: palm-guard
+    runtime: node
+    plan: starter            # smallest PAID instance — required to attach a disk
+    region: oregon           # change to your nearest region if you prefer
+    branch: claude/elegant-keller-aurxdw
+    numInstances: 1          # a service with a disk runs exactly one instance
+    autoDeploy: false        # deploy intentionally — no surprise rebuilds/cost
+    healthCheckPath: /api/v1/health
+    # --include=dev forces Vite/devDeps to install even though NODE_ENV=production
+    # (Render sets it), so the frontend build can run.
+    buildCommand: npm ci --include=dev --prefix backend && npm ci --include=dev --prefix frontend && npm run build --prefix frontend
+    startCommand: npm start --prefix backend
+    envVars:
+      # NOTE: do NOT set PORT — Render injects it and server.js reads it.
+      - key: NODE_VERSION
+        value: 22.23.0
+      - key: NODE_ENV
+        value: production
+      - key: PG_DB_PATH
+        value: /var/data/palmguard.db   # on the persistent disk defined below
+    disk:
+      name: palmguard-data
+      mountPath: /var/data
+      sizeGB: 1
