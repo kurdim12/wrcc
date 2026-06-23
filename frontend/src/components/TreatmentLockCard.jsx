@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShieldCheck, ShieldOff, Droplets, Lock, Clock } from 'lucide-react';
+import { ShieldCheck, ShieldOff, Droplets, Lock } from 'lucide-react';
 
 // TreatmentLockCard — per-device actuator control. Dosing is a locked,
 // human-gated, capped operation; the card stays compact and surfaces WHY an
@@ -7,10 +7,10 @@ import { ShieldCheck, ShieldOff, Droplets, Lock, Clock } from 'lucide-react';
 const PUMP_FLOW_ML_PER_S = 1.5;   // mirrors backend doseEngine estimate
 const now = () => Math.floor(Date.now() / 1000);
 
-const Mini = ({ label, value, alarm }) => (
+const Mini = ({ label, value, alarm, mono }) => (
   <div className="text-center">
     <div className="hud-label">{label}</div>
-    <div className={`telemetry-num text-xs font-bold ${alarm ? 'text-crit' : 'text-charcoal dark:text-bone'}`}>{value}</div>
+    <div className={`${mono ? 'cm-mono' : 'telemetry-num'} text-xs font-bold ${alarm ? 'text-crit' : 'text-charcoal dark:text-bone'}`}>{value}</div>
   </div>
 );
 
@@ -36,14 +36,15 @@ export const TreatmentLockCard = ({ device, dosesToday = 0, demo = true, busy = 
   const canRequest = !busy && !blockReason;
 
   return (
-    <div className={`instrument p-3.5 flex flex-col gap-2.5 transition-colors ${armed ? 'border-forest-400/40' : ''}`}>
+    <div className={`instrument lift p-3.5 flex flex-col gap-2.5 transition-colors ${
+      armed ? 'border-forest-400/45 ring-1 ring-forest-400/20' : ''}`}>
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <div className="font-bold text-charcoal dark:text-bone telemetry-num truncate">{d.id || '—'}</div>
           <div className="hud-label truncate">{d.variety || 'unassigned'}</div>
         </div>
-        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border shrink-0 ${
-          armed ? 'bg-forest-400/15 text-forest-400 border-forest-400/30'
+        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border shrink-0 ${
+          armed ? 'bg-forest-400/15 text-forest-600 dark:text-forest-400 border-forest-400/35'
                 : 'bg-muted/15 text-muted border-muted/25'}`}>
           {armed ? <ShieldCheck size={12} /> : <ShieldOff size={12} />}
           {armed ? 'armed' : 'disarmed'}
@@ -53,7 +54,7 @@ export const TreatmentLockCard = ({ device, dosesToday = 0, demo = true, busy = 
       {/* compact caps strip — one row, not four tiles */}
       <div className="instrument-inset px-2 py-2 grid grid-cols-4 gap-1.5">
         <Mini label="today" value={`${dosesToday}/${maxDay}`} alarm={capReached} />
-        <Mini label="cooldown" value={cdLabel} alarm={cdRemaining > 0} />
+        <Mini label="cooldown" value={cdLabel} alarm={cdRemaining > 0} mono />
         <Mini label="pump" value={`${pumpMs}ms`} />
         <Mini label="≈ vol" value={`${volMl}ml`} />
       </div>
@@ -61,6 +62,7 @@ export const TreatmentLockCard = ({ device, dosesToday = 0, demo = true, busy = 
       <div className="flex gap-2">
         <button
           onClick={() => onArm?.(!armed)} disabled={busy}
+          aria-label={armed ? `Disarm ${d.id || 'node'}` : `Arm ${d.id || 'node'}`}
           className={`focus-ring flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors ${
             armed ? 'bg-muted/15 text-charcoal dark:text-bone hover:bg-muted/25'
                   : 'bg-forest text-bone hover:bg-forest-600'}`}>
@@ -69,18 +71,19 @@ export const TreatmentLockCard = ({ device, dosesToday = 0, demo = true, busy = 
         <button
           onClick={() => onRequestDose?.()} disabled={!canRequest}
           title={blockReason || 'Request a dose (still needs confirmation)'}
+          aria-label={blockReason ? `Dose locked — ${blockReason}` : 'Request dose (needs confirmation)'}
           className="focus-ring flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 bg-crit text-bone hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition">
           {blockReason ? <Lock size={13} /> : <Droplets size={13} />}
           {blockReason || 'Request dose'}
         </button>
       </div>
 
-      <div className="flex items-center gap-1.5 text-[10px] text-muted min-h-[14px]">
+      <div className="flex items-center gap-1.5 text-[10px] text-muted min-h-[14px] leading-snug">
         {blockReason
-          ? <><Clock size={11} /> {blockReason === 'Arm required' ? 'Arm the node to enable a dose request.' : `Gate closed — ${blockReason.toLowerCase()}.`}</>
+          ? <><Lock size={11} className="shrink-0" /> {blockReason === 'Arm required' ? 'Arm the node to enable a dose request.' : `Gate closed — ${blockReason.toLowerCase()}.`}</>
           : demo
-            ? <><Droplets size={11} className="text-gold" /> <span className="text-gold">Armed · clear water only · confirm to release.</span></>
-            : <><ShieldCheck size={11} className="text-forest-400" /> Armed · confirm to release.</>}
+            ? <><Droplets size={11} className="text-gold shrink-0" /> <span className="text-gold font-semibold">Armed · clear water only · confirm to release.</span></>
+            : <><ShieldCheck size={11} className="text-forest-400 shrink-0" /> Armed · confirm to release.</>}
       </div>
     </div>
   );

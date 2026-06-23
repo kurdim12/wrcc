@@ -6,6 +6,7 @@ import { useDoses } from '../hooks/useDoses.js';
 import { useSystemMode } from '../hooks/useSystemMode.js';
 import { TreatmentLockCard } from '../components/TreatmentLockCard.jsx';
 import { SafetyGateChecklist, StatusPill } from '../components/casemap/CaseMapKit.jsx';
+import { ModeBadge } from '../components/ui/Primitives.jsx';
 
 const now = () => Math.floor(Date.now() / 1000);
 const fmtTime = (ts) => (ts ? new Date(ts * 1000).toLocaleString() : '—');
@@ -51,25 +52,31 @@ export default function Doses({ showToast }) {
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 stagger">
       {/* header */}
-      <div>
-        <h2 className="cm-title text-xl">Safety Gate</h2>
-        <p className="text-[13px] cm-muted mt-0.5">Human-confirmed treatment control. Nothing actuates on its own.</p>
-      </div>
-
-      {/* mode band */}
-      <div className="cm-raised px-4 py-3 flex flex-wrap items-center gap-3" style={{ borderLeft: '3px solid #B7791F' }}>
-        <span className="inline-flex items-center gap-1.5 text-[13px] font-bold" style={{ color: '#B7791F' }}>
-          <Droplets size={15} /> Current Mode: {isLive ? 'LIVE' : 'DEMO — Clear Water Only'}
-        </span>
-        <span className="cm-muted text-[13px]">•</span>
-        <span className="inline-flex items-center gap-1.5 text-[13px] cm-ink">
-          <Lock size={14} style={{ color: '#6E746A' }} /> Treatment locked until approved
-        </span>
-        <StatusPill status={armedCount ? 'ready' : 'locked'} className="ml-auto">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h2 className="font-display cm-title text-xl sm:text-2xl tracking-tight">Safety Gate</h2>
+            <ModeBadge mode={isLive ? 'live' : 'demo'} />
+          </div>
+          <p className="text-[13px] cm-muted mt-1">Human-confirmed treatment control. Nothing actuates on its own.</p>
+        </div>
+        <StatusPill status={armedCount ? 'ready' : 'locked'}>
           {armedCount ? `${armedCount} node${armedCount === 1 ? '' : 's'} armed` : 'All nodes locked'}
         </StatusPill>
+      </div>
+
+      {/* mode band — prominent lock state */}
+      <div className="cm-raised px-4 py-3.5 flex flex-wrap items-center gap-x-4 gap-y-2" style={{ borderLeft: '3px solid #B7791F' }}>
+        <span className="inline-flex items-center gap-2 text-[13px] font-bold" style={{ color: '#B7791F' }}>
+          <span className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#B7791F1A' }}><Droplets size={16} /></span>
+          Current Mode: {isLive ? 'LIVE' : 'DEMO — Clear Water Only'}
+        </span>
+        <span className="hidden sm:inline cm-muted text-[13px]">•</span>
+        <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold cm-ink">
+          <Lock size={14} style={{ color: '#6E746A' }} /> Treatment locked until approved
+        </span>
       </div>
 
       {/* checklist · authorization · live status */}
@@ -77,7 +84,7 @@ export default function Doses({ showToast }) {
         <div className="cm-raised p-4"><SafetyGateChecklist /></div>
 
         <div className="cm-raised p-4">
-          <div className="cm-label mb-2">Treatment Authorization</div>
+          <div className="font-display cm-label tracking-tight mb-2">Treatment Authorization</div>
           <p className="text-[13px] cm-ink mb-3">Human-confirmed action is required to proceed. No pumps can activate automatically.</p>
           <Auth label="Mode" value={isLive ? 'Live' : 'Demo — Clear Water'} />
           <Auth label="Medium" value="Clear water only" />
@@ -90,7 +97,7 @@ export default function Doses({ showToast }) {
         </div>
 
         <div className="cm-raised p-4">
-          <div className="cm-label mb-2">Live Status</div>
+          <div className="font-display cm-label tracking-tight mb-2">Live Status</div>
           <div className="space-y-2">
             <Stat icon={ShieldCheck} label="Armed nodes" value={`${armedCount} / ${devices.length}`} />
             <Stat icon={Lock} label="Pending confirmations" value={pending.length} />
@@ -101,7 +108,7 @@ export default function Doses({ showToast }) {
 
       {/* pending */}
       <div>
-        <div className="cm-label mb-2">Pending treatment actions</div>
+        <div className="font-display cm-label tracking-tight mb-2">Pending treatment actions</div>
         {pending.length === 0 ? (
           <div className="cm-raised px-4 py-3 flex items-center gap-2.5 cm-muted text-[13px]">
             <Lock size={15} style={{ color: '#2F7D46' }} /> Gate closed — no treatment actions awaiting confirmation.
@@ -116,7 +123,7 @@ export default function Doses({ showToast }) {
                   <div className="text-[11px] cm-muted">{d.source} request · {d.pump_ms} ms · ≈ {d.volume_ml_est} ml</div>
                 </div>
                 <StatusPill status={DOSE_PILL[d.status] || 'open'}>{d.status}</StatusPill>
-                <span className="hidden sm:flex items-center gap-1.5 text-[11px]" style={{ color: '#B7791F' }}><Clock size={12} /> awaiting confirm</span>
+                <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: '#B7791F' }}><Clock size={12} /> awaiting confirm</span>
               </div>
             ))}
           </div>
@@ -125,7 +132,7 @@ export default function Doses({ showToast }) {
 
       {/* per-node actuators (functional arm/request) */}
       <div>
-        <div className="cm-label mb-2">Node actuators · {devices.length}</div>
+        <div className="font-display cm-label tracking-tight mb-2">Node actuators · {devices.length}</div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {ordered.map((d) => (
             <TreatmentLockCard key={d.id} device={d} dosesToday={dosesToday[d.id] || 0}
@@ -138,7 +145,10 @@ export default function Doses({ showToast }) {
 
       {/* dose history / proof log */}
       <div>
-        <div className="cm-label mb-2">Dose History · Proof Log</div>
+        <div className="flex items-center gap-2 mb-2">
+          <ShieldCheck size={14} style={{ color: '#2F7D46' }} />
+          <div className="font-display cm-label tracking-tight">Dose History · Proof Log</div>
+        </div>
         <div className="cm-raised overflow-x-auto">
           <table className="w-full text-[13px]">
             <thead><tr className="border-b cm-divide text-left">
@@ -146,7 +156,7 @@ export default function Doses({ showToast }) {
             </tr></thead>
             <tbody>
               {doses.map((d) => (
-                <tr key={d.id} className="border-b cm-divide">
+                <tr key={d.id} className="border-b cm-divide last:border-0">
                   <td className="px-4 py-2.5 cm-muted cm-mono text-[11px] whitespace-nowrap">{fmtTime(d.done_ts || d.sent_ts || d.ts)}</td>
                   <td className="px-4 py-2.5 font-medium cm-ink cm-mono">{d.device_id}</td>
                   <td className="px-4 py-2.5 cm-mono">{d.trigger_risk != null ? Math.round(d.trigger_risk) : 'manual'}</td>
