@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { IncidentCard } from '../components/IncidentCard.jsx';
+import { PageHeader, EmptyState } from '../components/ui/Primitives.jsx';
 import { useAlerts } from '../hooks/useAlerts.js';
 import { useDoses } from '../hooks/useDoses.js';
 import { api } from '../api.js';
@@ -39,18 +40,19 @@ export const Alerts = ({ onAlertClick, showToast }) => {
 
   return (
     <div className="space-y-4 animate-fade-in-up">
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-3">
-        <div className="flex items-center gap-2"><AlertTriangle size={18} className="text-crit" /><h2 className="font-bold text-charcoal dark:text-bone">Alerts / Incidents</h2></div>
-        <div className="flex gap-1 instrument p-1 overflow-x-auto">
-          {FILTERS.map(([v, lbl]) => (
-            <button key={v} onClick={() => setView(v)}
-              className={`focus-ring px-3 py-1.5 rounded-md text-sm font-bold whitespace-nowrap transition-colors ${view === v ? 'bg-forest text-bone' : 'text-muted hover:text-charcoal dark:hover:text-bone'}`}>{lbl}</button>
-          ))}
-        </div>
-      </div>
+      <PageHeader title="Incidents"
+        subtitle="What needs attention — review, acknowledge, and resolve events."
+        actions={
+          <div className="flex gap-1 instrument p-1 overflow-x-auto">
+            {FILTERS.map(([v, lbl]) => (
+              <button key={v} onClick={() => setView(v)}
+                className={`focus-ring px-3 py-1.5 rounded-md text-sm font-bold whitespace-nowrap transition-colors ${view === v ? 'bg-forest text-bone' : 'text-muted hover:text-charcoal dark:hover:text-bone'}`}>{lbl}</button>
+            ))}
+          </div>
+        } />
 
       {shown.length === 0 ? (
-        <div className="instrument p-12 text-center hud-label">no {view === 'all' ? 'active' : view} incidents — orchard nominal</div>
+        <div className="instrument"><EmptyState icon={AlertTriangle} title="Orchard nominal" hint={`No ${view === 'all' ? 'active' : view} incidents right now.`} /></div>
       ) : (
         <div className="space-y-3">
           {shown.map((a) => (

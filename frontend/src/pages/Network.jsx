@@ -1,4 +1,6 @@
+import { Signal, WifiOff, BatteryMedium, Radio } from 'lucide-react';
 import { ConnectionThreadMap } from '../components/ConnectionThreadMap.jsx';
+import { PageHeader, MetricTile } from '../components/ui/Primitives.jsx';
 import { useDevices } from '../hooks/useDevices.js';
 
 const now = () => Math.floor(Date.now() / 1000);
@@ -14,8 +16,27 @@ export const Network = ({ palms = [], onSelectPalm }) => {
   const { devices } = useDevices();
   const palmById = new Map(palms.map((p) => [p.device_id, p]));
 
+  const stat = (d) => d.computed_status || d.status;
+  const online = devices.filter((d) => stat(d) === 'online').length;
+  const offline = devices.filter((d) => stat(d) === 'offline').length;
+  const avg = (key) => {
+    const vals = devices.map((d) => d[key]).filter((v) => v != null);
+    return vals.length ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length) : null;
+  };
+  const avgBat = avg('battery_pct');
+  const avgRssi = avg('rssi');
+
   return (
     <div className="space-y-5 animate-fade-in-up">
+      <PageHeader title="Network" subtitle="Orchard nervous system — device connectivity, battery and link health." />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <MetricTile icon={Signal} label="Devices online" value={online} unit={`/ ${devices.length}`} status="forest" />
+        <MetricTile icon={WifiOff} label="Offline" value={offline} status={offline > 0 ? 'crit' : 'muted'} />
+        <MetricTile icon={BatteryMedium} label="Avg battery" value={avgBat ?? '—'} unit={avgBat != null ? '%' : ''} status={avgBat != null && avgBat < 30 ? 'caution' : 'forest'} />
+        <MetricTile icon={Radio} label="Avg signal" value={avgRssi ?? '—'} unit={avgRssi != null ? 'dBm' : ''} status="muted" />
+      </div>
+
       <ConnectionThreadMap palms={palms} devices={devices} onSelect={onSelectPalm} />
 
       <div className="instrument p-0 overflow-hidden">

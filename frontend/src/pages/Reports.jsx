@@ -4,6 +4,7 @@ import {
   AlertTriangle, BatteryMedium, Hash, Clock, ShieldCheck,
 } from 'lucide-react';
 import { api } from '../api.js';
+import { PageHeader } from '../components/ui/Primitives.jsx';
 
 // Evidence Locker — a manifest of exportable proof for judges & engineers.
 // Each entry shows what it covers, its data window, a live record count and a
@@ -81,6 +82,8 @@ export const Reports = ({ showToast }) => {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <PageHeader title="Reports" subtitle="Evidence locker — judge-ready, reproducible proof. Export the full archive as timestamped CSVs." />
+
       {/* ── Featured: WRCC Evidence Pack ─────────────────────────────── */}
       <div className="instrument overflow-hidden border-l-4 border-gold">
         <div className="p-5 md:p-6 flex flex-col lg:flex-row lg:items-center gap-5">
@@ -160,15 +163,16 @@ export const Reports = ({ showToast }) => {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-bold text-charcoal dark:text-bone">Model Audit Summary</h3>
-                <span className="hud-label px-1.5 py-0.5 rounded border border-caution/40 text-caution bg-caution/10">heuristic baseline · no metrics yet</span>
+                <span className="hud-label px-1.5 py-0.5 rounded border border-caution/40 text-caution bg-caution/10">proxy model · not field-validated</span>
               </div>
               <p className="text-[12px] text-muted mt-1 leading-snug max-w-3xl">
-                The detector currently runs a proxy/heuristic baseline. A trained model with real ROC-AUC, PR-AUC and
-                per-SNR metrics is the documented next step (see <code className="telemetry-num">docs/MODEL_CARD</code>).
-                No accuracy is claimed today — and the dashboard never displays one.
+                A reproducible proxy CNN (<code className="telemetry-num">cnn-aspid-v1</code>) is trained and
+                grouped-CV-evaluated on the open ASPID insect-larvae-feeding corpus — proxy ROC-AUC ≈ 0.90 / PR-AUC ≈ 0.93.
+                It is a <strong>proxy</strong>: not RPW-trained and not field-validated. Trained artifacts are gitignored,
+                so a fresh clone serves the heuristic baseline (see <code className="telemetry-num">docs/model_card</code>).
               </p>
               <div className="flex items-center gap-2 mt-3 hud-label text-muted">
-                <ShieldCheck size={12} className="text-forest-400" /> honest-by-design — metrics ship when the model does
+                <ShieldCheck size={12} className="text-forest-400" /> honest-by-design — proxy metrics are labelled, never shown as RPW field accuracy
               </div>
             </div>
           </div>
