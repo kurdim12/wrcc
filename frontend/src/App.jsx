@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 
 import LandingPage         from './pages/LandingPage.jsx';
+import CaseMap             from './pages/CaseMap.jsx';
 import Overview            from './pages/Overview.jsx';
 import Palms               from './pages/Palms.jsx';
 import Alerts              from './pages/Alerts.jsx';
@@ -23,7 +24,7 @@ import ErrorBoundary       from './components/ErrorBoundary.jsx';
 // Clear, judge-friendly page titles + plain-English subtitles. Creative names
 // kept as subtitles. (ids unchanged so routing/contracts stay intact.)
 const PAGE_META = {
-  overview:     { title: 'Command Center', subtitle: 'Mission Overview — orchard at a glance' },
+  overview:     { title: 'Map', subtitle: 'CaseMap — every palm is an evidence-backed case file' },
   intelligence: { title: 'AI Decision',    subtitle: 'Intelligence Layer — why the system flagged a palm' },
   palms:        { title: 'Trees',          subtitle: 'Palm Roster — fleet of monitored palms' },
   alerts:       { title: 'Incidents',      subtitle: 'Alerts & Events — what needs attention' },
@@ -132,11 +133,11 @@ export default function App() {
             <LandingPage onLogin={handleLogin} dark={dark} toggleTheme={toggleTheme} />
           </div>
         ) : (
-          <div className="flex h-screen overflow-hidden text-charcoal dark:text-bone bg-bone dark:bg-ink-900 relative z-10">
+          <div className="flex h-screen overflow-hidden cm-app relative z-10">
             <Sidebar
               currentPage={page}
               setPage={setPage}
-              user={{ name: 'Abdalrahman Alhaymouni', role: 'Farm Manager', initials: 'AA' }}
+              user={{ name: 'Abdalrahman Alhaymouni', role: 'Operations', initials: 'AA' }}
               onLogout={handleLogout}
               isOpen={sidebarOpen}
               setIsOpen={setSidebarOpen}
@@ -156,12 +157,12 @@ export default function App() {
                 onBellClick={() => setPage('alerts')}
                 devicesOnline={stats ? `${stats.onlineDevices ?? 0}/${stats.totalDevices ?? 0}` : null}
                 lastUpdate={lastUpdate}
-                rightExtras={<LiveBadge mode={sysMode.mode} size="md" />}
+                mode={sysMode.mode}
               />
 
-              <main className="flex-1 overflow-y-auto p-4 md:p-6 xl:p-8 max-w-[1800px] mx-auto w-full">
+              <main className="flex-1 overflow-y-auto p-4 md:p-5 xl:p-6 max-w-[1800px] mx-auto w-full">
                 <ErrorBoundary>
-                  {page === 'overview'    && <Overview palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} onAlertClick={handleAlertClick} onGotoAlerts={() => setPage('alerts')} onGotoSafety={() => setPage('doses')} sysMode={sysMode} />}
+                  {page === 'overview'    && <CaseMap palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} onGotoSafety={() => setPage('doses')} sysMode={sysMode} />}
                   {page === 'palms'       && <Palms palms={palms} onSelectPalm={setSelected} />}
                   {page === 'alerts'      && <Alerts onAlertClick={handleAlertClick} showToast={addToast} />}
                   {page === 'doses'       && <Doses showToast={addToast} />}
