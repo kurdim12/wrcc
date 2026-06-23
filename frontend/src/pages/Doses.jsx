@@ -1,20 +1,15 @@
 import { useMemo, useState } from 'react';
-import { Syringe, ShieldCheck, ShieldAlert, Lock, Droplets, CheckCircle2, Clock } from 'lucide-react';
+import { Syringe, Lock, Clock, Droplets, ShieldCheck } from 'lucide-react';
 import { api } from '../api.js';
 import { useDevices } from '../hooks/useDevices.js';
 import { useDoses } from '../hooks/useDoses.js';
 import { useSystemMode } from '../hooks/useSystemMode.js';
 import { TreatmentLockCard } from '../components/TreatmentLockCard.jsx';
-import { SafetyStatusCard } from '../components/ui/SafetyStatusCard.jsx';
-import { PageHeader } from '../components/ui/Primitives.jsx';
+import { SafetyGateChecklist, StatusPill } from '../components/casemap/CaseMapKit.jsx';
 
 const now = () => Math.floor(Date.now() / 1000);
 const fmtTime = (ts) => (ts ? new Date(ts * 1000).toLocaleString() : '—');
-const STATUS = {
-  pending:   'bg-caution/15 text-caution', sent: 'bg-forest-400/15 text-forest-400',
-  done:      'bg-forest-400/20 text-forest-400', failed: 'bg-crit/15 text-crit',
-  cancelled: 'bg-muted/15 text-muted',
-};
+const DOSE_PILL = { pending: 'pending', sent: 'open', done: 'verified', failed: 'critical', cancelled: 'locked' };
 
 export default function Doses({ showToast }) {
   const { devices, refresh } = useDevices();
@@ -32,11 +27,7 @@ export default function Doses({ showToast }) {
   const armedCount = devices.filter((d) => d.armed).length;
   const pending = doses.filter((d) => d.status === 'pending' || d.status === 'sent');
   const doses24h = doses.filter((d) => d.status === 'done' && (d.done_ts ?? 0) >= now() - 86400).length;
-
-  // Armed nodes float to the top — they are the live-risk surface.
-  const ordered = useMemo(
-    () => [...devices].sort((a, b) => (b.armed ? 1 : 0) - (a.armed ? 1 : 0)),
-    [devices]);
+  const ordered = useMemo(() => [...devices].sort((a, b) => (b.armed ? 1 : 0) - (a.armed ? 1 : 0)), [devices]);
 
   const arm = async (d, armed) => {
     setBusy(d.id);
@@ -52,83 +43,119 @@ export default function Doses({ showToast }) {
     } catch (e) { showToast?.(`Request failed: ${e.message}`, 'warning'); } finally { setBusy(null); }
   };
 
+  const Auth = ({ label, value }) => (
+    <div className="flex items-center justify-between py-1.5 border-b cm-divide last:border-0">
+      <span className="text-[12px] cm-muted">{label}</span>
+      <span className="text-[12px] font-semibold cm-ink cm-mono">{value}</span>
+    </div>
+  );
+
   return (
-    <div className="space-y-6">
-      {/* ── Safety Gate status ───────────────────────────────────────── */}
-      <PageHeader title="Treatment Safety Gate"
-        subtitle="Actuation is locked behind a human — arming only enables a request; a dose is released only after explicit operator confirmation. Demo uses clear water only." />
-      <SafetyStatusCard mode={mode} armed={armedCount > 0} cooldown={false} />
-      <div className="flex flex-wrap gap-2.5">
-        <Counter icon={ShieldCheck} label="Armed nodes" value={`${armedCount} / ${devices.length}`} tone={armedCount ? 'caution' : 'muted'} />
-        <Counter icon={Lock} label="Pending requests" value={pending.length} tone={pending.length ? 'caution' : 'muted'} />
-        <Counter icon={Syringe} label="Doses · 24h" value={doses24h} tone="muted" />
+    <div className="space-y-5">
+      {/* header */}
+      <div>
+        <h2 className="cm-title text-xl">Safety Gate</h2>
+        <p className="text-[13px] cm-muted mt-0.5">Human-confirmed treatment control. Nothing actuates on its own.</p>
       </div>
 
-      {/* ── Pending actions queue ────────────────────────────────────── */}
+      {/* mode band */}
+      <div className="cm-raised px-4 py-3 flex flex-wrap items-center gap-3" style={{ borderLeft: '3px solid #B7791F' }}>
+        <span className="inline-flex items-center gap-1.5 text-[13px] font-bold" style={{ color: '#B7791F' }}>
+          <Droplets size={15} /> Current Mode: {isLive ? 'LIVE' : 'DEMO — Clear Water Only'}
+        </span>
+        <span className="cm-muted text-[13px]">•</span>
+        <span className="inline-flex items-center gap-1.5 text-[13px] cm-ink">
+          <Lock size={14} style={{ color: '#6E746A' }} /> Treatment locked until approved
+        </span>
+        <StatusPill status={armedCount ? 'ready' : 'locked'} className="ml-auto">
+          {armedCount ? `${armedCount} node${armedCount === 1 ? '' : 's'} armed` : 'All nodes locked'}
+        </StatusPill>
+      </div>
+
+      {/* checklist · authorization · live status */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="cm-raised p-4"><SafetyGateChecklist /></div>
+
+        <div className="cm-raised p-4">
+          <div className="cm-label mb-2">Treatment Authorization</div>
+          <p className="text-[13px] cm-ink mb-3">Human-confirmed action is required to proceed. No pumps can activate automatically.</p>
+          <Auth label="Mode" value={isLive ? 'Live' : 'Demo — Clear Water'} />
+          <Auth label="Medium" value="Clear water only" />
+          <Auth label="Max demo dose" value="≤ 3000 ms" />
+          <Auth label="Confirmation" value="Per-event, operator" />
+          <Auth label="Anti-replay nonce" value="Active" />
+          <p className="text-[12px] cm-muted mt-3">
+            No treatment is delivered until an operator arms a node below and confirms the clear-water demo dose in the Safety Gate prompt.
+          </p>
+        </div>
+
+        <div className="cm-raised p-4">
+          <div className="cm-label mb-2">Live Status</div>
+          <div className="space-y-2">
+            <Stat icon={ShieldCheck} label="Armed nodes" value={`${armedCount} / ${devices.length}`} />
+            <Stat icon={Lock} label="Pending confirmations" value={pending.length} />
+            <Stat icon={Syringe} label="Clear-water demos · 24h" value={doses24h} />
+          </div>
+        </div>
+      </div>
+
+      {/* pending */}
       <div>
-        <div className="hud-label mb-2">pending treatment actions</div>
+        <div className="cm-label mb-2">Pending treatment actions</div>
         {pending.length === 0 ? (
-          <div className="instrument p-4 flex items-center gap-2.5 text-muted">
-            <Lock size={15} className="text-forest-400" />
-            <span className="text-sm">Gate closed — no treatment actions awaiting confirmation.</span>
+          <div className="cm-raised px-4 py-3 flex items-center gap-2.5 cm-muted text-[13px]">
+            <Lock size={15} style={{ color: '#2F7D46' }} /> Gate closed — no treatment actions awaiting confirmation.
           </div>
         ) : (
           <div className="space-y-2">
             {pending.map((d) => (
-              <div key={d.id} className="instrument p-3.5 flex items-center gap-3 border-caution/40">
-                <div className="w-9 h-9 rounded-lg bg-caution/15 text-caution flex items-center justify-center shrink-0">
-                  <Syringe size={17} />
-                </div>
+              <div key={d.id} className="cm-raised px-3.5 py-3 flex items-center gap-3" style={{ borderLeft: '3px solid #B7791F' }}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#B7791F1A', color: '#B7791F' }}><Syringe size={17} /></div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-bold text-charcoal dark:text-bone telemetry-num">{d.device_id}</div>
-                  <div className="hud-label">{d.source} request · {d.pump_ms} ms · ≈ {d.volume_ml_est} ml</div>
+                  <div className="font-bold cm-ink cm-mono">{d.device_id}</div>
+                  <div className="text-[11px] cm-muted">{d.source} request · {d.pump_ms} ms · ≈ {d.volume_ml_est} ml</div>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${STATUS[d.status] || ''}`}>{d.status}</span>
-                <span className="hud-label hidden sm:flex items-center gap-1.5 text-caution"><Clock size={12} /> awaiting confirm</span>
+                <StatusPill status={DOSE_PILL[d.status] || 'open'}>{d.status}</StatusPill>
+                <span className="hidden sm:flex items-center gap-1.5 text-[11px]" style={{ color: '#B7791F' }}><Clock size={12} /> awaiting confirm</span>
               </div>
             ))}
-            <div className="hud-label text-muted px-1">the confirmation gate opens automatically — confirm or cancel each request there.</div>
           </div>
         )}
       </div>
 
-      {/* ── Per-node actuator controls ───────────────────────────────── */}
+      {/* per-node actuators (functional arm/request) */}
       <div>
-        <div className="hud-label mb-2">node actuators · {devices.length}</div>
+        <div className="cm-label mb-2">Node actuators · {devices.length}</div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {ordered.map((d) => (
             <TreatmentLockCard key={d.id} device={d} dosesToday={dosesToday[d.id] || 0}
               demo={!isLive} busy={busy === d.id}
               onArm={(armed) => arm(d, armed)} onRequestDose={() => requestDose(d)} />
           ))}
-          {devices.length === 0 && <div className="hud-label">no devices yet</div>}
+          {devices.length === 0 && <div className="cm-muted text-[13px]">No devices yet.</div>}
         </div>
       </div>
 
-      {/* ── Dose history ─────────────────────────────────────────────── */}
+      {/* dose history / proof log */}
       <div>
-        <div className="hud-label mb-2">dose history</div>
-        <div className="instrument overflow-x-auto p-0">
-          <table className="w-full text-sm">
-            <thead className="text-left border-b border-muted/15">
-              <tr className="hud-label">
-                <th className="px-4 py-3">Time</th><th className="px-4 py-3">Device</th>
-                <th className="px-4 py-3">Trigger</th><th className="px-4 py-3">Volume</th>
-                <th className="px-4 py-3">Source</th><th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
+        <div className="cm-label mb-2">Dose History · Proof Log</div>
+        <div className="cm-raised overflow-x-auto">
+          <table className="w-full text-[13px]">
+            <thead><tr className="border-b cm-divide text-left">
+              {['Time', 'Device', 'Trigger', 'Volume', 'Source', 'Status'].map((h) => <th key={h} className="px-4 py-2.5 cm-label">{h}</th>)}
+            </tr></thead>
             <tbody>
               {doses.map((d) => (
-                <tr key={d.id} className="border-b border-muted/8">
-                  <td className="px-4 py-3 text-muted whitespace-nowrap telemetry-num text-xs">{fmtTime(d.done_ts || d.sent_ts || d.ts)}</td>
-                  <td className="px-4 py-3 font-medium text-charcoal dark:text-bone">{d.device_id}</td>
-                  <td className="px-4 py-3 telemetry-num">{d.trigger_risk != null ? Math.round(d.trigger_risk) : 'manual'}</td>
-                  <td className="px-4 py-3 telemetry-num">{d.volume_ml_est ?? '—'} ml</td>
-                  <td className="px-4 py-3 capitalize">{d.source}</td>
-                  <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${STATUS[d.status] || ''}`}>{d.status}</span></td>
+                <tr key={d.id} className="border-b cm-divide">
+                  <td className="px-4 py-2.5 cm-muted cm-mono text-[11px] whitespace-nowrap">{fmtTime(d.done_ts || d.sent_ts || d.ts)}</td>
+                  <td className="px-4 py-2.5 font-medium cm-ink cm-mono">{d.device_id}</td>
+                  <td className="px-4 py-2.5 cm-mono">{d.trigger_risk != null ? Math.round(d.trigger_risk) : 'manual'}</td>
+                  <td className="px-4 py-2.5 cm-mono">{d.volume_ml_est ?? '—'} ml</td>
+                  <td className="px-4 py-2.5 capitalize">{d.source}</td>
+                  <td className="px-4 py-2.5"><StatusPill status={DOSE_PILL[d.status] || 'open'}>{d.status}</StatusPill></td>
                 </tr>
               ))}
-              {doses.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center hud-label">no doses yet</td></tr>}
+              {doses.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center cm-muted text-[13px]">No clear-water demo doses yet.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -137,13 +164,10 @@ export default function Doses({ showToast }) {
   );
 }
 
-const Counter = ({ icon: Icon, label, value, tone = 'muted' }) => {
-  const c = { caution: 'text-caution', forest: 'text-forest-400', muted: 'text-muted' }[tone];
-  return (
-    <div className="instrument-inset px-3 py-2 flex items-center gap-2">
-      <Icon size={15} className={c} />
-      <span className="hud-label">{label}</span>
-      <span className={`telemetry-num text-sm font-bold ml-1 ${tone === 'muted' ? 'text-charcoal dark:text-bone' : c}`}>{value}</span>
-    </div>
-  );
-};
+const Stat = ({ icon: Icon, label, value }) => (
+  <div className="flex items-center gap-2.5">
+    <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--cm-green-soft)', color: 'var(--cm-forest)' }}><Icon size={15} /></span>
+    <span className="text-[13px] cm-ink flex-1">{label}</span>
+    <span className="cm-mono text-base font-bold cm-ink">{value}</span>
+  </div>
+);
