@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "main": "server.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node --no-warnings=ExperimentalWarning --env-file-if-exists=.env server.js",
     "dev":   "node --no-warnings=ExperimentalWarning --env-file-if-exists=.env --watch server.js",

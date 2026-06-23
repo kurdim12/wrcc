@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "private": true,
   "description": "Palm Guard — solar ESP32-S3 node for acoustic Red Palm Weevil early-warning + human-confirmed targeted micro-dosing. Honest, proxy-validated.",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
