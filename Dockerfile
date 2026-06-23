@@ -22,8 +22,8 @@ RUN npm run build --prefix frontend
 #    0.0.0.0. PG_DB_PATH must point at the mounted persistent disk/volume so the
 #    SQLite file survives restarts and redeploys.
 ENV NODE_ENV=production
-# Seed a populated demo farm on first boot when the DB is empty (no-op once
-# seeded). Set here so production auto-populates; tests/local runs don't.
-ENV PG_SEED_ON_EMPTY=1
+# Seeding is done once, post-deploy, against the mounted volume (Railway
+# Console: `npm run seed:farm --prefix backend`) rather than at boot — so a slow
+# first-boot seed can never stall the health check on the persistent volume.
 EXPOSE 10000
 CMD ["npm", "start", "--prefix", "backend"]
