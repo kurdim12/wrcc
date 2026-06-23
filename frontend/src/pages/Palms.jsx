@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Trees as TreesIcon, ShieldCheck, Eye, AlertTriangle, Signal } from 'lucide-react';
 import { Badge, severityType } from '../components/ui/Badge.jsx';
 import { ModelCaveatBadge } from '../components/ModelCaveatBadge.jsx';
+import { PageHeader, MetricTile } from '../components/ui/Primitives.jsx';
 import { useDevices } from '../hooks/useDevices.js';
 import { api } from '../api.js';
 import { onEvent } from '../socket.js';
@@ -41,8 +42,28 @@ export const Palms = ({ palms = [], onSelectPalm }) => {
     });
   }, [palms, q, filter]);
 
+  const fleet = useMemo(() => {
+    const cls = (p) => p.classification || 'low';
+    return {
+      total: palms.length,
+      healthy: palms.filter((p) => cls(p) === 'low').length,
+      watch: palms.filter((p) => cls(p) === 'medium').length,
+      critical: palms.filter((p) => cls(p) === 'high').length,
+      online: devices.filter((d) => (d.computed_status || d.status) === 'online').length,
+    };
+  }, [palms, devices]);
+
   return (
     <div className="space-y-4 animate-fade-in-up">
+      <PageHeader title="Trees" subtitle="Palm roster — your monitored fleet at a glance. Search, filter, and open any palm." />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <MetricTile icon={TreesIcon} label="Palms monitored" value={fleet.total} sub={`${fleet.online} devices online`} status="muted" />
+        <MetricTile icon={ShieldCheck} label="Healthy" value={fleet.healthy} status="forest" />
+        <MetricTile icon={Eye} label="Watch" value={fleet.watch} status="gold" />
+        <MetricTile icon={AlertTriangle} label="Critical" value={fleet.critical} status={fleet.critical > 0 ? 'crit' : 'muted'} />
+      </div>
+
       <div className="flex flex-col md:flex-row gap-3 justify-between items-center">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={18} />

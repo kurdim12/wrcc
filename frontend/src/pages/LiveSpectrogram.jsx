@@ -1,10 +1,13 @@
 import { SpectrogramConsole } from '../components/SpectrogramConsole.jsx';
+import { PageHeader } from '../components/ui/Primitives.jsx';
 
-// Tree Stethoscope — the acoustic lab. All instrument logic lives in the
+// Acoustic Lab — the technical-proof page. All instrument logic lives in the
 // reusable SpectrogramConsole (scrolling spectrogram, feeding-band guide, VU,
 // 16-band bars, P(activity), honest caveats).
 export const LiveSpectrogram = () => (
   <div className="space-y-4">
+    <PageHeader title="Acoustic Lab"
+      subtitle="Tree stethoscope — Palm Guard listens for internal acoustic patterns that may indicate abnormal trunk activity. The score is a proxy activity estimate, not confirmed RPW." />
     <SpectrogramConsole />
   </div>
 );

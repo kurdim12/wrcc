@@ -4,6 +4,7 @@ import {
   ChevronRight, ChevronDown, CheckCircle2, AlertTriangle, Syringe, Radio,
 } from 'lucide-react';
 import { RiskHalo } from '../components/RiskHalo.jsx';
+import { PageHeader } from '../components/ui/Primitives.jsx';
 import { useDevices } from '../hooks/useDevices.js';
 import { useIntelligence } from '../hooks/useIntelligence.js';
 
@@ -81,12 +82,9 @@ export default function Intelligence({ deviceId: controlled }) {
   return (
     <div className="space-y-5">
       {/* header + device picker */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2 text-charcoal dark:text-bone"><Cpu size={18} className="text-forest-400" /><h2 className="font-bold text-lg">Intelligence Layer · Sensor Fusion</h2></div>
-          <p className="hud-label mt-1">multi-sensor expert architecture — not a single black-box detector</p>
-        </div>
-        {!controlled && (
+      <PageHeader title="AI Decision"
+        subtitle="Why the system flagged this palm — multi-sensor evidence, explainable, not a black box."
+        actions={!controlled && (
           <div className="relative">
             <select value={picked} onChange={(e) => setPicked(e.target.value)}
               className="focus-ring appearance-none instrument-inset px-3 py-2 pr-9 text-sm font-bold text-charcoal dark:text-bone cursor-pointer">
@@ -96,7 +94,7 @@ export default function Intelligence({ deviceId: controlled }) {
             <ChevronDown size={15} className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-muted" />
           </div>
         )}
-      </div>
+      />
 
       {/* risk hero */}
       <div className="instrument p-5 grid md:grid-cols-[auto_1fr] gap-5 items-center">
