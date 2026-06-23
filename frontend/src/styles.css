@@ -184,3 +184,32 @@ html { scroll-behavior: smooth; }
   background-image: repeating-linear-gradient(
     0deg, rgba(140,155,145,0.05) 0px, rgba(140,155,145,0.05) 1px, transparent 1px, transparent 3px);
 }
+
+/* ============================================================
+   Palm Guard — CaseMap design layer (map-first field-ops look)
+   CSS variables + .cm-* utilities. Additive: does NOT touch the
+   existing tailwind tokens used elsewhere.
+   ============================================================ */
+:root {
+  --cm-bg: #F4F1E8;          --cm-surface: #FBFAF5;     --cm-raised: #FFFFFF;
+  --cm-border: #D8D0BF;      --cm-border-soft: rgba(22,33,28,0.10);
+  --cm-ink: #16211C;         --cm-muted: #6E746A;
+  --cm-forest: #123C2C;      --cm-forest-deep: #0B2A1E; --cm-green-soft: #E8F0DF;
+  --cm-olive: #6F7D45;       --cm-healthy: #2F7D46;     --cm-watch: #B7791F;
+  --cm-high: #C05621;        --cm-critical: #B42318;    --cm-slate: #486581;
+  --cm-treated: #2B6CB0;     --cm-demo: #B7791F;
+}
+.dark {
+  --cm-bg: #101C17;          --cm-surface: #17231E;     --cm-raised: #1E2B25;
+  --cm-border: rgba(157,176,168,0.20); --cm-border-soft: rgba(157,176,168,0.12);
+  --cm-ink: #E7F0EC;         --cm-muted: #9DB0A8;       --cm-green-soft: #1E2B25;
+}
+.cm-app      { background: var(--cm-bg); color: var(--cm-ink); }
+.cm-surface  { background: var(--cm-surface); border: 1px solid var(--cm-border-soft); border-radius: 12px; }
+.cm-raised   { background: var(--cm-raised); border: 1px solid var(--cm-border); border-radius: 12px; }
+.cm-divide   { border-color: var(--cm-border-soft); }
+.cm-ink      { color: var(--cm-ink); }
+.cm-muted    { color: var(--cm-muted); }
+.cm-mono     { font-family: '"JetBrains Mono"', ui-monospace, SFMono-Regular, monospace; font-variant-numeric: tabular-nums; }
+.cm-label    { font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--cm-muted); font-weight: 600; }
+.cm-title    { color: var(--cm-ink); font-weight: 700; letter-spacing: -0.01em; }

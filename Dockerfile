@@ -18,9 +18,12 @@ RUN npm ci --prefix backend --no-audit --no-fund \
 COPY . .
 RUN npm run build --prefix frontend
 
-# 3) Runtime. Render injects PORT; server.js reads process.env.PORT and binds
-#    0.0.0.0. PG_DB_PATH must point at the mounted persistent disk (see
-#    render.yaml) so the SQLite file survives restarts and redeploys.
+# 3) Runtime. The host injects PORT; server.js reads process.env.PORT and binds
+#    0.0.0.0. PG_DB_PATH must point at the mounted persistent disk/volume so the
+#    SQLite file survives restarts and redeploys.
 ENV NODE_ENV=production
+# Seed a populated demo farm on first boot when the DB is empty (no-op once
+# seeded). Set here so production auto-populates; tests/local runs don't.
+ENV PG_SEED_ON_EMPTY=1
 EXPOSE 10000
 CMD ["npm", "start", "--prefix", "backend"]
