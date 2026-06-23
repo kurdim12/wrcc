@@ -25,7 +25,7 @@ export const SectionCard = ({ title, subtitle, action, children, className = '',
 export const PageHeader = ({ title, subtitle, actions, children }) => (
   <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-1">
     <div className="min-w-0">
-      <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-charcoal dark:text-bone">{title}</h2>
+      <h2 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-charcoal dark:text-bone">{title}</h2>
       {subtitle && <p className="text-sm text-muted mt-1 max-w-2xl leading-snug">{subtitle}</p>}
       {children}
     </div>

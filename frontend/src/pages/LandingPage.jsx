@@ -42,7 +42,7 @@ const Kicker = ({ children }) => (
 const SectionHead = ({ tag, title, sub }) => (
   <div className="max-w-2xl mb-12">
     <div className="hud-label text-forest-400 mb-3">{tag}</div>
-    <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-charcoal dark:text-bone mb-4">{title}</h2>
+    <h2 className="font-display text-3xl md:text-5xl font-bold tracking-tight text-charcoal dark:text-bone mb-4">{title}</h2>
     {sub && <p className="text-base md:text-lg text-muted leading-relaxed">{sub}</p>}
   </div>
 );
@@ -141,7 +141,7 @@ const Hero = ({ onLogin }) => (
     <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center relative z-10">
       <div className="animate-fade-in-up">
         <Kicker>Living Telemetry Interface</Kicker>
-        <h1 className="mt-6 text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] text-charcoal dark:text-bone">
+        <h1 className="mt-6 font-display text-4xl md:text-6xl font-bold tracking-tight leading-[1.05] text-charcoal dark:text-bone">
           Hear the weevil
           <span className="block text-forest-400">before the palm falls.</span>
         </h1>
