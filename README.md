@@ -29,7 +29,7 @@
 ---
 
 <p align="center">
-  <img src="device-render.png" width="100%" alt="Palm Guard node mounted on a date palm — three views" />
+  <img src="device-render.jpeg" width="100%" alt="Palm Guard node mounted on a date palm — three views" />
 </p>
 
 ## What it is
@@ -48,7 +48,7 @@ Built for the **World Robot Caspian Cup — WRCC 2026, Baku** · Open Category �
 
 | Field robot | CASEMAP dashboard |
 |---|---|
-| <img src="device-render.png" width="100%" alt="Palm Guard device" /> | <img src="dashboard-preview.png" width="100%" alt="Palm Guard CASEMAP dashboard" /> |
+| <img src="device-render.jpeg" width="100%" alt="Palm Guard device" /> | <img src="dashboard-preview.png" width="100%" alt="Palm Guard CASEMAP dashboard" /> |
 
 The dashboard shows a per-palm **case file** with a 0–100 risk ruler, a traceable **evidence packet** (acoustic, vibration and temperature signals with confidence), and a **safety gate** that holds any treatment for operator confirmation. **Demo mode runs clear water only**, per WRCC rule 5.8.
 
