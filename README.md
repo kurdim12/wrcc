@@ -1,395 +1,584 @@
 <div align="center">
 
-<img src="frontend/public/logo.png" width="210" alt="Palm Guard logo" />
+<img src="frontend/public/logo.png" width="230" alt="Palm Guard Logo" />
 
 # Palm Guard
 
-### *Hear the weevil before the palm falls.*
+### *"Hear the weevil before the palm falls."*
 
-**Solar-powered ESP32-S3 robotic node for early Red Palm Weevil warning, edge-AI risk scoring, and human-confirmed targeted trunk micro-dosing.**
+### Early RPW acoustic risk detection + human-confirmed micro-dosing
 
-<br />
+#### A self-powered robotic field node for precision date-palm protection
 
-[![WRCC 2026](https://img.shields.io/badge/WRCC-2026%20Baku-003F2E?style=for-the-badge)]()
-[![Theme](https://img.shields.io/badge/Theme-Agriculture-C2A14D?style=for-the-badge)]()
-[![Robot](https://img.shields.io/badge/Robot-ESP32--S3%20Field%20Node-003F2E?style=for-the-badge)]()
-[![Dashboard](https://img.shields.io/badge/Dashboard-CASEMAP%20Live%20UI-C2A14D?style=for-the-badge)]()
-[![ML](https://img.shields.io/badge/ML-TensorFlow%20%E2%86%92%20TFLite-003F2E?style=for-the-badge)]()
-[![License](https://img.shields.io/badge/License-MIT-C2A14D?style=for-the-badge)]()
+#### WRCC 2026 · Open Category · **Theme 1 — Agriculture**
 
 <br />
 
-### **Listen early. Score locally. Treat precisely. Prove every action.**
+[![WRCC](https://img.shields.io/badge/WRCC-2026%20Baku-003F2E?style=for-the-badge)]()
+[![Platform](https://img.shields.io/badge/Edge-ESP32--S3-003F2E?style=for-the-badge)]()
+[![Backend](https://img.shields.io/badge/Backend-Node.js%20%2B%20SQLite-C2A14D?style=for-the-badge)]()
+[![Dashboard](https://img.shields.io/badge/Dashboard-React%20%2B%20Vite-003F2E?style=for-the-badge)]()
+[![ML](https://img.shields.io/badge/ML-Heuristic%20%2B%20Proxy%20CNN%20\(0.90%20AUC%2C%20proxy\)-C2A14D?style=for-the-badge)]()
+[![License](https://img.shields.io/badge/License-MIT-003F2E?style=for-the-badge)]()
+
+<br />
+
+## **Listen early. Treat precisely. Prove every action.**
 
 </div>
 
 ---
 
 <p align="center">
-  <img src="device-render.jpeg" width="100%" alt="Palm Guard robotic node mounted on a date palm" />
+  <img src="device-render.png" width="100%" alt="Palm Guard device mounted on a date-palm trunk" />
 </p>
 
 ---
 
-## 01 · Project overview
+## The Product
 
-**Palm Guard** is a solar-powered robotic field node that mounts directly on a date-palm trunk to detect early signs of Red Palm Weevil activity before visible damage appears.
+**Palm Guard** is a solar-powered robotic monitoring node designed to help detect early **Red Palm Weevil** risk in date palms and support a safer, targeted response workflow.
 
-The system combines:
+The node mounts directly onto a palm trunk, captures acoustic, vibration, and environmental evidence, sends structured readings to a backend, and displays live risk evidence on a professional dashboard.
 
-* a **physical robotic device** attached to the palm,
-* a **multi-sensor edge-AI detection pipeline**,
-* a **human-confirmed micro-dosing workflow**,
-* and a **live CASEMAP dashboard** for evidence, alerts, and traceability.
+When the system identifies a high-risk event, it does **not** blindly dose. Instead, it opens a **human-confirmed micro-dosing workflow** with hard safety limits enforced by both the server and the embedded device.
 
-Built for the **World Robot Caspian Cup — WRCC 2026, Baku**
-Open Category · **Theme 1 — Agriculture**
+Built for the **World Robot Caspian Cup — WRCC 2026, Baku**.
 
 ---
 
-## 02 · The problem
+## Executive Snapshot
 
-Red Palm Weevil infestation is dangerous because the damage starts **inside** the trunk.
-
-Farmers often cannot see it.
-
-They cannot hear it.
-
-By the time symptoms appear outside the tree, serious damage may already be done.
-
-Palm Guard closes that gap by turning each palm into a monitored case file.
-
-> **The goal is simple: detect risk earlier, confirm it with evidence, and help farmers act before it is too late.**
+<table>
+  <tr>
+    <td><strong>Problem</strong></td>
+    <td>Red Palm Weevil damage is often hidden inside the trunk until visible symptoms appear late.</td>
+  </tr>
+  <tr>
+    <td><strong>Solution</strong></td>
+    <td>A per-tree robotic node that listens, scores risk, alerts operators, and supports confirmed micro-dosing.</td>
+  </tr>
+  <tr>
+    <td><strong>Core Hardware</strong></td>
+    <td>ESP32-S3, acoustic sensing, vibration/environment inputs, solar power, and a peristaltic pump actuator.</td>
+  </tr>
+  <tr>
+    <td><strong>Software Stack</strong></td>
+    <td>Node.js, Express, SQLite, Socket.io, FastAPI, React, Vite, and Tailwind.</td>
+  </tr>
+  <tr>
+    <td><strong>Safety Model</strong></td>
+    <td>Human-arm + human-confirm + server caps + device caps + nonce protection + full dose logging.</td>
+  </tr>
+  <tr>
+    <td><strong>Current ML Status</strong></td>
+    <td>Heuristic baseline ships by default. A proxy CNN (<code>cnn-aspid-v1</code>) is trained and grouped-CV-evaluated on open ASPID proxy data with ROC-AUC ≈ 0.90 and PR-AUC 0.926. Proxy only — <strong>not RPW, not field-validated</strong>. Model artifacts are gitignored, so a fresh clone serves the heuristic baseline.</td>
+  </tr>
+</table>
 
 ---
 
-## 03 · System at a glance
-
-| Layer           | What it does                                                               |
-| --------------- | -------------------------------------------------------------------------- |
-| **Field robot** | Mounts on the palm, reads sensors, scores risk, controls the pump workflow |
-| **Edge AI**     | Extracts acoustic features and estimates infestation risk locally          |
-| **Backend**     | Stores readings, applies fusion logic, enforces treatment safety rules     |
-| **Dashboard**   | Shows live palm status, risk, evidence, alerts, and dose history           |
-| **Safety gate** | Prevents blind chemical injection; operator confirmation is required       |
-
----
-
-# 04 · The device
+## Core Robotic Loop
 
 <div align="center">
-
-## Palm Guard Field Robot
-
-</div>
-
-<p align="center">
-  <img src="device-render.jpeg" width="85%" alt="Palm Guard field device mounted on a date palm" />
-</p>
-
-The Palm Guard device is the physical robotic node that attaches to the palm trunk.
-
-It is designed to work outdoors, run on solar power, monitor the tree continuously, and communicate risk events to the dashboard.
-
----
-
-## 04.1 · What the device does
-
-The field robot performs the full local loop:
 
 ```text
-SENSE → EXTRACT → SCORE → AGREE → ACT → REPORT
+Sense → Score → Alert → Human Confirm → Micro-dose → Log Evidence
 ```
-
-| Step        | Device action                                            |
-| ----------- | -------------------------------------------------------- |
-| **Sense**   | Reads acoustic, vibration, and trunk-temperature signals |
-| **Extract** | Runs FFT and acoustic feature extraction on the ESP32-S3 |
-| **Score**   | Produces a 0–100 risk score                              |
-| **Agree**   | Checks whether multiple sensors support the risk signal  |
-| **Act**     | Holds treatment behind a safety-gated workflow           |
-| **Report**  | Sends the reading and evidence packet to the backend     |
-
----
-
-## 04.2 · Device hardware
-
-| Component              | Part                             | Purpose                                  |
-| ---------------------- | -------------------------------- | ---------------------------------------- |
-| **Controller**         | ESP32-S3 DevKitC-1               | Main embedded controller                 |
-| **Acoustic sensor**    | INMP441 I²S MEMS microphone      | Primary early-warning signal             |
-| **Vibration sensor**   | SW-420 LM393 analog envelope     | Confirms mechanical disturbance          |
-| **Temperature sensor** | DS18B20 waterproof 1-Wire        | Adds trunk-temperature context           |
-| **Actuator**           | 5 V peristaltic pump             | Demonstrates targeted trunk micro-dosing |
-| **Pump driver**        | IRF540 MOSFET                    | Switches the pump safely                 |
-| **Status light**       | WS2812 NeoPixel LED              | Shows state, risk, and treatment lock    |
-| **Power**              | LiPo + solar charger + regulator | Outdoor autonomous operation             |
-
----
-
-## 04.3 · Three-sensor detection stack
-
-| Sensor              | Role         | What it helps detect              | Why it matters                            |
-| ------------------- | ------------ | --------------------------------- | ----------------------------------------- |
-| 🎤 **Acoustic**     | Primary      | Feeding and boring sound patterns | Gives the earliest warning signal         |
-| 〰️ **Vibration**    | Confirmation | Mechanical movement in the trunk  | Reduces false positives from random noise |
-| 🌡️ **Temperature** | Context      | Local trunk-temperature changes   | Adds biological and environmental context |
-
-Acoustic is the main early-warning layer.
-
-Vibration and temperature make the detection more defensible because the robot does not rely on one microphone alone.
-
----
-
-## 04.4 · Device safety
-
-Palm Guard separates detection from treatment.
-
-The robot can detect risk automatically, but treatment is not blindly triggered.
-
-A real chemical dose requires:
-
-* operator confirmation,
-* backend approval,
-* embedded-device approval,
-* hard volume limit,
-* event logging,
-* and dose-history tracking.
-
-For the WRCC booth demo, the pump uses **clear water only**.
-
----
-
-# 05 · The dashboard
-
-<div align="center">
-
-## CASEMAP Live Dashboard
 
 </div>
 
+Palm Guard is designed as a complete robotic loop, not just an IoT monitor.
+
+| Stage       | What Palm Guard Does                                                                             |
+| ----------- | ------------------------------------------------------------------------------------------------ |
+| **Sense**   | Captures acoustic, vibration, trunk-temperature, and environmental readings from a per-tree node |
+| **Score**   | Converts readings into activity/risk indicators using edge features and backend fusion           |
+| **Alert**   | Raises high-risk events with context, confidence, and sensor evidence                            |
+| **Confirm** | Requires operator review before any dose command                                                 |
+| **Act**     | Runs a metered pump action through a protected command path                                      |
+| **Prove**   | Logs detection, command, dose result, and history for accountability                             |
+
+---
+
+# The Field Device
+
 <p align="center">
-  <img src="dashboard-preview.jpeg" width="85%" alt="Palm Guard CASEMAP dashboard" />
+  <img src="device-render.png" width="100%" alt="Palm Guard field device mounted on a date-palm trunk" />
 </p>
 
-The dashboard is the software command layer for Palm Guard.
+The **Palm Guard field device** is the physical robotic node mounted directly on the palm trunk.
 
-It turns every monitored palm into a live case file with risk, evidence, alerts, and treatment history.
+It is responsible for sensing, local signal processing, status feedback, safety-gated actuation, and sending evidence packets to the backend.
 
-The dashboard is not just a display. It is the place where the operator understands the decision and confirms whether action is allowed.
-
----
-
-## 05.1 · What the dashboard shows
-
-| Dashboard module     | Purpose                                            |
-| -------------------- | -------------------------------------------------- |
-| **Risk ruler**       | Shows the palm risk score from 0–100               |
-| **Palm case file**   | Displays the selected palm and its latest status   |
-| **Evidence packet**  | Shows acoustic, vibration, and temperature support |
-| **Live spectrogram** | Visualizes acoustic activity                       |
-| **Alerts**           | Highlights high-risk events                        |
-| **Treatment lock**   | Shows whether dosing is blocked or allowed         |
-| **Dose history**     | Logs all actuation events                          |
-| **Device health**    | Tracks node status and connectivity                |
+The device is designed to be low-cost, repairable, solar-powered, and realistic for agricultural environments.
 
 ---
 
-## 05.2 · Dashboard philosophy
+## Device Responsibilities
 
-The dashboard is designed around one judging question:
+| Function                  | Description                                                          |
+| ------------------------- | -------------------------------------------------------------------- |
+| **Acoustic sensing**      | Captures feeding-like acoustic activity using the INMP441 microphone |
+| **Vibration sensing**     | Adds mechanical confirmation through the SW-420 vibration sensor     |
+| **Trunk temperature**     | Adds local trunk-temperature context using the DS18B20 sensor        |
+| **Environmental context** | Tracks surrounding conditions using the BME680 sensor                |
+| **Edge processing**       | Runs FFT / log-mel feature extraction on the ESP32-S3                |
+| **Risk reporting**        | Sends structured readings and evidence packets to the backend        |
+| **Actuation**             | Controls the pump through a protected dose FSM                       |
+| **Safety control**        | Enforces cooldown, daily limits, and command validation on-device    |
+| **Status feedback**       | Uses LED states to show device mode, risk state, and treatment lock  |
 
-> **Can the team prove why the robot made this decision?**
+---
 
-That is why the UI focuses on evidence, not only numbers.
+## Device Hardware
 
-Instead of showing a simple “infected / not infected” label, the dashboard shows:
+| Part                   | Role                                     |
+| ---------------------- | ---------------------------------------- |
+| **ESP32-S3**           | Main controller and edge-processing unit |
+| **INMP441**            | Acoustic activity capture                |
+| **SW-420**             | Vibration confirmation                   |
+| **DS18B20**            | Trunk-temperature context                |
+| **BME680**             | Environmental context                    |
+| **Peristaltic pump**   | Metered micro-dosing actuator            |
+| **MOSFET driver**      | Pump switching and protection            |
+| **Solar + LiPo power** | Outdoor autonomous power concept         |
+| **WS2812 LED**         | Visual device status                     |
 
-* the risk score,
+The originality is not in using rare components.
+
+The originality is in the **integration**: sensing, firmware, signal processing, safety logic, actuation, evidence reporting, dashboard explanation, and judge-ready traceability.
+
+---
+
+## Device Sensor Stack
+
+| Sensor                          | Role                  | What it contributes                                                     | Honesty Boundary                                        |
+| ------------------------------- | --------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------- |
+| **INMP441 acoustic mic**        | Primary signal        | Captures acoustic activity that may resemble feeding or boring patterns | Reports acoustic activity, not guaranteed RPW detection |
+| **SW-420 vibration sensor**     | Corroboration         | Adds mechanical evidence when the trunk has vibration activity          | Confirmation only                                       |
+| **DS18B20 trunk temperature**   | Biological context    | Tracks local trunk-temperature behavior                                 | Context only                                            |
+| **BME680 environmental sensor** | Environmental context | Adds humidity, pressure, VOC, and air-condition context                 | Does not prove infestation alone                        |
+
+Palm Guard does not rely on one microphone alone.
+
+The system uses multi-sensor evidence to make the risk score more defensible and to reduce false positives from random sound spikes, wind, or handling noise.
+
+---
+
+## Device Safety Logic
+
+The device has its own protection layer.
+
+Even if the backend sends a command, the ESP32-S3 firmware checks safety conditions before running the pump.
+
+```text
+Receive command
+      ↓
+Validate command nonce
+      ↓
+Check ARM state
+      ↓
+Check cooldown
+      ↓
+Check daily limit
+      ↓
+Run metered pump action
+      ↓
+Report result
+```
+
+| Device-Side Safety Layer | Purpose                                               |
+| ------------------------ | ----------------------------------------------------- |
+| **ARM state**            | Prevents accidental treatment mode                    |
+| **Nonce validation**     | Reduces repeated-command replay risk                  |
+| **Cooldown**             | Blocks repeated pump actions too close together       |
+| **Daily cap**            | Limits total dose events per day                      |
+| **Metered pump timing**  | Keeps actuation controlled and measurable             |
+| **Result reporting**     | Confirms whether the command completed or was blocked |
+
+For WRCC and booth demonstrations, the pump should use **clear water only**.
+
+---
+
+# The CASEMAP Dashboard
+
+<p align="center">
+  <img src="dashboard-preview.png" width="100%" alt="Palm Guard dashboard overview" />
+</p>
+
+The **CASEMAP dashboard** is the operator and judging interface for Palm Guard.
+
+It does not simply show a number.
+
+It explains why the system raised a risk event, what evidence supports it, whether the model is calibrated or heuristic, and whether treatment is locked or allowed.
+
+The dashboard turns every monitored palm into a live case file.
+
+---
+
+## Dashboard Responsibilities
+
+| Module                      | Purpose                                                                              |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| **Farm overview**           | Shows all monitored palms and device health                                          |
+| **Palm case file**          | Displays one palm’s latest readings, risk, and event history                         |
+| **Risk ruler**              | Shows the current 0–100 fused risk score                                             |
+| **Evidence packet**         | Breaks down acoustic, vibration, temperature, environment, and sensor-health signals |
+| **Live spectrogram**        | Visualizes acoustic activity for the demo                                            |
+| **Alerts**                  | Highlights high-risk palm events                                                     |
+| **ARM / DISARM control**    | Prevents accidental actuation                                                        |
+| **Dose confirmation modal** | Requires human approval before a dose command                                        |
+| **Dose history**            | Logs all dose attempts, completions, and blocked actions                             |
+| **Model status labels**     | Clearly separates heuristic, proxy, and future field-validated models                |
+
+---
+
+## Dashboard Philosophy
+
+The dashboard is built around one judge-facing question:
+
+> **Can we prove why the robot made this decision?**
+
+Palm Guard avoids a black-box “infected / not infected” claim.
+
+Instead, the dashboard shows:
+
+* the fused risk score,
 * the sensor evidence behind it,
-* whether the system is calibrated or heuristic,
-* whether treatment is locked,
-* and what action was taken.
+* acoustic activity patterns,
+* vibration confirmation,
+* environmental context,
+* sensor-health status,
+* model mode and calibration label,
+* treatment lock status,
+* and the full action history.
 
 ---
 
-# 06 · Device vs dashboard
+## Device vs Dashboard
 
-| Field device                  | Dashboard                             |
-| ----------------------------- | ------------------------------------- |
-| Physical robotic node         | Software monitoring and control layer |
-| Mounted on the palm trunk     | Used by farmer / operator / judge     |
-| Reads sensors directly        | Displays evidence and live status     |
-| Runs local feature extraction | Explains the decision visually        |
-| Controls pump workflow        | Confirms or blocks treatment          |
-| Works offline-first           | Stores and streams case history       |
+| Field Device                 | CASEMAP Dashboard                       |
+| ---------------------------- | --------------------------------------- |
+| Physical robotic node        | Software command and evidence interface |
+| Mounted on the palm trunk    | Used by operator, farmer, or judge      |
+| Reads sensors directly       | Explains the sensor evidence            |
+| Runs local signal extraction | Displays live risk and confidence       |
+| Controls the pump FSM        | Confirms or blocks treatment            |
+| Enforces device-side limits  | Enforces server-side limits             |
+| Sends readings to backend    | Streams readings, alerts, and history   |
+| Works offline-first          | Gives traceability and decision clarity |
 
 The device creates the evidence.
 
 The dashboard explains the evidence.
 
-Together, they form the complete Palm Guard system.
+Together, they form the complete Palm Guard robotic system.
 
 ---
 
-# 07 · Full system flow
+# System Architecture
 
-```text
-Palm trunk
-   │
-   ▼
-Palm Guard device
-   │
-   ├── Acoustic sensor
-   ├── Vibration sensor
-   └── Temperature sensor
-   │
-   ▼
-ESP32-S3 edge processing
-   │
-   ├── FFT / acoustic features
-   ├── risk scoring
-   └── sensor agreement check
-   │
-   ▼
-Backend
-   │
-   ├── reading storage
-   ├── fusion service
-   ├── safety rules
-   └── dose approval workflow
-   │
-   ▼
-CASEMAP dashboard
-   │
-   ├── risk ruler
-   ├── evidence packet
-   ├── live alerts
-   ├── treatment lock
-   └── dose history
+<p align="center">
+  <img src="system-architecture.png" width="100%" alt="Palm Guard system architecture" />
+</p>
+
+```mermaid
+flowchart LR
+  A[ESP32-S3 Palm Node<br/>Acoustic + vibration + environment<br/>Log-mel features + pump FSM] -->|POST readings| B[Backend<br/>Node.js + Express + SQLite + Socket.io]
+  B --> C[ML Service<br/>FastAPI heuristic scorer<br/>p_activity]
+  C --> B
+  B -->|REST + WebSocket| D[Dashboard<br/>React + Vite + Tailwind]
+  D -->|Arm / Confirm dose| B
+  B -->|Protected downlink<br/>armed + dose nonce| A
 ```
 
 ---
 
-# 08 · Architecture
+## Architecture Breakdown
+
+| Layer          | Responsibility                                                                      |
+| -------------- | ----------------------------------------------------------------------------------- |
+| **Firmware**   | Sensor reading, FFT/log-mel features, dose FSM, LED state, and backend posting      |
+| **ML service** | Heuristic scoring by default, proxy CNN path when trained artifacts are available   |
+| **Backend**    | Reading ingestion, fusion, event storage, alerting, safety rules, and dose commands |
+| **Dashboard**  | Live monitoring, risk explanation, operator confirmation, and traceable history     |
+| **Tools**      | Mock device, seed palms, serial bridge, and demo utilities                          |
+
+---
+
+# Intelligence Layer — Multi-Sensor Expert Architecture
+
+Palm Guard is **not a single black-box detector**.
+
+The backend runs a small **multi-sensor expert architecture**: deterministic expert / signal-model modules with no LLM in the control path.
+
+These modules feed one server-authoritative **fusion engine**.
+
+Acoustic activity is the primary signal.
+
+Vibration validates it.
+
+Environmental sensors add context only.
+
+A sensor-health expert protects reliability.
+
+The fusion engine produces a risk score.
+
+A safety agent keeps dosing human-confirmed, hard-capped, nonce-protected, and clear-water-only in the demo.
+
+The dashboard surfaces all of this on the **Intelligence Layer** page.
+
+```mermaid
+flowchart LR
+  S[Sensors<br/>mic · vibration · trunk temp · environment] --> A[Acoustic Activity Expert<br/>primary signal]
+  S --> V[Vibration Validation Expert<br/>corroboration]
+  S --> E[Environmental Context Expert<br/>context only]
+  S --> H[Sensor Health Expert<br/>reliability gate]
+  A --> F[Risk Fusion Engine<br/>risk 0-100 + confidence]
+  V --> F
+  E --> F
+  H -->|confidence penalty / resample| F
+  F --> SA[Safety Dose Agent<br/>server + device caps]
+  SA --> HC[Human Confirmation<br/>mandatory]
+  HC --> D[Capped Demo Dose<br/>clear water only]
+```
+
+| Expert / Engine                  | Role                                            | Honesty Boundary                                   |
+| -------------------------------- | ----------------------------------------------- | -------------------------------------------------- |
+| **Acoustic Activity Expert**     | Primary — scores feeding-like acoustic activity | “Acoustic activity” / proxy — never “RPW detected” |
+| **Vibration Validation Expert**  | Confirms or weakens acoustic suspicion          | Corroboration only                                 |
+| **Environmental Context Expert** | Trunk temperature + VOC context                 | Never claims gas/temp proves infestation           |
+| **Sensor Health Expert**         | Flags missing, impossible, or stale data        | Forces resample on bad data                        |
+| **Risk Fusion Engine**           | Weighted fuse → risk + level + recommendation   | Mirrors the server-authoritative risk score        |
+| **Safety Dose Agent**            | Server caps mirror device caps                  | Human-confirmed, nonce-protected, clear-water demo |
+| **Explanation Agent**            | Plain-English, judge-friendly rationale         | No overclaiming                                    |
+
+**Endpoints / events:**
 
 ```text
-ESP32-S3 Field Robot                              Backend + Dashboard
-┌──────────────────────────────┐                 ┌──────────────────────────────┐
-│ INMP441 acoustic sensor      │                 │ Node.js + Express            │
-│ SW-420 vibration sensor      │                 │ Socket.IO live stream        │
-│ DS18B20 trunk temperature    │                 │ SQLite event database        │
-│                              │                 │                              │
-│ FFT + acoustic features      │   HTTPS JSON    │ Fusion service               │
-│ Risk score                   │ ─────────────▶  │ ML scoring fallback          │
-│ Safety-gated dose FSM        │ ◀─────────────  │ Treatment approval workflow  │
-│ Pump + WS2812 status LED     │   dose ACK      │                              │
-└──────────────────────────────┘                 └──────────────┬───────────────┘
-                                                                 │
-                                                                 ▼
-                                                       React CASEMAP dashboard
+GET /api/v1/intelligence
+GET /api/v1/intelligence/:deviceId
+Socket.io: risk:fusion
+Socket.io: agents:update
+```
+
+The existing `live:reading` event can also carry an additive `intelligence` field for backwards compatibility.
+
+Full details, payload examples, and the capability-vs-roadmap table are in:
+
+```text
+docs/INTELLIGENCE_LAYER.md
 ```
 
 ---
 
-# 09 · Honesty and validation
+## One-Paragraph Technical Summary
 
-Palm Guard is written to be defensible in front of judges.
+Palm Guard is a solar ESP32-S3 node that listens inside the palm with an INMP441 microphone, fused with SW-420 analog vibration, DS18B20 trunk temperature, and a BME680 environmental sensor.
 
-| Claim                   | Project position                                       |
-| ----------------------- | ------------------------------------------------------ |
-| **Model validation**    | Proxy-validated, not field-proven                      |
-| **Dataset limitation**  | Real RPW field recordings are scarce                   |
-| **Default scoring**     | Fresh clones run `heuristic-baseline-v0`               |
-| **Calibration**         | Heuristic mode is clearly marked as `calibrated=false` |
-| **Treatment**           | Human-confirmed and safety-gated                       |
-| **Demo actuation**      | Clear water only                                       |
-| **Off-the-shelf parts** | Used intentionally for affordability and repairability |
+The ESP32 runs a 1024-point FFT in firmware to build a 40×32 log-mel fingerprint, posts readings to a Node.js + Socket.io backend, and a React/Vite mission-control dashboard shows the system live.
 
-The model path uses proxy datasets such as ASPID insect acoustics and ESC-50 environmental sound. The current model card reports `cnn-aspid-v1` with proxy ROC-AUC around `0.90`.
+Palm Guard is not a single black-box AI model: acoustic, vibration, environmental, and sensor-health experts feed a server-authoritative fusion engine.
 
-Field validation on real RPW-infested palms is the next step.
+Any treatment path remains human-confirmed, hard-capped, nonce-protected, and clear-water only in the demo.
 
 ---
 
-# 10 · Repository structure
+# Repository Structure
 
 ```text
 wrcc/
-├── firmware/palmguard-esp32s3/
-│   ├── src/
-│   │   ├── main.cpp
-│   │   ├── detect.cpp
-│   │   ├── sensors/
-│   │   ├── actuation/
-│   │   └── net/
-│   ├── include/config.h
-│   └── platformio.ini
-│
-├── ml/
-│   ├── serve/app.py
-│   ├── train/
-│   ├── features/melspec.py
-│   ├── prepare/
-│   ├── export/export_tflite.py
-│   ├── model_card.md
-│   └── requirements.txt
+├── firmware/
+│   └── palmguard-esp32s3/
+│       ├── ESP32-S3 firmware
+│       ├── sensor capture
+│       ├── log-mel features
+│       ├── Wi-Fi / serial bridge
+│       └── pump dose FSM
 │
 ├── backend/
-│   ├── server.js
-│   ├── routes/
-│   ├── services/
-│   └── scripts/
+│   ├── Node.js / Express API
+│   ├── SQLite database
+│   ├── Socket.io live events
+│   ├── fusion scoring
+│   ├── alert rules
+│   └── server-authoritative dose engine
 │
 ├── frontend/
-│   └── src/
-│       ├── components/
-│       ├── pages/
-│       ├── hooks/
-│       ├── socket.js
-│       └── api.js
+│   ├── public/
+│   │   ├── logo.png
+│   │   ├── device-render.png
+│   │   ├── dashboard-preview.png
+│   │   └── system-architecture.png
+│   ├── React dashboard
+│   ├── Vite
+│   ├── Tailwind
+│   ├── live spectrogram
+│   ├── alerts
+│   └── dosing workflow
+│
+├── ml/
+│   ├── FastAPI scorer
+│   ├── log-mel feature pipeline
+│   ├── heuristic baseline
+│   ├── training pipeline
+│   └── model card
 │
 ├── tools/
-├── tests/
-├── docs/
-├── Dockerfile
-├── render.yaml
-├── railway.json
-└── Palm-Guard-Report-FINAL.pdf
+│   ├── mock_device.py
+│   ├── seed_palms.py
+│   └── serial_bridge.py
+│
+└── docs/
+    ├── BUILD_SPEC.md
+    ├── HARDWARE.md
+    ├── ARCHITECTURE.md
+    ├── INTELLIGENCE_LAYER.md
+    └── API.md
 ```
 
 ---
 
-# 11 · Tech stack
+# Honest Robotics Mandate
 
-| Layer          | Stack                                                           |
-| -------------- | --------------------------------------------------------------- |
-| **Firmware**   | ESP32-S3 · PlatformIO · C++ · FFT · safety-gated FSM            |
-| **Sensors**    | INMP441 · SW-420 · DS18B20                                      |
-| **Actuation**  | 5 V peristaltic pump · IRF540 MOSFET · hard dose cap            |
-| **ML**         | Python · TensorFlow · TFLite export · FastAPI `/score`          |
-| **Backend**    | Node.js 22 · Express · Socket.IO · `node:sqlite` · zod · helmet |
-| **Dashboard**  | React 18 · Vite · Tailwind CSS · Recharts · lucide-react        |
-| **Deployment** | Docker · Railway · Render · persistent SQLite volume            |
+Palm Guard is built to look premium, but it is also built to stay scientifically honest.
+
+## What Works Today
+
+* backend ingest and live event pipeline
+* React/Vite dashboard
+* mock device simulation
+* dose-pending → confirm → downlink → done workflow
+* server-side dosing caps
+* device-side dosing caps
+* heuristic acoustic activity scoring
+* live demo mode without hardware
+* clear model-status and proxy-data labelling
+
+## What Is Not Claimed Yet
+
+* no guaranteed real-world larvae detection in all farm conditions
+* no large open airborne RPW dataset is claimed
+* no trained real-RPW model is claimed yet
+* no fully autonomous pesticide treatment
+* no field deployment claim yet
+
+The system separates **current verified prototype behavior** from **future field-validation goals**.
 
 ---
 
-# 12 · Quick start
+# Detection Reality
 
-## Prerequisites
+The current prototype uses an **INMP441 airborne MEMS microphone**.
 
-* Node.js 22+
-* Python 3.10+
-* PlatformIO
-* ESP32-S3 board
+That matters because RPW larvae feed inside the trunk, while an airborne microphone listens through air.
 
-## Run backend and dashboard
+Therefore, v1 is most realistic in controlled or low-noise conditions such as:
+
+* quiet close-range tests
+* night or low-noise farm environments
+* booth/competition demonstrations
+* early research trials
+
+Future versions should improve detection with:
+
+* contact microphones
+* piezo vibration sensors
+* stronger trunk coupling
+* mechanical isolation
+* real RPW-labelled field recordings
+* supervised acoustic model training
+
+---
+
+# Dosing Safety
+
+Palm Guard does **not** dose without human approval.
+
+```text
+High-risk event
+      ↓
+Dose-pending alert
+      ↓
+Operator reviews dashboard
+      ↓
+Operator confirms
+      ↓
+Server sends protected command
+      ↓
+Device checks cooldown + daily limit
+      ↓
+Pump runs metered demo dose
+      ↓
+Result is logged
+```
+
+| Safety Layer        | Purpose                              |
+| ------------------- | ------------------------------------ |
+| **Human ARM**       | Device must be intentionally armed   |
+| **Human CONFIRM**   | Operator approves every dose         |
+| **Server cooldown** | Prevents repeated dose commands      |
+| **Server max/day**  | Limits total daily dose events       |
+| **Device cooldown** | Independent embedded protection      |
+| **Device max/day**  | Hardware-side daily cap              |
+| **Nonce command**   | Reduces repeated-command replay risk |
+| **Dose history**    | Creates traceable evidence           |
+
+For WRCC and booth demos, the system should use **clear water or safe demo liquid only**.
+
+---
+
+# Run Without Hardware
+
+Palm Guard can run fully in software using the mock device.
+
+## 1. Start the ML scorer
 
 ```bash
-git clone https://github.com/kurdim12/wrcc.git
-cd wrcc
+cd ml
 
-npm run install:all
+python -m venv .venv
+source .venv/bin/activate
+
+pip install -r requirements.txt
+uvicorn serve.app:app --port 8001
+```
+
+A fresh clone serves the **heuristic baseline**.
+
+The trained proxy CNN `cnn-aspid-v1` artifacts are gitignored.
+
+Neither mode is a field-validated RPW model. The proxy number, ROC-AUC ≈ 0.90 on open ASPID, is labelled as proxy.
+
+---
+
+## 2. Start the backend
+
+Requires **Node.js 22+**.
+
+```bash
+cd backend
+
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Backend:
+
+```text
+http://localhost:4000
+```
+
+---
+
+## 3. Start the dashboard
+
+```bash
+cd frontend
+
+npm install
 npm run dev
 ```
 
@@ -399,165 +588,208 @@ Dashboard:
 http://localhost:5173
 ```
 
-Backend API:
+---
+
+## 4. Seed demo palms
+
+```bash
+python tools/seed_palms.py --server http://localhost:4000
+```
+
+---
+
+## 5. Run a mock device
+
+```bash
+python tools/mock_device.py \
+  --device-id PG-001 \
+  --server http://localhost:4000
+```
+
+---
+
+# Demo the Dose Loop
+
+1. Open the dashboard.
+2. Go to **Dosing**.
+3. Select device `PG-001`.
+4. Click **Arm**.
+5. Trigger a forced event:
+
+```bash
+python tools/mock_device.py \
+  --device-id PG-001 \
+  --server http://localhost:4000 \
+  --force-event
+```
+
+6. A **dose-pending** modal appears.
+7. Click **Confirm**.
+8. The node receives the downlink command.
+9. The mock pump action completes.
+10. Dose history shows the result as `done`.
+
+This demonstrates the complete robotic chain:
 
 ```text
-http://localhost:3000
+Sense → Score → Alert → Confirm → Act → Record
 ```
 
 ---
 
-# 13 · Optional services
+# Firmware
 
-## Run the ML scoring service
+The firmware is built with PlatformIO.
 
-```bash
-cd ml
-python -m venv .venv
-source .venv/bin/activate
-
-pip install -r requirements.txt
-uvicorn serve.app:app --port 8001
-```
-
-Or from the repository root:
-
-```bash
-npm run ml
-```
-
-## Feed the dashboard without hardware
-
-```bash
-npm run mock
-npm run seed
-```
-
-## Bridge a real ESP32-S3 over USB serial
-
-```bash
-npm run bridge
-```
-
----
-
-# 14 · Firmware flashing
+## Main firmware
 
 ```bash
 cd firmware/palmguard-esp32s3
 
-pio run -t upload
+pio run -e palmguard -t upload
 pio device monitor
 ```
 
-Before flashing, update WiFi and backend settings in:
+## Wi-Fi firmware
 
-```text
-firmware/palmguard-esp32s3/include/config.h
+```bash
+pio run -e palmguard_wifi -t upload
 ```
 
-This file is the single source of truth for the firmware pin map and network configuration.
+## I2C / 1-Wire scanner
+
+```bash
+pio run -e detect -t upload
+```
 
 ---
 
-# 15 · Deployment
+# Build Status
 
-Palm Guard deploys as one web service.
+| Component                 | Status                                             |
+| ------------------------- | -------------------------------------------------- |
+| Backend API               | Working                                            |
+| SQLite storage            | Working                                            |
+| Socket.io live events     | Working                                            |
+| Dashboard                 | Working                                            |
+| Mock device               | Working                                            |
+| Dosing workflow           | Working in host + mock flow                        |
+| ML scorer                 | Heuristic baseline live by default                 |
+| Trained proxy model       | `cnn-aspid-v1` — ROC-AUC ≈ 0.90, proxy, gitignored |
+| Field-validated RPW model | Not yet — next step is own INMP441 clips           |
+| Firmware code             | Written to spec                                    |
+| Hardware flashing         | Pending                                            |
+| Bench test                | Pending                                            |
+| Field validation          | Pending                                            |
 
-The Express backend serves the built React dashboard, streams live data over Socket.IO, and stores readings in SQLite on a persistent disk.
-
-## Railway
-
-Use the included `Dockerfile`.
-
-Recommended environment:
+See also:
 
 ```text
-PG_DB_PATH=/data/palmguard.db
+BUILD_LOG.md
+docs/BUILD_SPEC.md
+docs/HARDWARE.md
+ml/README.md
 ```
-
-Add a persistent volume mounted at:
-
-```text
-/data
-```
-
-Do not set `PORT`; Railway injects it automatically.
-
-## Render
-
-Use the included `render.yaml`.
-
-The blueprint provisions:
-
-* Node.js 22 service,
-* built React frontend,
-* backend API,
-* Socket.IO stream,
-* 1 GB persistent disk.
-
-Full deployment steps are in [`DEPLOY.md`](DEPLOY.md).
 
 ---
 
-# 16 · Documentation
+# Technical Highlights
 
-| Document                                                       | Purpose                                |
-| -------------------------------------------------------------- | -------------------------------------- |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)                 | Full system architecture               |
-| [`docs/HARDWARE.md`](docs/HARDWARE.md)                         | Wiring, components, power, and sensors |
-| [`docs/ESP32_SETUP.md`](docs/ESP32_SETUP.md)                   | ESP32-S3 setup guide                   |
-| [`docs/INTELLIGENCE_LAYER.md`](docs/INTELLIGENCE_LAYER.md)     | Fusion and scoring logic               |
-| [`docs/DATASET_SELECTION.md`](docs/DATASET_SELECTION.md)       | Dataset choices and limitations        |
-| [`docs/MECHANICAL_DOSSIER.md`](docs/MECHANICAL_DOSSIER.md)     | Enclosure and mechanical design        |
-| [`docs/DEMO_RUNBOOK.md`](docs/DEMO_RUNBOOK.md)                 | Live booth demonstration plan          |
-| [`docs/BOOTH_PLAN.md`](docs/BOOTH_PLAN.md)                     | Booth setup and presentation flow      |
-| [`docs/JUDGE_QA.md`](docs/JUDGE_QA.md)                         | Expected judge questions               |
-| [`docs/CLAIMS_AUDIT.md`](docs/CLAIMS_AUDIT.md)                 | Claim-by-claim honesty audit           |
-| [`docs/API.md`](docs/API.md)                                   | Backend API reference                  |
-| [`docs/SUBMISSION_CHECKLIST.md`](docs/SUBMISSION_CHECKLIST.md) | Competition submission checklist       |
-
-Competition report:
-
-[`Palm-Guard-Report-FINAL.pdf`](Palm-Guard-Report-FINAL.pdf)
+* ESP32-S3 per-tree robotic node
+* solar-powered deployment concept
+* acoustic activity monitoring
+* vibration confirmation
+* trunk-temperature context
+* environmental context
+* log-mel feature extraction
+* FastAPI scoring service
+* real-time backend events
+* SQLite event storage
+* React live dashboard
+* spectrogram visualization
+* server-authoritative dose control
+* device-side dose safety caps
+* human-confirmed actuation
+* complete mock demo without hardware
+* clear proxy-data and model-status labelling
 
 ---
 
-# 17 · Team
+# Roadmap
+
+## Phase 1 — Competition Prototype
+
+* complete backend
+* complete dashboard
+* complete mock device
+* demonstrate live alerts
+* demonstrate human-confirmed dosing
+* show dose history and safety caps
+
+## Phase 2 — Hardware Bench Test
+
+* flash ESP32-S3 firmware
+* verify microphone capture
+* test vibration readings
+* test trunk-temperature reading
+* test pump control
+* test power behavior
+* validate firmware dose caps
+* test enclosure mounting
+
+## Phase 3 — Detection Improvement
+
+* collect real trunk recordings
+* test contact sensors
+* compare airborne vs contact sensing
+* build labelled RPW / non-RPW dataset
+* train supervised acoustic model
+* publish honest validation metrics
+
+## Phase 4 — Field Pilot
+
+* deploy on multiple palms
+* monitor solar reliability
+* evaluate farm noise
+* work with agricultural experts
+* validate treatment protocol
+* improve model from real-world data
+
+---
+
+# Competition Positioning
+
+Palm Guard fits the WRCC robotics theme because it combines:
+
+* embedded sensing
+* signal processing
+* live communication
+* robotic actuation
+* safety interlocks
+* operator confirmation
+* evidence logging
+* a clear path toward field validation
+
+It is a precision-agriculture robotic system built to demonstrate a serious, safe, and scalable response to one of the most damaging palm pests.
+
+---
+
+# Suggested Repository Description
+
+```text
+Solar ESP32-S3 palm node for early RPW acoustic risk scoring and human-confirmed micro-dosing.
+```
+
+---
 
 <div align="center">
 
-## Vcoders
+# Palm Guard
 
-University of Petra · College of Information Technology · Amman, Jordan
+### Precision protection for every palm.
 
-</div>
+**Built by Team VCoders — Abdalrahman AL-Kurdi ([@kurdim12](https://github.com/kurdim12)) · Abdalrahman AL-Haymouni ([@aboodhaymouni](https://github.com/aboodhaymouni)) · Zaid Abu Al-Shaar ([@ZaidAbuAlshaar](https://github.com/ZaidAbuAlshaar)) — IEEE UoP / University of Petra**
 
-| Member                                 | Role                | GitHub                                               |
-| -------------------------------------- | ------------------- | ---------------------------------------------------- |
-| **Abdalrahman Ali Ahmad AL-Kurdi**     | Embedded & AI / CTO | [@kurdim12](https://github.com/kurdim12)             |
-| **Abdalrahman Alaa Jihad AL-Haymouni** | Operations / COO    | [@aboodhaymouni](https://github.com/aboodhaymouni)   |
-| **Zaid Mahmoud Rajab Abu Al-Shaar**    | Business / CBO      | [@ZaidAbuAlshaar](https://github.com/ZaidAbuAlshaar) |
-
-**Coach:** Dr. Abedal-Kareem Al-Banna
-Guidance and logistics
-
----
-
-# 18 · License
-
-Released under the [MIT License](LICENSE).
-
----
-
-<div align="center">
-
-<br />
-
-## Palm Guard
-
-### **Listen early. Treat precisely. Prove every action.**
-
-<sub>Vcoders · University of Petra · WRCC 2026 — Baku, Azerbaijan</sub>
+See [`CONTRIBUTORS.md`](CONTRIBUTORS.md).
 
 </div>
