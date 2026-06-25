@@ -204,7 +204,7 @@ For WRCC and booth demonstrations, the pump should use **clear water only**.
 # The CASEMAP Dashboard
 
 <p align="center">
-  <img src="dashboard-preview.png" width="100%" alt="Palm Guard dashboard overview" />
+  <img src="dashboard-preview.jpeg" width="100%" alt="Palm Guard dashboard overview" />
 </p>
 
 The **CASEMAP dashboard** is the operator and judging interface for Palm Guard.
