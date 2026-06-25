@@ -104,7 +104,7 @@ Palm Guard is designed as a complete robotic loop, not just an IoT monitor.
 # The Field Device
 
 <p align="center">
-  <img src="device-render.jpeg" width="100%" alt="Palm Guard field device mounted on a date-palm trunk" />
+  <img src="device-mounted.jpeg" width="100%" alt="Palm Guard field device mounted on a date-palm trunk" />
 </p>
 
 The **Palm Guard field device** is the physical robotic node mounted directly on the palm trunk.
