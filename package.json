@@ -10,7 +10,7 @@
     "Zaid Mahmoud Rajab Abu Al-Shaar (https://github.com/ZaidAbuAlshaar)"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=22.9"
   },
   "scripts": {
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",

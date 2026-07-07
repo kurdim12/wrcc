@@ -37,7 +37,7 @@ _lock = threading.Lock()
 _count = 0
 
 
-def post_json(url: str, payload: dict, echo: bool, timeout: float = 3.0) -> None:
+def post_json(url: str, payload: dict, echo: bool, ser=None, ser_lock=None, timeout: float = 3.0) -> None:
     global _count
     body = json.dumps(payload).encode('utf-8')
     req = urllib.request.Request(
@@ -48,6 +48,26 @@ def post_json(url: str, payload: dict, echo: bool, timeout: float = 3.0) -> None
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             data = json.loads(r.read().decode('utf-8'))
+        # ── two-way: relay the dose downlink BACK down the USB serial link so a
+        #    serial-only node can be armed + dosed over a single USB cable ──
+        if ser is not None:
+            cmd = data.get('cmd') or {}
+            downlink = {'armed': bool(data.get('armed'))}
+            if cmd.get('dose'):
+                downlink['dose'] = True
+                downlink['pump_ms'] = int(cmd.get('pump_ms') or 0)
+                downlink['nonce'] = int(cmd.get('nonce') or 0)
+            line = ('#CMD#' + json.dumps(downlink) + '\n').encode('utf-8')
+            try:
+                if ser_lock is not None:
+                    with ser_lock:
+                        ser.write(line)
+                else:
+                    ser.write(line)
+                if echo and downlink.get('dose'):
+                    print(f"  [bridge] -> DOSE cmd to device (pump_ms={downlink['pump_ms']})", flush=True)
+            except Exception as e:
+                print(f"  [bridge] serial writeback failed: {e}", flush=True)
         with _lock:
             _count += 1
             n = _count
@@ -98,7 +118,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description='Palm Guard serial->HTTP bridge')
     ap.add_argument('--port', default='auto', help="serial port, or 'auto' to detect the ESP32 (default)")
     ap.add_argument('--baud', default=115200, type=int)
-    ap.add_argument('--backend', default='http://localhost:4000')
+    ap.add_argument('--backend', '--server', default='http://localhost:4000')
     ap.add_argument('--echo', action='store_true', help='print every parsed line + serial debug')
     ap.add_argument('--workers', default=8, type=int, help='HTTP worker threads')
     args = ap.parse_args()
@@ -123,6 +143,7 @@ def main() -> int:
             time.sleep(3)
 
     pool = ThreadPoolExecutor(max_workers=args.workers, thread_name_prefix='post')
+    ser_lock = threading.Lock()   # serialize writebacks to the port from worker threads
     line_buf = b''
     last_stats = time.time()
     seen = 0
@@ -155,7 +176,7 @@ def main() -> int:
                     continue
 
                 seen += 1
-                pool.submit(post_json, url, payload, args.echo)
+                pool.submit(post_json, url, payload, args.echo, ser, ser_lock)
 
             now = time.time()
             if now - last_stats >= 5.0:

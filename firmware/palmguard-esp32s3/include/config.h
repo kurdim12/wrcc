@@ -2,7 +2,18 @@
 // in include/secrets.h - copy include/secrets.h.example before flashing.
 #pragma once
 
-#include "secrets.h"
+// Per-installation secrets (WiFi SSID/password, server host/port, device id) are
+// OPTIONAL. A fresh clone ships only secrets.h.example, so we guard the include:
+// when secrets.h is absent the serial-only default env falls back to the
+// placeholder defaults at the bottom of this file and still compiles cleanly.
+// Copy include/secrets.h.example -> include/secrets.h before flashing a WiFi node.
+#if defined(__has_include)
+#  if __has_include("secrets.h")
+#    include "secrets.h"
+#  endif
+#else
+#  include "secrets.h"
+#endif
 
 // ─── Device identity ───────────────────────────────────────────────────
 #ifndef PG_DEVICE_ID
@@ -49,7 +60,8 @@
 #ifndef PG_EMIT_HTTP
 #define PG_EMIT_HTTP    0
 #endif
-#define PG_SERIAL_TAG   "#PG#"          // line prefix recognized by the bridge
+#define PG_SERIAL_TAG     "#PG#"        // uplink prefix the bridge reads from the device
+#define PG_SERIAL_TAG_CMD "#CMD#"       // downlink prefix the two-way bridge writes BACK to the device
 
 // ─── Pin map (USER WIRING) ─────────────────────────────────────────────
 // INMP441 acoustic mic
@@ -118,6 +130,16 @@
 // documented bench-validation step (docs/BENCH_BRINGUP.md).
 #ifndef PG_ONBOARD_AUTONOMY
 #define PG_ONBOARD_AUTONOMY   0
+#endif
+// Edge demo build only: pre-arm on boot so the autonomous node can run a
+// clear-water dose fully standalone (no laptop). Still gated by ALL dose caps.
+#ifndef PG_DEMO_AUTO_ARM
+#define PG_DEMO_AUTO_ARM      0
+#endif
+// When 1, the on-device decision uses the trained logistic head (include/pg_model.h,
+// real-data edge model) instead of the hand heuristic. The edge build enables it.
+#ifndef PG_USE_TRAINED_MODEL
+#define PG_USE_TRAINED_MODEL  0
 #endif
 
 // ─── I2S audio ─────────────────────────────────────────────────────────

@@ -89,13 +89,6 @@ cron.schedule('30 2 * * *', () => retention.runMaintenance());   // 02:30 daily
 // Expire stale doses (device never acked a 'sent' dose; un-confirmed 'pending').
 setInterval(() => { try { doseEngine.expireStale(); } catch (e) { console.error('[dose] expire:', e.message); } }, 15000);
 
-// Populate a credible demo farm on first boot when the DB is empty
-// (PG_SEED_ON_EMPTY=1 is set in the Dockerfile for production). No-op once the
-// farm exists, so it never clobbers persisted data on later restarts.
-if (process.env.PG_SEED_ON_EMPTY === '1') {
-  try { seedIfEmpty(); } catch (e) { console.error('[seed] skipped:', e.message); }
-}
-
 // Auto-fallback: when no real ESP32 reports for 60s, an internal generator
 // drives demo data through the same ingestion pipeline. Stops on first real POST.
 demoMode.start();
@@ -127,4 +120,16 @@ server.listen(PORT, HOST, () => {
   │    db file       ${dbPath}
   └──────────────────────────────────────────────────────────┘
   `.replace(/^\s+/gm, ''));
+
+  // Populate a credible demo farm AFTER we are accepting connections, so a
+  // (synchronous) seed can never stall the health check on first boot.
+  // seedIfEmpty() is a no-op once a farm exists, so it never clobbers persisted
+  // data. Default ON for a populated dashboard out of the box; set
+  // PG_SEED_ON_EMPTY=0 to start with an empty DB.
+  if (process.env.PG_SEED_ON_EMPTY !== '0') {
+    setImmediate(() => {
+      try { seedIfEmpty(); }
+      catch (e) { console.error('[seed] skipped:', e.message); }
+    });
+  }
 });

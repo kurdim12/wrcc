@@ -47,6 +47,15 @@ static inline float pg_sigmoidf(float x) { return 1.0f / (1.0f + expf(-x)); }
 // Acoustic activity in [0,1] from the same coarse cues as the server heuristic:
 // transient/click density, mid-band lift over off-bands, spectral peakiness.
 // No hardcoded "RPW = X kHz" term — this is an activity indicator, not a classifier.
+#if PG_USE_TRAINED_MODEL
+#include "../../include/pg_model.h"
+// EDGE AI: the trained real-data logistic head runs ON-DEVICE. Same 5 features
+// the chip already computes, so it transfers 1:1 (no band-edge dependency).
+static inline float pg_onboard_activity(const AcousticFeatures &ac) {
+    const float f[PG_MODEL_NFEAT] = { ac.rms_dbfs, ac.zcr, ac.centroid_hz, ac.flatness, ac.click_rate };
+    return pg_model_activity(f);
+}
+#else
 static inline float pg_onboard_activity(const AcousticFeatures &ac) {
     const float clickNorm = pg_clipf(ac.click_rate / 10.0f, 0.0f, 1.0f);
     const float midEnergy = (ac.bands[3] + ac.bands[4]) * 0.5f;            // 2-4k, 4-6k
@@ -55,6 +64,7 @@ static inline float pg_onboard_activity(const AcousticFeatures &ac) {
     const float peakiness = pg_clipf(1.0f - ac.flatness, 0.0f, 1.0f);
     return pg_clipf(0.45f * clickNorm + 0.35f * bandRatio + 0.20f * peakiness, 0.0f, 1.0f);
 }
+#endif
 
 // Local fused risk 0..100: acoustic primary (SA) + light vibration corroboration.
 // Thermal/VOC context stays server-side; this is the on-device, real-time signal.

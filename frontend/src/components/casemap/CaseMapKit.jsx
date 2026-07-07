@@ -75,9 +75,12 @@ const DEFAULT_EVIDENCE = [
   { icon: Thermometer, title: 'Environment supports risk', meta: 'Context', status: 'contributing' },
   { icon: Cpu, title: 'Device health verified', meta: 'All sensors OK', status: 'verified' },
 ];
-export const EvidenceSummary = ({ rows = DEFAULT_EVIDENCE, title = 'Evidence Summary' }) => (
+export const EvidenceSummary = ({ rows = [], title = 'Evidence Summary' }) => (
   <div>
     {title && <div className="cm-label mb-2">{title}</div>}
+    {rows.length === 0 ? (
+      <div className="cm-surface px-3 py-5 text-center text-[12px] cm-muted">No sensor evidence recorded yet.</div>
+    ) : (
     <div className="space-y-1.5">
       {rows.map((r, i) => (
         <div key={i} className="flex items-center gap-2.5 cm-surface px-3 py-2">
@@ -93,6 +96,7 @@ export const EvidenceSummary = ({ rows = DEFAULT_EVIDENCE, title = 'Evidence Sum
         </div>
       ))}
     </div>
+    )}
   </div>
 );
 
@@ -225,7 +229,7 @@ export const PalmCaseFile = ({
       )}
       <button onClick={onOpenSafety}
         className="focus-ring flex-1 inline-flex items-center justify-center gap-1.5 text-[13px] font-semibold px-3 py-2 rounded-lg text-white"
-        style={{ background: 'var(--cm-forest)' }}>
+        style={{ background: '#0A6E4C' }}>
         <ShieldAlert size={14} /> Open Safety Gate
       </button>
     </div>

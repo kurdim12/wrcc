@@ -29,6 +29,8 @@ services:
         value: production
       - key: PG_DB_PATH
         value: /var/data/palmguard.db   # on the persistent disk defined below
+      - key: PG_SEED_ON_EMPTY
+        value: "1"                       # populate a demo farm on first boot (no-op once seeded)
     disk:
       name: palmguard-data
       mountPath: /var/data

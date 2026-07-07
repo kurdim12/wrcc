@@ -64,6 +64,7 @@ export const api = {
   // Stats
   farmStats:     () => json('/stats/farm'),
   riskTrends:    (days = 30) => json(`/stats/risk-trends?days=${days}`).then(d => d.points),
+  kpiTrends:     (days = 14) => json(`/stats/kpi-trends?days=${days}`),
   tempBuckets:   () => json('/stats/temperature-distribution').then(d => d.buckets),
 
   // Reports

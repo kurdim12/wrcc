@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Layers, Plus, Minus, Crosshair } from 'lucide-react';
+import { AudioLines, Waves, Thermometer, Cpu } from 'lucide-react';
 import PalmGridMap from '../components/PalmGridMap.jsx';
 import {
   PalmCaseFile, EvidenceSummary, OperatorTasks, ProofLog, riskBand,
@@ -9,11 +9,21 @@ import { useDoses } from '../hooks/useDoses.js';
 import { useIntelligence } from '../hooks/useIntelligence.js';
 
 const fmt = (ts) => (ts ? new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—');
-const LEGEND = [
-  { c: '#2F7D46', label: 'Healthy' }, { c: '#B7791F', label: 'Watch' },
-  { c: '#C05621', label: 'High' }, { c: '#B42318', label: 'Critical' }, { c: '#2B6CB0', label: 'Treated' },
-];
 const levelLabel = (b) => ({ normal: 'Normal', watch: 'Watch', high: 'High Risk', critical: 'Critical' }[b] || 'Normal');
+
+// Build REAL per-palm evidence from the multi-sensor experts (no fabricated rows).
+const buildEvidence = (intel) => {
+  const ex = intel?.experts;
+  if (!ex) return [];
+  const st = (s) => (s >= 75 ? 'high' : s >= 50 ? 'detected' : s >= 25 ? 'contributing' : 'verified');
+  const rows = [];
+  if (ex.acoustic)  rows.push({ icon: AudioLines, title: 'Acoustic activity (proxy)', meta: `score ${Math.round(ex.acoustic.score ?? 0)} · conf ${ex.acoustic.confidence ?? '—'}`, status: st(ex.acoustic.score ?? 0) });
+  if (ex.vibration) rows.push({ icon: Waves, title: 'Vibration corroboration', meta: `score ${Math.round(ex.vibration.score ?? 0)} · conf ${ex.vibration.confidence ?? '—'}`, status: st(ex.vibration.score ?? 0) });
+  if (ex.environment || ex.env) rows.push({ icon: Thermometer, title: 'Environmental context', meta: 'supporting context only', status: 'contributing' });
+  const h = ex.sensorHealth || ex.health;
+  if (h) rows.push({ icon: Cpu, title: 'Device health', meta: h.healthy ? 'all sensors reporting' : 'sensor fault', status: h.healthy ? 'verified' : 'high' });
+  return rows;
+};
 
 export default function CaseMap({ palms = [], onSelectPalm, selectedPalm, onGotoSafety, sysMode }) {
   const { stats } = useFarmStats();
@@ -38,6 +48,7 @@ export default function CaseMap({ palms = [], onSelectPalm, selectedPalm, onGoto
 
   const intel = useIntelligence(focusPalm?.device_id);
   const score = Math.round(focusPalm?.risk_score ?? intel?.fusion?.risk ?? 0);
+  const evidence = useMemo(() => buildEvidence(intel), [intel]);
 
   const proof = useMemo(() => doses.slice(0, 5).map((d) => ({
     time: fmt(d.done_ts || d.sent_ts || d.ts),
@@ -47,10 +58,10 @@ export default function CaseMap({ palms = [], onSelectPalm, selectedPalm, onGoto
   })), [doses, sysMode]);
 
   const tasks = [
-    { label: focusPalm ? `Inspect ${focusPalm.id} (Block B)` : 'Inspect highest-risk palm', tag: 'High', tagStatus: 'high' },
-    { label: 'Review acoustic evidence for flagged palms', tag: 'Open', tagStatus: 'open' },
+    { label: focusPalm ? `Inspect ${focusPalm.id}` : 'Inspect highest-risk palm', tag: 'High', tagStatus: 'high', act: () => focusPalm && onSelectPalm?.(focusPalm) },
+    { label: 'Review acoustic evidence for flagged palms', tag: 'Open', tagStatus: 'open', act: () => focusPalm && onSelectPalm?.(focusPalm) },
     { label: 'Continue monitoring Watch-level palms', tag: 'Watch', tagStatus: 'watch' },
-    { label: 'Prepare human-confirmed clear-water demo (Safety Gate)', tag: 'Locked', tagStatus: 'locked' },
+    { label: 'Prepare human-confirmed clear-water demo (Safety Gate)', tag: 'Locked', tagStatus: 'locked', act: () => onGotoSafety?.() },
   ];
 
   const FILTERS = [
@@ -60,61 +71,34 @@ export default function CaseMap({ palms = [], onSelectPalm, selectedPalm, onGoto
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-4">
         {/* map workspace */}
         <div className="cm-raised overflow-hidden flex flex-col">
           <div className="px-3 py-2.5 border-b cm-divide flex items-center gap-1.5 flex-wrap">
             {FILTERS.map(([v, lbl]) => (
               <button key={v} onClick={() => setFilter(v)}
-                className="focus-ring px-2.5 py-1 rounded-md text-[12px] font-semibold transition-colors"
-                style={filter === v ? { background: 'var(--cm-forest)', color: '#fff' } : { color: 'var(--cm-muted)', background: 'var(--cm-surface)', border: '1px solid var(--cm-border-soft)' }}>
+                className="pg-focus px-2.5 py-1 rounded-md text-[12px] font-semibold transition-colors"
+                style={filter === v ? { background: '#0A6E4C', color: '#fff' } : { color: 'var(--cm-muted)', background: 'var(--cm-surface)', border: '1px solid var(--cm-border-soft)' }}>
                 {lbl}
               </button>
             ))}
-            <button className="focus-ring ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[12px] font-semibold cm-muted" style={{ border: '1px solid var(--cm-border)' }}>
-              <Layers size={13} /> Layers
-            </button>
           </div>
-
-          <div className="relative" style={{ background: 'var(--cm-green-soft)' }}>
-            <PalmGridMap palms={filtered} onSelectPalm={onSelectPalm} selectedPalm={selectedPalm} height="h-[300px] sm:h-[440px]" />
-
-            {/* zoom controls (visual) */}
-            <div className="absolute top-3 right-3 flex flex-col cm-raised overflow-hidden">
-              <button className="focus-ring p-1.5 cm-muted hover:text-[var(--cm-forest)]"><Plus size={15} /></button>
-              <span className="h-px" style={{ background: 'var(--cm-border)' }} />
-              <button className="focus-ring p-1.5 cm-muted hover:text-[var(--cm-forest)]"><Minus size={15} /></button>
-            </div>
-
-            {/* legend */}
-            <div className="absolute bottom-3 left-3 cm-raised px-3 py-2">
-              <div className="cm-label mb-1.5">Risk</div>
-              <div className="flex flex-col gap-1">
-                {LEGEND.map((l) => (
-                  <span key={l.label} className="inline-flex items-center gap-1.5 text-[11px] cm-ink">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: l.c }} />{l.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* scale + farm tag */}
-            <div className="absolute bottom-3 right-3 cm-raised px-2.5 py-1 text-[10px] cm-mono cm-muted flex items-center gap-1.5">
-              <Crosshair size={11} /> Ain Farm • Block B
-            </div>
+          <div className="p-2.5">
+            <PalmGridMap palms={filtered} onSelectPalm={onSelectPalm} selectedPalm={selectedPalm} height="h-[300px] sm:h-[460px]" orchardImageUrl="/orchard.jpg" />
           </div>
         </div>
 
-        {/* right case file */}
+        {/* right case file — real evidence */}
         <PalmCaseFile
           className="h-full"
           palmId={focusPalm?.id || focusPalm?.device_id}
           level={levelLabel(riskBand(score))}
-          block={focusPalm?.block || 'B'}
+          block={focusPalm?.block}
           row={focusPalm?.row_idx != null ? focusPalm.row_idx + 1 : undefined}
           age={focusPalm?.age_years}
           lastUpdate={focusPalm?.last_seen ? new Date(focusPalm.last_seen * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined}
           score={score}
+          evidence={evidence}
           onReviewEvidence={() => focusPalm && onSelectPalm?.(focusPalm)}
           onOpenSafety={onGotoSafety}
         />
@@ -122,8 +106,8 @@ export default function CaseMap({ palms = [], onSelectPalm, selectedPalm, onGoto
 
       {/* bottom tray: Evidence · Tasks · Proof Log */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="cm-raised p-4"><EvidenceSummary title="Evidence" /></div>
-        <div className="cm-raised p-4"><OperatorTasks title="Tasks" tasks={tasks} /></div>
+        <div className="cm-raised p-4"><EvidenceSummary title="Evidence" rows={evidence} /></div>
+        <div className="cm-raised p-4"><OperatorTasks title="Tasks" tasks={tasks} onTask={(t) => t.act?.()} /></div>
         <div className="cm-raised p-4"><ProofLog title="Proof Log" events={proof} /></div>
       </div>
     </div>

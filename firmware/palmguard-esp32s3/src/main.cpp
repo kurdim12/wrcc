@@ -132,6 +132,37 @@ void emitSerialJson(const AcousticFeatures &ac, const VibrationFeatures &vib,
 }
 
 
+#if PG_EMIT_SERIAL
+// Downlink over USB serial. The two-way bridge (tools/serial_bridge.py) writes:
+//   #CMD#{"armed":true,"dose":true,"pump_ms":2000,"nonce":12345}
+// We apply the SAME failsafe gauntlet as the HTTP path (dose_fsm), so the
+// pump can fire over a single USB cable without weakening any safety check.
+void serial_poll_cmd(uint32_t now_s) {
+  static char buf[256];
+  static size_t len = 0;
+  while (Serial.available()) {
+    char ch = (char)Serial.read();
+    if (ch == '\n' || ch == '\r') {
+      if (len == 0) continue;
+      buf[len] = '\0';
+      len = 0;
+      char *tag = strstr(buf, PG_SERIAL_TAG_CMD);
+      if (!tag) continue;
+      JsonDocument cmd;
+      if (deserializeJson(cmd, tag + strlen(PG_SERIAL_TAG_CMD)) != DeserializationError::Ok) continue;
+      dose_set_armed(cmd["armed"] | false);
+      if (cmd["dose"] | false)
+        dose_handle_cmd(true, cmd["pump_ms"] | PG_DOSE_PUMP_MS_DEF, cmd["nonce"] | 0, now_s);
+    } else if (len < sizeof(buf) - 1) {
+      buf[len++] = ch;
+    } else {
+      len = 0;  // overflow guard
+    }
+  }
+}
+#endif
+
+
 void setup() {
   Serial.begin(115200);
   delay(500);
@@ -150,6 +181,10 @@ void setup() {
   led_init();
   led_set(LED_BOOT);
   dose_init();
+#if PG_DEMO_AUTO_ARM
+  dose_set_armed(true);   // edge demo build: pre-armed for standalone clear-water autonomy
+  Serial.println(F("[demo] PG_DEMO_AUTO_ARM=1 -> node pre-armed (clear-water demo)"));
+#endif
 
   ok_a = acoustic_init();
   ok_v = vibration_init();
@@ -195,6 +230,10 @@ void loop() {
   }
 
   int batt = read_battery_pct();
+
+#if PG_EMIT_SERIAL
+  serial_poll_cmd((uint32_t)(millis() / 1000));   // apply any downlink from the two-way USB bridge
+#endif
 
   DoseStatus dose{};
   dose_fill_status(dose);

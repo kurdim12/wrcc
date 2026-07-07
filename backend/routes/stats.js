@@ -52,6 +52,10 @@ router.get('/farm', (_req, res) => {
   const battery = get(`SELECT AVG(battery_pct) AS avg, MIN(battery_pct) AS min FROM devices WHERE battery_pct IS NOT NULL`);
   const lastSync = get('SELECT MAX(last_seen) AS ts FROM devices');
 
+  // Human-confirmed treatments (doses that completed) — total + last 24h.
+  const treesTreated = get(`SELECT COUNT(*) AS n FROM doses WHERE status = 'done'`).n;
+  const treatedToday = get(`SELECT COUNT(*) AS n FROM doses WHERE status = 'done' AND done_ts >= ?`, t - 86400).n;
+
   res.json({
     totalPalms,
     totalDevices,
@@ -65,6 +69,8 @@ router.get('/farm', (_req, res) => {
     avgHealthPct: avgRiskRow?.avg_risk != null ? +(100 - avgRiskRow.avg_risk).toFixed(1) : 100,
     avgBatteryPct: battery?.avg != null ? Math.round(battery.avg) : null,
     minBatteryPct: battery?.min ?? null,
+    treesTreated,
+    treatedToday,
     lastSyncTs: lastSync?.ts ?? null,
   });
 });
@@ -99,6 +105,22 @@ router.get('/temperature-distribution', (_req, res) => {
     FROM d
   `, since);
   res.json({ buckets: rows[0] || {} });
+});
+
+// Daily KPI mini-series for the Overview sparklines — all REAL, derived from the
+// same tables the KPIs read. Up to `days` daily points per metric.
+router.get('/kpi-trends', (req, res) => {
+  const days = Math.min(parseInt(req.query.days, 10) || 14, 60);
+  const since = now() - days * 86400;
+  const risk = all(`SELECT strftime('%Y-%m-%d', ts, 'unixepoch') AS day, ROUND(AVG(risk_score),1) AS v
+                    FROM readings WHERE ts >= ? GROUP BY day ORDER BY day ASC`, since);
+  const online = all(`SELECT strftime('%Y-%m-%d', ts, 'unixepoch') AS day, COUNT(DISTINCT device_id) AS v
+                      FROM readings WHERE ts >= ? GROUP BY day ORDER BY day ASC`, since);
+  const alerts = all(`SELECT strftime('%Y-%m-%d', ts, 'unixepoch') AS day, COUNT(*) AS v
+                      FROM alerts WHERE ts >= ? GROUP BY day ORDER BY day ASC`, since);
+  const treated = all(`SELECT strftime('%Y-%m-%d', done_ts, 'unixepoch') AS day, COUNT(*) AS v
+                       FROM doses WHERE status = 'done' AND done_ts >= ? GROUP BY day ORDER BY day ASC`, since);
+  res.json({ days, risk, online, alerts, treated });
 });
 
 export default router;

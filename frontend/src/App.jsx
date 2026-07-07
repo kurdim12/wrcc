@@ -24,14 +24,15 @@ import ErrorBoundary       from './components/ErrorBoundary.jsx';
 // Clear, judge-friendly page titles + plain-English subtitles. Creative names
 // kept as subtitles. (ids unchanged so routing/contracts stay intact.)
 const PAGE_META = {
-  overview:     { title: 'Map', subtitle: 'CaseMap — every palm is an evidence-backed case file' },
-  intelligence: { title: 'AI Decision',    subtitle: 'Intelligence Layer — why the system flagged a palm' },
-  palms:        { title: 'Trees',          subtitle: 'Palm Roster — fleet of monitored palms' },
-  alerts:       { title: 'Incidents',      subtitle: 'Alerts & Events — what needs attention' },
-  doses:        { title: 'Safety Gate',    subtitle: 'Treatment Control — human-confirmed, clear-water demo' },
-  network:      { title: 'Network',        subtitle: 'Orchard Nervous System — device & link health' },
-  spectrogram:  { title: 'Acoustic Lab',   subtitle: 'Tree Stethoscope — listening inside the trunk' },
-  reports:      { title: 'Reports',        subtitle: 'Evidence Locker — judge-ready proof' },
+  overview:     { title: 'Overview',         subtitle: 'Real-time monitoring and protection overview' },
+  map:          { title: 'Map',              subtitle: 'Field-ops orchard map — every palm is a case file' },
+  intelligence: { title: 'AI Decision',      subtitle: 'Why the system flagged a palm — multi-sensor agents' },
+  palms:        { title: 'Palms',            subtitle: 'Fleet of monitored palms' },
+  alerts:       { title: 'Alerts',           subtitle: 'What needs attention' },
+  doses:        { title: 'Dosing',           subtitle: 'Human-confirmed, clear-water treatment control' },
+  network:      { title: 'Mesh Network',     subtitle: 'Device & link health' },
+  spectrogram:  { title: 'Live Spectrogram', subtitle: 'Listening inside the trunk' },
+  reports:      { title: 'Reports',          subtitle: 'Judge-ready evidence & exports' },
 };
 
 import { useTheme }        from './hooks/useTheme.js';
@@ -53,7 +54,17 @@ const initialView = () => {
 
 export default function App() {
   const [view, setView]               = useState(initialView);
-  const [page, setPage]               = useState('overview');
+  const [page, setPageRaw]            = useState(() => {
+    const p = new URLSearchParams(window.location.search).get('page');
+    return p && PAGE_META[p] ? p : 'overview';
+  });
+  // Deep-linkable pages: keep ?page=<id> in the URL so any page is reloadable.
+  const setPage = (p) => {
+    setPageRaw(p);
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', p);
+    window.history.replaceState({}, '', url);
+  };
   const [selectedPalm, setSelected]   = useState(null);
   const [palms, setPalms]             = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -64,6 +75,13 @@ export default function App() {
   const sysMode                       = useSystemMode();
   const { stats }                     = useFarmStats();
   const [lastUpdate, setLastUpdate]   = useState(null);
+
+  // System status derives from live fleet data so it can never contradict the
+  // Mesh Network page (no hardcoded "All Operational").
+  const offlineCount = stats ? Math.max(0, (stats.totalDevices ?? 0) - (stats.onlineDevices ?? 0)) : 0;
+  const systemStatus = offlineCount > 0
+    ? { ok: false, label: `${offlineCount} device${offlineCount > 1 ? 's' : ''} offline` }
+    : { ok: true, label: 'All systems operational' };
 
   // Establish socket once the app mounts so backend events stream early
   useEffect(() => { socket(); }, []);
@@ -102,7 +120,7 @@ export default function App() {
   };
 
   const handleLogin = () => {
-    addToast('Welcome back, Abdalrahman!', 'success');
+    addToast('Signed in to Palm Guard', 'success');
     setView('dashboard');
     window.scrollTo(0, 0);
   };
@@ -137,12 +155,13 @@ export default function App() {
             <Sidebar
               currentPage={page}
               setPage={setPage}
-              user={{ name: 'Abdalrahman Alhaymouni', role: 'Operations', initials: 'AA' }}
+              user={{ name: 'Field Operator', role: 'Orchard Ops', initials: 'PG' }}
               onLogout={handleLogout}
               isOpen={sidebarOpen}
               setIsOpen={setSidebarOpen}
               alertCount={activeAlerts.length}
               onViewLanding={handleViewLanding}
+              systemStatus={systemStatus}
             />
 
             <div className="flex-1 flex flex-col min-w-0">
@@ -158,11 +177,13 @@ export default function App() {
                 devicesOnline={stats ? `${stats.onlineDevices ?? 0}/${stats.totalDevices ?? 0}` : null}
                 lastUpdate={lastUpdate}
                 mode={sysMode.mode}
+                onExport={() => setPage('reports')}
               />
 
               <main className="flex-1 overflow-y-auto p-4 md:p-5 xl:p-6 max-w-[1800px] mx-auto w-full">
                 <ErrorBoundary>
-                  {page === 'overview'    && <CaseMap palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} onGotoSafety={() => setPage('doses')} sysMode={sysMode} />}
+                  {page === 'overview'    && <Overview palms={palms} onSelectPalm={setSelected} onGotoPalms={() => setPage('palms')} onGotoAlerts={() => setPage('alerts')} onGotoSafety={() => setPage('doses')} onGotoReports={() => setPage('reports')} />}
+                  {page === 'map'         && <CaseMap palms={palms} onSelectPalm={setSelected} selectedPalm={selectedPalm} onGotoSafety={() => setPage('doses')} sysMode={sysMode} />}
                   {page === 'palms'       && <Palms palms={palms} onSelectPalm={setSelected} />}
                   {page === 'alerts'      && <Alerts onAlertClick={handleAlertClick} showToast={addToast} />}
                   {page === 'doses'       && <Doses showToast={addToast} />}
