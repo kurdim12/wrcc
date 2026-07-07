@@ -1,7 +1,7 @@
 // PalmPulseStrip — every palm as a compact vertical telemetry bar so judges see
 // orchard health in one glance. Height = risk, color = status, pulsing cap = a
 // live reading arrived recently.
-const COLOR = { high: '#C94A3A', medium: '#C2A14D', low: '#19A66A', offline: '#8C9B91' };
+const COLOR = { high: '#EE5A48', medium: '#F0B040', low: '#43C76E', offline: '#98A69D' };
 const now = () => Math.floor(Date.now() / 1000);
 
 const statusOf = (p) => {

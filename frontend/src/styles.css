@@ -119,9 +119,9 @@ html { scroll-behavior: smooth; }
   box-shadow: 0 8px 24px -18px rgba(0,0,0,0.30);
 }
 .dark .instrument {
-  background: #101C17;            /* ink-700 */
-  border-color: rgba(140, 155, 145, 0.14);
-  box-shadow: 0 1px 0 0 rgba(255,255,255,0.03) inset, 0 10px 30px -20px rgba(0,0,0,0.6);
+  background: #1C231F;            /* aligned to --cm-raised */
+  border-color: rgba(160, 178, 168, 0.14);
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.02) inset, 0 16px 38px -26px rgba(0,0,0,0.7);
 }
 .instrument-inset {
   background: rgba(27, 36, 32, 0.035);
@@ -129,8 +129,8 @@ html { scroll-behavior: smooth; }
   border-radius: 0.6rem;
 }
 .dark .instrument-inset {
-  background: rgba(8, 17, 14, 0.55);
-  border-color: rgba(140, 155, 145, 0.10);
+  background: rgba(8, 12, 10, 0.45);
+  border-color: rgba(160, 178, 168, 0.10);
 }
 
 /* HUD label: precise, operational, monospaced caps. */
@@ -140,7 +140,7 @@ html { scroll-behavior: smooth; }
   letter-spacing: 0.14em;
   font-size: 10px;
   font-weight: 600;
-  color: #8C9B91;
+  color: #98A69D;
 }
 
 /* Heartbeat pulse for a live telemetry dot. */
@@ -152,8 +152,8 @@ html { scroll-behavior: smooth; }
 
 /* Brief "blip" applied for one render when a fresh reading lands. */
 @keyframes blip {
-  0%   { box-shadow: 0 0 0 0 rgba(25,166,106,0.5); }
-  100% { box-shadow: 0 0 0 10px rgba(25,166,106,0); }
+  0%   { box-shadow: 0 0 0 0 rgba(67,199,110,0.5); }
+  100% { box-shadow: 0 0 0 10px rgba(67,199,110,0); }
 }
 .animate-blip { animation: blip 0.7s ease-out; }
 
@@ -171,7 +171,7 @@ html { scroll-behavior: smooth; }
 
 /* Consistent keyboard focus ring across the app (accessibility). */
 .focus-ring:focus-visible {
-  outline: 2px solid #19A66A;
+  outline: 2px solid #43C76E;
   outline-offset: 2px;
   border-radius: 0.4rem;
 }
@@ -195,14 +195,17 @@ html { scroll-behavior: smooth; }
   --cm-border: #D8D0BF;      --cm-border-soft: rgba(22,33,28,0.10);
   --cm-ink: #16211C;         --cm-muted: #6E746A;
   --cm-forest: #123C2C;      --cm-forest-deep: #0B2A1E; --cm-green-soft: #E8F0DF;
-  --cm-olive: #6F7D45;       --cm-healthy: #2F7D46;     --cm-watch: #B7791F;
-  --cm-high: #C05621;        --cm-critical: #B42318;    --cm-slate: #486581;
-  --cm-treated: #2B6CB0;     --cm-demo: #B7791F;
+  --cm-olive: #A6C257;       --cm-healthy: #43C76E;     --cm-watch: #F0B040;
+  --cm-high: #F0883E;        --cm-critical: #EE5A48;    --cm-slate: #5E89A8;
+  --cm-treated: #4D9BE6;     --cm-demo: #F0B040;
 }
 .dark {
-  --cm-bg: #101C17;          --cm-surface: #17231E;     --cm-raised: #1E2B25;
-  --cm-border: rgba(157,176,168,0.20); --cm-border-soft: rgba(157,176,168,0.12);
-  --cm-ink: #E7F0EC;         --cm-muted: #9DB0A8;       --cm-green-soft: #1E2B25;
+  /* CASEMAP — neutral charcoal base, fresh emerald accent, clear cream text. */
+  --cm-bg: #0E1312;          --cm-surface: #161C1A;     --cm-raised: #1C231F;
+  --cm-border: rgba(160,178,168,0.16); --cm-border-soft: rgba(160,178,168,0.09);
+  --cm-ink: #ECEFE8;         --cm-muted: #98A69D;       --cm-green-soft: rgba(67,199,110,0.15);
+  --cm-forest: #43C76E;      --cm-forest-deep: #103324;
+  --cm-glow: rgba(67,199,110,0.24);
 }
 .cm-app      { background: var(--cm-bg); color: var(--cm-ink); }
 .cm-surface  { background: var(--cm-surface); border: 1px solid var(--cm-border-soft); border-radius: 12px; }
@@ -211,5 +214,61 @@ html { scroll-behavior: smooth; }
 .cm-ink      { color: var(--cm-ink); }
 .cm-muted    { color: var(--cm-muted); }
 .cm-mono     { font-family: '"JetBrains Mono"', ui-monospace, SFMono-Regular, monospace; font-variant-numeric: tabular-nums; }
-.cm-label    { font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--cm-muted); font-weight: 600; }
+.cm-label    { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cm-muted); font-weight: 600; }
 .cm-title    { color: var(--cm-ink); font-weight: 700; letter-spacing: -0.01em; }
+
+/* ── Premium polish layer (CASEMAP look) ───────────────────────────────── */
+:root { --cm-forest-deep: #0E3322; --cm-glow: rgba(67,199,110,0.16); --cm-gold: #CBA45B; }
+
+/* Display typeface for brand, big IDs, scores + section chrome. */
+.cm-display { font-family: '"Space Grotesk"', Inter, ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; }
+
+/* Card chrome with real depth in dark; hairline + soft lift. */
+.cm-raised {
+  box-shadow: 0 1px 0 0 rgba(255,255,255,0.02) inset, 0 18px 40px -30px rgba(0,0,0,0.7);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.dark .cm-raised {
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0));
+}
+.dark .cm-surface {
+  background-image: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0));
+}
+.cm-elevate { box-shadow: 0 24px 60px -32px rgba(0,0,0,0.8); }
+
+/* Active/CTA forest button — gradient + subtle glow ring. */
+.cm-cta {
+  background-image: linear-gradient(180deg, #4BD179, #2BAE5E);
+  color: #06140C; box-shadow: 0 10px 26px -12px var(--cm-glow), 0 0 0 1px rgba(75,209,121,0.30) inset;
+}
+.cm-cta:hover { background-image: linear-gradient(180deg, #55DB83, #2FB965); }
+
+/* Aerial-orchard map vignette overlay (sits above the SVG plot). */
+.cm-map-vignette {
+  background:
+    radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(4,12,8,0.45) 100%),
+    radial-gradient(80% 70% at 50% 120%, rgba(47,168,102,0.10), transparent 70%);
+}
+
+/* Floating glass chip used on the map (legend / scale / status). */
+.cm-glass {
+  background: var(--cm-raised);                                   /* solid fallback */
+  background: color-mix(in srgb, var(--cm-raised) 90%, transparent);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border: 1px solid var(--cm-border); border-radius: 12px;
+  box-shadow: 0 14px 34px -18px rgba(0,0,0,0.75);
+}
+
+/* Risk gradient track (Normal→Watch→High→Critical). */
+.cm-risk-track {
+  background-image: linear-gradient(90deg,
+    #43C76E 0%, #43C76E 24%, #F0B040 42%, #F0883E 62%, #EE5A48 82%, #D8463A 100%);
+}
+
+/* Thin animated sheen for live elements. */
+@keyframes cm-sheen { 0% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+.cm-sheen::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  animation: cm-sheen 3.5s ease-in-out infinite;
+}

@@ -1,7 +1,7 @@
 // Vertical trunk silhouette with the clamped device + a labelled "activity zone".
 // Honest: this is an activity VISUALISATION, never an exact larvae location.
 export const PalmCoreDiagram = ({ risk = 0 }) => {
-  const tone = risk >= 61 ? '#C94A3A' : risk >= 31 ? '#C2A14D' : '#19A66A';
+  const tone = risk >= 61 ? '#EE5A48' : risk >= 31 ? '#F0B040' : '#43C76E';
   return (
     <div className="instrument-inset p-3 flex gap-3 items-stretch">
       <svg viewBox="0 0 60 160" className="h-40 w-16 shrink-0">

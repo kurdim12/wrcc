@@ -88,7 +88,7 @@ export const Palms = ({ palms = [], onSelectPalm }) => {
                       style={active ? { background: 'var(--cm-green-soft)' } : undefined}>
                       <td className="px-3 py-2.5 font-semibold cm-ink cm-mono whitespace-nowrap">{p.id}</td>
                       <td className="px-3 py-2.5 cm-muted whitespace-nowrap">{p.block || 'B'} / {p.row_idx != null ? `R${p.row_idx + 1}` : '—'}</td>
-                      <td className="px-3 py-2.5 cm-mono font-bold" style={{ color: { normal: '#2F7D46', watch: '#B7791F', high: '#C05621', critical: '#B42318' }[band] }}>{r}</td>
+                      <td className="px-3 py-2.5 cm-mono font-bold" style={{ color: { normal: '#43C76E', watch: '#F0B040', high: '#F0883E', critical: '#EE5A48' }[band] }}>{r}</td>
                       <td className="px-3 py-2.5"><StatusPill status={HEALTH[clsOf(p)]}>{healthLabel(clsOf(p))}</StatusPill></td>
                       <td className="px-3 py-2.5 cm-muted cm-mono text-[11px] whitespace-nowrap">{fmtAgo(latest[p.device_id]?.ts || p.last_seen)}</td>
                       <td className="px-3 py-2.5 cm-muted cm-mono text-[11px]">{p.device_id || '—'}</td>

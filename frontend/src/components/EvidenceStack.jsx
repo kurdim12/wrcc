@@ -13,7 +13,7 @@ const fmtAgo = (ts) => {
 };
 
 const Row = ({ icon: Icon, label, value, tone = 'muted', detail, badge }) => {
-  const dot = { ok: 'bg-forest-400', watch: 'bg-gold', crit: 'bg-crit', muted: 'bg-muted/50' }[tone];
+  const dot = { ok: 'bg-forest-400', watch: 'bg-caution', crit: 'bg-crit', muted: 'bg-muted/50' }[tone];
   return (
     <div className="flex items-center gap-3 py-2.5">
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot}`} />

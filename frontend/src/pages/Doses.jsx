@@ -59,13 +59,13 @@ export default function Doses({ showToast }) {
       </div>
 
       {/* mode band */}
-      <div className="cm-raised px-4 py-3 flex flex-wrap items-center gap-3" style={{ borderLeft: '3px solid #B7791F' }}>
-        <span className="inline-flex items-center gap-1.5 text-[13px] font-bold" style={{ color: '#B7791F' }}>
+      <div className="cm-raised px-4 py-3 flex flex-wrap items-center gap-3" style={{ borderLeft: '3px solid #F0B040' }}>
+        <span className="inline-flex items-center gap-1.5 text-[13px] font-bold" style={{ color: '#F0B040' }}>
           <Droplets size={15} /> Current Mode: {isLive ? 'LIVE' : 'DEMO — Clear Water Only'}
         </span>
         <span className="cm-muted text-[13px]">•</span>
         <span className="inline-flex items-center gap-1.5 text-[13px] cm-ink">
-          <Lock size={14} style={{ color: '#6E746A' }} /> Treatment locked until approved
+          <Lock size={14} style={{ color: '#98A69D' }} /> Treatment locked until approved
         </span>
         <StatusPill status={armedCount ? 'ready' : 'locked'} className="ml-auto">
           {armedCount ? `${armedCount} node${armedCount === 1 ? '' : 's'} armed` : 'All nodes locked'}
@@ -104,19 +104,19 @@ export default function Doses({ showToast }) {
         <div className="cm-label mb-2">Pending treatment actions</div>
         {pending.length === 0 ? (
           <div className="cm-raised px-4 py-3 flex items-center gap-2.5 cm-muted text-[13px]">
-            <Lock size={15} style={{ color: '#2F7D46' }} /> Gate closed — no treatment actions awaiting confirmation.
+            <Lock size={15} style={{ color: '#43C76E' }} /> Gate closed — no treatment actions awaiting confirmation.
           </div>
         ) : (
           <div className="space-y-2">
             {pending.map((d) => (
-              <div key={d.id} className="cm-raised px-3.5 py-3 flex items-center gap-3" style={{ borderLeft: '3px solid #B7791F' }}>
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#B7791F1A', color: '#B7791F' }}><Syringe size={17} /></div>
+              <div key={d.id} className="cm-raised px-3.5 py-3 flex items-center gap-3" style={{ borderLeft: '3px solid #F0B040' }}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#F0B0401A', color: '#F0B040' }}><Syringe size={17} /></div>
                 <div className="min-w-0 flex-1">
                   <div className="font-bold cm-ink cm-mono">{d.device_id}</div>
                   <div className="text-[11px] cm-muted">{d.source} request · {d.pump_ms} ms · ≈ {d.volume_ml_est} ml</div>
                 </div>
                 <StatusPill status={DOSE_PILL[d.status] || 'open'}>{d.status}</StatusPill>
-                <span className="hidden sm:flex items-center gap-1.5 text-[11px]" style={{ color: '#B7791F' }}><Clock size={12} /> awaiting confirm</span>
+                <span className="hidden sm:flex items-center gap-1.5 text-[11px]" style={{ color: '#F0B040' }}><Clock size={12} /> awaiting confirm</span>
               </div>
             ))}
           </div>

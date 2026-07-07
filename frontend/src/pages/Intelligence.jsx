@@ -9,7 +9,7 @@ import { useDevices } from '../hooks/useDevices.js';
 import { useIntelligence } from '../hooks/useIntelligence.js';
 
 const LEVEL_TONE = {
-  low: '#19A66A', watch: '#C2A14D', elevated: '#D89B2B', high: '#C94A3A', critical: '#C94A3A',
+  low: '#43C76E', watch: '#CBA45B', elevated: '#F0B040', high: '#F0883E', critical: '#EE5A48',
 };
 const REC_LABEL = {
   observe: 'Observe', resample: 'Resample', inspect: 'Inspect',
@@ -22,8 +22,8 @@ const ExpertCard = ({ icon: Icon, title, kind, expert, healthMode = false }) => 
   );
   const score = healthMode ? expert.score : expert.score;
   const ok = healthMode ? expert.healthy : true;
-  const tone = healthMode ? (expert.healthy ? '#19A66A' : '#C94A3A')
-    : score >= 75 ? '#C94A3A' : score >= 50 ? '#D89B2B' : score >= 25 ? '#C2A14D' : '#19A66A';
+  const tone = healthMode ? (expert.healthy ? '#43C76E' : '#EE5A48')
+    : score >= 75 ? '#EE5A48' : score >= 50 ? '#F0883E' : score >= 25 ? '#F0B040' : '#43C76E';
   const reasons = healthMode ? [...(expert.faults || []), ...(expert.warnings || [])] : (expert.reasons || []);
   return (
     <div className="instrument p-4 flex flex-col gap-2">
@@ -76,7 +76,7 @@ export default function Intelligence({ deviceId: controlled }) {
   const f = intel?.fusion;
   const ex = intel?.experts;
   const safety = intel?.safety;
-  const tone = f ? (LEVEL_TONE[f.level] || '#8C9B91') : '#8C9B91';
+  const tone = f ? (LEVEL_TONE[f.level] || '#98A69D') : '#98A69D';
   const recDose = f?.recommendation === 'prepare_human_confirmed_dose';
 
   return (
@@ -129,11 +129,11 @@ export default function Intelligence({ deviceId: controlled }) {
         <div className="hud-label mb-3">decision flow</div>
         <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
           <FlowStep label="Sensors" sub="mic·IMU·temp·VOC" />
-          <FlowStep label="Experts" sub="4 models" tone="#19A66A" />
+          <FlowStep label="Experts" sub="4 models" tone="#43C76E" />
           <FlowStep label="Fusion" sub={f ? `${f.risk}/100` : '—'} tone={tone} />
-          <FlowStep label="Safety Agent" sub="server+device caps" tone="#C2A14D" />
-          <FlowStep label="Human Confirm" sub="mandatory" tone="#C94A3A" />
-          <FlowStep label="Capped Demo Dose" sub="clear water" tone="#C2A14D" last />
+          <FlowStep label="Safety Agent" sub="server+device caps" tone="#F0B040" />
+          <FlowStep label="Human Confirm" sub="mandatory" tone="#EE5A48" />
+          <FlowStep label="Capped Demo Dose" sub="clear water" tone="#F0B040" last />
         </div>
       </div>
 

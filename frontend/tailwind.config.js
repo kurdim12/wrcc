@@ -9,18 +9,19 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['"Space Grotesk"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       colors: {
-        forest:   { DEFAULT: '#003F2E', 600: '#0A5C44', 400: '#19A66A' }, // primary + telemetry green
-        gold:     '#C2A14D',   // muted accent
-        caution:  '#D89B2B',   // watch / amber
-        crit:     '#C94A3A',   // critical
+        forest:   { DEFAULT: '#0E3322', 600: '#2BAE5E', 400: '#43C76E' }, // primary + fresh telemetry green
+        gold:     '#CBA45B',   // brand accent
+        caution:  '#F0B040',   // watch / amber
+        crit:     '#EE5A48',   // critical
         bone:     '#F6F2E8',   // light background
         panel:    '#FFFDF6',   // light surface
-        ink:      { 900: '#08110E', 800: '#0E1713', 700: '#101C17', 600: '#16241E' }, // dark bg + surfaces
+        ink:      { 900: '#0E1312', 800: '#141A17', 700: '#161C1A', 600: '#1C231F' }, // neutral charcoal bg + surfaces
         charcoal: '#1B2420',
-        muted:    '#8C9B91',
+        muted:    '#98A69D',
       },
       boxShadow: {
         instrument: '0 1px 0 0 rgba(255,255,255,0.03) inset, 0 8px 24px -16px rgba(0,0,0,0.45)',

@@ -5,11 +5,11 @@ import { Radio } from 'lucide-react';
 // schematic, not cartoon roots.
 const now = () => Math.floor(Date.now() / 1000);
 const STATE = {
-  online:  { c: '#19A66A', label: 'online' },
-  idle:    { c: '#C2A14D', label: 'idle' },
-  weak:    { c: '#D89B2B', label: 'weak' },
-  offline: { c: '#8C9B91', label: 'offline' },
-  lowbatt: { c: '#C94A3A', label: 'low battery' },
+  online:  { c: '#43C76E', label: 'online' },
+  idle:    { c: '#CBA45B', label: 'idle' },
+  weak:    { c: '#F0B040', label: 'weak' },
+  offline: { c: '#98A69D', label: 'offline' },
+  lowbatt: { c: '#EE5A48', label: 'low battery' },
 };
 
 const nodeState = (p, dev) => {
@@ -64,7 +64,7 @@ export const ConnectionThreadMap = ({ palms = [], devices = [], onSelect, height
         })}
         {/* gateway hub */}
         <g>
-          <circle cx={gw.x} cy={gw.y} r="2.2" fill="#0A5C44" stroke="#19A66A" strokeWidth="0.4" />
+          <circle cx={gw.x} cy={gw.y} r="2.2" fill="#0E3322" stroke="#43C76E" strokeWidth="0.4" />
         </g>
       </svg>
 

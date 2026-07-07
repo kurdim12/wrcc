@@ -92,7 +92,7 @@ export const Reports = ({ showToast }) => {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="font-bold text-xl text-charcoal dark:text-bone">WRCC Evidence Pack</h2>
+              <h2 className="cm-display font-bold text-xl text-charcoal dark:text-bone">WRCC Evidence Pack</h2>
               <span className="hud-label px-2.5 py-1 rounded-full border text-gold border-gold/40 bg-gold/10">judge-ready bundle</span>
             </div>
             <p className="text-sm text-muted mt-1 max-w-2xl">
@@ -142,12 +142,12 @@ export const Reports = ({ showToast }) => {
                     <span className="hud-label flex items-center gap-1"><Clock size={11} /> {fmtClock(asOf)}</span>
                   </div>
                   {r.href ? (
-                    <a href={r.href} className="focus-ring px-3 py-2 border border-muted/30 rounded-lg font-bold text-xs text-charcoal dark:text-bone hover:bg-muted/10 flex items-center gap-1.5">
-                      <Download size={14} /> CSV
+                    <a href={r.href} className="focus-ring px-3 py-2 instrument-inset rounded-lg font-bold text-xs text-charcoal dark:text-bone hover:border-forest-400/40 transition-colors flex items-center gap-1.5">
+                      <Download size={14} className="text-forest-400" /> CSV
                     </a>
                   ) : (
-                    <button onClick={r.onClick} className="focus-ring px-3 py-2 border border-muted/30 rounded-lg font-bold text-xs text-charcoal dark:text-bone hover:bg-muted/10 flex items-center gap-1.5">
-                      <Download size={14} /> CSV
+                    <button onClick={r.onClick} className="focus-ring px-3 py-2 instrument-inset rounded-lg font-bold text-xs text-charcoal dark:text-bone hover:border-forest-400/40 transition-colors flex items-center gap-1.5">
+                      <Download size={14} className="text-forest-400" /> CSV
                     </button>
                   )}
                 </div>

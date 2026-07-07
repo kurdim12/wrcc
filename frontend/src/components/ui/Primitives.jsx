@@ -54,9 +54,9 @@ const PILL = {
 export const StatusPill = ({ status = 'neutral', children, dot = true, className = '' }) => {
   const key = String(status).toLowerCase();
   const tone = PILL[key] || PILL.neutral;
-  const dotColor = { healthy: '#19A66A', online: '#19A66A', safe: '#19A66A', ready: '#19A66A', live: '#19A66A',
-    watch: '#C2A14D', demo: '#C2A14D', pending: '#D89B2B', elevated: '#D89B2B',
-    high: '#C94A3A', critical: '#C94A3A', blocked: '#C94A3A', offline: '#8C9B91', neutral: '#8C9B91' }[key] || '#8C9B91';
+  const dotColor = { healthy: '#43C76E', online: '#43C76E', safe: '#43C76E', ready: '#43C76E', live: '#43C76E',
+    watch: '#CBA45B', demo: '#CBA45B', pending: '#F0B040', elevated: '#F0B040',
+    high: '#EE5A48', critical: '#EE5A48', blocked: '#EE5A48', offline: '#98A69D', neutral: '#98A69D' }[key] || '#98A69D';
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold whitespace-nowrap ${tone} ${className}`}>
       {dot && <span className="w-1.5 h-1.5 rounded-full" style={{ background: dotColor }} />}

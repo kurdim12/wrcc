@@ -9,7 +9,7 @@ import { onEvent } from '../socket.js';
 import { api } from '../api.js';
 
 // ─── Mini SVG sparkline ────────────────────────────────────────────────
-const Spark = ({ values, color = '#10b981', height = 32 }) => {
+const Spark = ({ values, color = '#43C76E', height = 32 }) => {
   if (!values?.length) return <div style={{ height }} />;
   if (values.length === 1) {
     return (
@@ -55,19 +55,19 @@ const Tile = ({ icon: Icon, color, sensor, source, primary, primaryUnit, decimal
   }
   const TrendIcon = trend > 0 ? ChevronUp : trend < 0 ? ChevronDown : Minus;
   const trendColor = trend > 0 ? 'text-orange-500'
-                  : trend < 0 ? 'text-emerald-500'
-                              : 'text-gray-400 dark:text-gray-500';
+                  : trend < 0 ? 'text-forest-400'
+                              : 'text-muted';
 
   return (
-    <Card className="p-4 md:p-5 relative overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm">
+    <Card className="p-4 md:p-5 relative overflow-hidden border border-gray-100 dark:border-ink-700 shadow-sm">
       <div className="flex items-start justify-between mb-1 gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <div className={`p-1.5 rounded-lg shrink-0 ${color.bg}`}>
             <Icon size={14} className={color.text} />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-200">{sensor}</div>
-            <div className="text-[9px] font-mono text-gray-400 dark:text-gray-500 uppercase tracking-wider truncate">{source}</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-bone">{sensor}</div>
+            <div className="text-[9px] font-mono text-gray-400 dark:text-muted uppercase tracking-wider truncate">{source}</div>
           </div>
         </div>
         <TrendIcon size={18} className={`${trendColor} transition-colors shrink-0`} />
@@ -81,10 +81,10 @@ const Tile = ({ icon: Icon, color, sensor, source, primary, primaryUnit, decimal
             {display.toFixed(decimals)}
           </div>
         )}
-        <div className="text-[10px] md:text-xs font-bold text-gray-400 dark:text-gray-500 uppercase">{primaryUnit}</div>
+        <div className="text-[10px] md:text-xs font-bold text-gray-400 dark:text-muted uppercase">{primaryUnit}</div>
       </div>
 
-      <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 leading-tight font-medium min-h-[2.4em]">
+      <div className="text-[11px] text-gray-500 dark:text-muted mt-1 leading-tight font-medium min-h-[2.4em]">
         {hasReading ? sub : <span className="italic text-gray-400 dark:text-gray-600">no reading yet</span>}
       </div>
 
@@ -177,7 +177,7 @@ export const LiveSensorPanel = ({ deviceId }) => {
       />
       <Tile
         icon={Thermometer}
-        color={{ bg: 'bg-orange-100 dark:bg-orange-500/10', text: 'text-orange-600 dark:text-orange-400', hex: '#f97316' }}
+        color={{ bg: 'bg-orange-100 dark:bg-orange-500/10', text: 'text-orange-600 dark:text-orange-400', hex: '#F0883E' }}
         sensor="Thermal"
         source="DS18B20 · 1-Wire"
         primary={latest?.core_c}
@@ -190,7 +190,7 @@ export const LiveSensorPanel = ({ deviceId }) => {
       />
       <Tile
         icon={Wind}
-        color={{ bg: 'bg-emerald-100 dark:bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', hex: '#10b981' }}
+        color={{ bg: 'bg-emerald-100 dark:bg-emerald-500/10', text: 'text-forest-400 dark:text-forest-400', hex: '#43C76E' }}
         sensor="Environment"
         source="BME680 · I2C"
         primary={latest?.gas_kohm}

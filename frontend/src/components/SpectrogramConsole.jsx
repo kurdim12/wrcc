@@ -15,14 +15,14 @@ const FEED_LO = 1, FEED_HI = 8;   // ~0.5–4 kHz literature guide
 const dbToFraction = (db) => (db == null ? 0 : Math.max(0, Math.min(1, (db + 80) / 80)));
 const dbToRGBA = (db) => {
   const t = Math.max(0, Math.min(1, (db + 80) / 80));
-  const stops = [[12,10,30],[20,60,80],[16,120,90],[194,161,77],[201,74,58]]; // ink→teal→forest→gold→crit
+  const stops = [[14,19,18],[77,155,230],[67,199,110],[203,164,91],[238,90,72]]; // ink→info→healthy→gold→crit
   const idx = t * (stops.length - 1), lo = Math.floor(idx), hi = Math.min(stops.length - 1, lo + 1), f = idx - lo;
   return [0,1,2].map((k) => Math.round(stops[lo][k] * (1 - f) + stops[hi][k] * f)).concat(255);
 };
 
 const VuMeter = ({ rmsDb }) => {
   const pct = dbToFraction(rmsDb);
-  const color = pct > 0.7 ? '#C94A3A' : pct > 0.4 ? '#C2A14D' : '#19A66A';
+  const color = pct > 0.7 ? '#EE5A48' : pct > 0.4 ? '#F0B040' : '#43C76E';
   const C = 2 * Math.PI * 80;
   return (
     <div className="flex flex-col items-center">
@@ -50,7 +50,7 @@ const SpectrumBars = ({ bands, alert }) => {
       {bands.slice(0, NUM_BANDS).map((db, i) => {
         const h = Math.max(2, dbToFraction(db) * 100);
         const feed = i >= FEED_LO && i < FEED_HI;
-        const bg = feed ? (alert ? '#C94A3A' : '#C2A14D') : (h > 60 ? '#19A66A' : '#0A5C44');
+        const bg = feed ? (alert ? '#EE5A48' : '#F0B040') : (h > 60 ? '#43C76E' : '#0E3322');
         return (
           <div key={i} className="flex-1 relative">
             <div className="rounded-t-sm transition-all" style={{ height: `${h}%`, background: bg }} />
@@ -67,7 +67,7 @@ const Spectrogram = ({ queueRef, alert }) => {
   useEffect(() => {
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext('2d'); c.width = SPEC_W; c.height = SPEC_H;
-    ctx.fillStyle = '#08110E'; ctx.fillRect(0, 0, SPEC_W, SPEC_H);
+    ctx.fillStyle = '#0E1312'; ctx.fillRect(0, 0, SPEC_W, SPEC_H);
     const tick = () => {
       const q = queueRef.current;
       while (q.length) {
@@ -191,7 +191,7 @@ export const SpectrogramConsole = ({ deviceId: controlled, onDeviceChange }) => 
           <VuMeter rmsDb={latest?.ac_rms} />
           <div className="text-center">
             <div className="hud-label">acoustic activity</div>
-            <div className="telemetry-num text-2xl font-bold" style={{ color: (latest?.sa ?? 0) >= 61 ? '#C94A3A' : (latest?.sa ?? 0) >= 31 ? '#C2A14D' : '#19A66A' }}>
+            <div className="telemetry-num text-2xl font-bold" style={{ color: (latest?.sa ?? 0) >= 61 ? '#EE5A48' : (latest?.sa ?? 0) >= 31 ? '#F0B040' : '#43C76E' }}>
               {pAct != null ? `P=${Number(pAct).toFixed(2)}` : '–'}
             </div>
             <div className="hud-label mb-1">SA = 100·P(activity)</div>

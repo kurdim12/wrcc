@@ -22,22 +22,22 @@ export const ConfidenceBadge = ({ pActivity, modelVersion, modelSource, calibrat
     : heuristic ? 'heuristic'
     : (calibrated ? 'proxy-validated' : 'proxy (uncalibrated)');
   const badgeColor = isToy
-    ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300'
+    ? 'bg-[#EE5A48]/15 text-[#EE5A48] border border-[#EE5A48]/30'
     : heuristic
-      ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-      : 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300';
+      ? 'bg-[#98A69D]/15 text-[#98A69D] border border-[#98A69D]/25'
+      : 'bg-[#F0B040]/15 text-[#F0B040] border border-[#F0B040]/30';
 
   const big = size === 'lg';
 
   return (
     <div className="inline-flex items-center gap-2" title={TOOLTIP}>
       <div className="flex flex-col">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-muted">
           Acoustic activity
         </span>
-        <span className={`font-black tabular-nums ${big ? 'text-2xl' : 'text-lg'} text-gray-900 dark:text-white`}>
+        <span className={`font-black tabular-nums font-mono ${big ? 'text-2xl' : 'text-lg'} text-gray-900 dark:text-bone`}>
           {heuristic && pct == null ? '—' : (pct == null ? '—' : `P=${(pActivity).toFixed(2)}`)}
-          {pct != null && <span className="text-xs font-medium text-gray-400 ml-1">({pct}%)</span>}
+          {pct != null && <span className="text-xs font-medium text-gray-500 dark:text-muted ml-1">({pct}%)</span>}
         </span>
       </div>
       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}`}>

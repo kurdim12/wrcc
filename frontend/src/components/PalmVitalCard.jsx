@@ -6,7 +6,7 @@ import { RiskHalo } from './RiskHalo.jsx';
 // heartbeat trace. Self-contained: streams the device's readings itself.
 const fmt = (v, d = 1, s = '') => (v == null || Number.isNaN(Number(v)) ? '—' : `${Number(v).toFixed(d)}${s}`);
 
-const Heartbeat = ({ values, color = '#19A66A' }) => {
+const Heartbeat = ({ values, color = '#43C76E' }) => {
   if (!values || values.length < 2) return <div className="h-8 instrument-inset" />;
   const max = Math.max(1, ...values), min = Math.min(0, ...values);
   const span = max - min || 1;
@@ -63,7 +63,7 @@ export const PalmVitalCard = ({ palm, device, className = '' }) => {
 
       <div>
         <div className="hud-label mb-1 flex items-center gap-2"><Signal size={11} /> acoustic pulse (SA, last 40)</div>
-        <Heartbeat values={trace} color={risk >= 61 ? '#C94A3A' : risk >= 31 ? '#C2A14D' : '#19A66A'} />
+        <Heartbeat values={trace} color={risk >= 61 ? '#EE5A48' : risk >= 31 ? '#F0B040' : '#43C76E'} />
       </div>
     </div>
   );

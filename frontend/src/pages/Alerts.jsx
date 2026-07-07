@@ -8,7 +8,7 @@ import { api } from '../api.js';
 import { onEvent } from '../socket.js';
 
 const FILTERS = [['all', 'All'], ['critical', 'Critical'], ['watch', 'Watch'], ['dosing', 'Dosing pending'], ['resolved', 'Resolved']];
-const sevColor = (s) => (s === 'critical' ? '#C94A3A' : s === 'warning' ? '#D89B2B' : '#C2A14D');
+const sevColor = (s) => (s === 'critical' ? '#EE5A48' : s === 'warning' ? '#F0B040' : '#CBA45B');
 
 // Bucket incidents into a human timeline.
 const now = () => Math.floor(Date.now() / 1000);

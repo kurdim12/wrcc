@@ -62,7 +62,7 @@ export const Network = ({ palms = [], onSelectPalm }) => {
                     <td className="p-4 telemetry-num">{d.battery_pct != null ? `${d.battery_pct}%` : '—'}</td>
                     <td className="p-4 telemetry-num">{d.rssi != null ? `${d.rssi} dBm` : '—'}</td>
                     <td className="p-4 telemetry-num text-xs text-muted">{d.fw_version || '—'}</td>
-                    <td className="p-4">{d.palm_id || '—'}</td>
+                    <td className="p-4 text-bone">{d.palm_id || '—'}</td>
                     <td className="p-4 telemetry-num text-xs text-muted">{fmtAgo(d.last_seen)}</td>
                   </tr>
                 );

@@ -21,47 +21,47 @@ const classify = (s) => s == null ? 'unknown' : s < 31 ? 'low' : s < 61 ? 'mediu
 // dynamic class strings (which Tailwind cannot purge correctly).
 const PALETTE = {
   low: {
-    ring:       '#10b981',
-    barColor:   '#10b981',
-    boxBg:      'bg-emerald-50 dark:bg-emerald-950/40',
-    boxBorder:  'border-emerald-200 dark:border-emerald-800/60',
-    boxText:    'text-emerald-700 dark:text-emerald-300',
-    chipBg:     'bg-emerald-500/15',
-    chipText:   'text-emerald-700 dark:text-emerald-300',
-    bigText:    'text-emerald-600 dark:text-emerald-400',
+    ring:       '#43C76E',
+    barColor:   '#43C76E',
+    boxBg:      'bg-[#43C76E]/10',
+    boxBorder:  'border-[#43C76E]/30',
+    boxText:    'text-[#43C76E]',
+    chipBg:     'bg-[#43C76E]/15',
+    chipText:   'text-[#43C76E]',
+    bigText:    'text-[#43C76E]',
     label:      'HEALTHY',
   },
   medium: {
-    ring:       '#f97316',
-    barColor:   '#f97316',
-    boxBg:      'bg-orange-50 dark:bg-orange-950/40',
-    boxBorder:  'border-orange-200 dark:border-orange-800/60',
-    boxText:    'text-orange-700 dark:text-orange-300',
-    chipBg:     'bg-orange-500/15',
-    chipText:   'text-orange-700 dark:text-orange-300',
-    bigText:    'text-orange-600 dark:text-orange-400',
+    ring:       '#F0883E',
+    barColor:   '#F0883E',
+    boxBg:      'bg-[#F0883E]/10',
+    boxBorder:  'border-[#F0883E]/30',
+    boxText:    'text-[#F0883E]',
+    chipBg:     'bg-[#F0883E]/15',
+    chipText:   'text-[#F0883E]',
+    bigText:    'text-[#F0883E]',
     label:      'AT RISK',
   },
   high: {
-    ring:       '#ef4444',
-    barColor:   '#ef4444',
-    boxBg:      'bg-red-50 dark:bg-red-950/40',
-    boxBorder:  'border-red-200 dark:border-red-800/60',
-    boxText:    'text-red-700 dark:text-red-300',
-    chipBg:     'bg-red-500/15',
-    chipText:   'text-red-700 dark:text-red-300',
-    bigText:    'text-red-600 dark:text-red-400',
+    ring:       '#EE5A48',
+    barColor:   '#EE5A48',
+    boxBg:      'bg-[#EE5A48]/10',
+    boxBorder:  'border-[#EE5A48]/30',
+    boxText:    'text-[#EE5A48]',
+    chipBg:     'bg-[#EE5A48]/15',
+    chipText:   'text-[#EE5A48]',
+    bigText:    'text-[#EE5A48]',
     label:      'CRITICAL',
   },
   unknown: {
-    ring:       '#9ca3af',
-    barColor:   '#9ca3af',
-    boxBg:      'bg-gray-50 dark:bg-gray-800/60',
-    boxBorder:  'border-gray-200 dark:border-gray-700',
-    boxText:    'text-gray-700 dark:text-gray-300',
-    chipBg:     'bg-gray-500/15',
-    chipText:   'text-gray-600 dark:text-gray-400',
-    bigText:    'text-gray-400 dark:text-gray-500',
+    ring:       '#98A69D',
+    barColor:   '#98A69D',
+    boxBg:      'bg-[#98A69D]/10',
+    boxBorder:  'border-[#98A69D]/25',
+    boxText:    'text-[#98A69D]',
+    chipBg:     'bg-[#98A69D]/15',
+    chipText:   'text-[#98A69D]',
+    bigText:    'text-[#98A69D]',
     label:      'WAITING',
   },
 };
@@ -120,7 +120,7 @@ const RiskGauge = ({ value, classification, hasData }) => {
       )}
       <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 200 200">
         <circle cx="100" cy="100" r="70" stroke="currentColor" strokeWidth="12"
-                fill="transparent" className="text-gray-200 dark:text-gray-800" />
+                fill="transparent" className="text-ink-700" />
         <circle cx="100" cy="100" r="70" stroke={palette.ring} strokeWidth="12"
                 fill="transparent" strokeLinecap="round"
                 strokeDasharray={C} strokeDashoffset={hasData ? offset : C}
@@ -129,16 +129,16 @@ const RiskGauge = ({ value, classification, hasData }) => {
       <div className="text-center relative z-10">
         {hasData ? (
           <>
-            <div className={`text-6xl md:text-7xl font-black tabular-nums ${palette.bigText} drop-shadow-sm transition-colors`}>
+            <div className={`cm-display text-6xl md:text-7xl font-black tabular-nums ${palette.bigText} drop-shadow-sm transition-colors`}>
               {Math.round(display)}
             </div>
-            <div className="text-[10px] uppercase tracking-[0.3em] font-bold text-gray-400 dark:text-gray-500 mt-1">/ 100</div>
+            <div className="text-[10px] uppercase tracking-[0.3em] font-bold text-muted mt-1">/ 100</div>
             <div className={`mt-3 inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${palette.chipBg} ${palette.chipText}`}>
               {palette.label}
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center text-gray-400 dark:text-gray-500">
+          <div className="flex flex-col items-center text-muted">
             <Loader2 size={36} className="animate-spin mb-2" />
             <div className="text-xs uppercase tracking-widest font-bold">Waiting</div>
           </div>
@@ -157,15 +157,15 @@ const SubScoreBar = ({ label, sub, value, weight, barColor, hasData }) => {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs gap-3">
-        <span className="flex items-center gap-2 font-bold text-gray-700 dark:text-gray-200 min-w-0">
-          <span className="font-black text-gray-900 dark:text-white">{label}</span>
-          <span className="text-gray-400 dark:text-gray-500 font-medium truncate">{sub}</span>
+        <span className="flex items-center gap-2 font-bold text-bone min-w-0">
+          <span className="cm-mono font-black text-bone">{label}</span>
+          <span className="text-muted font-medium truncate">{sub}</span>
         </span>
-        <span className="font-mono text-gray-600 dark:text-gray-300 tabular-nums shrink-0">
-          {hasData ? Math.round(v) : '–'} <span className="text-gray-400 dark:text-gray-500">·</span> w {weight?.toFixed(2) ?? '–'} <span className="text-gray-400 dark:text-gray-500">→</span> <strong className="text-gray-900 dark:text-white">{hasData ? contribution : '–'}</strong>
+        <span className="cm-mono text-muted tabular-nums shrink-0">
+          {hasData ? Math.round(v) : '–'} <span className="text-muted/60">·</span> w {weight?.toFixed(2) ?? '–'} <span className="text-muted/60">→</span> <strong className="text-bone">{hasData ? contribution : '–'}</strong>
         </span>
       </div>
-      <div className="h-2.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+      <div className="h-2.5 rounded-full bg-ink-700 overflow-hidden">
         <div
           className="h-full rounded-full relative overflow-hidden"
           style={{
@@ -259,16 +259,16 @@ export const LiveAnalysis = ({ deviceId, mode = 'unknown' }) => {
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-6">
         <div className="min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Live Analysis</h2>
+            <h2 className="cm-display text-xl md:text-2xl font-bold text-bone">Live Analysis</h2>
             <LiveBadge mode={mode} size="md" />
             {deviceId && (
-              <span className="font-mono text-xs md:text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-700">
+              <span className="cm-mono text-xs md:text-sm text-muted bg-ink-700 px-2.5 py-1 rounded-lg border border-ink-600">
                 {deviceId}
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 flex items-center gap-2">
-            <Zap size={12} className={isFresh ? 'text-emerald-500 animate-pulse' : 'text-gray-400 dark:text-gray-600'} />
+          <p className="text-xs text-muted mt-1.5 flex items-center gap-2">
+            <Zap size={12} className={isFresh ? 'text-forest-400 animate-pulse' : 'text-muted'} />
             {ago == null ? 'no readings yet'
               : ago < 1 ? 'just now'
               : ago < 60 ? `updated ${ago}s ago`
@@ -282,7 +282,7 @@ export const LiveAnalysis = ({ deviceId, mode = 'unknown' }) => {
         <div className="flex flex-col items-center justify-start">
           <RiskGauge value={latest?.risk_score} classification={classification} hasData={hasData} />
           <RiskSparkline history={history} classification={classification} />
-          <div className="text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500 mt-1">last 60 readings</div>
+          <div className="cm-label text-[10px] uppercase tracking-widest text-muted mt-1">last 60 readings</div>
         </div>
 
         {/* Right: status + sub-scores */}
@@ -298,7 +298,7 @@ export const LiveAnalysis = ({ deviceId, mode = 'unknown' }) => {
               </div>
               <div className="min-w-0 flex-1">
                 <div className={`text-xs font-black uppercase tracking-widest mb-1 ${palette.boxText}`}>Current status</div>
-                <div className="text-sm leading-relaxed text-gray-800 dark:text-gray-200 font-medium break-words">
+                <div className="text-sm leading-relaxed text-bone font-medium break-words">
                   {status}
                 </div>
               </div>
@@ -307,13 +307,13 @@ export const LiveAnalysis = ({ deviceId, mode = 'unknown' }) => {
 
           {/* Sub-score bars */}
           <div className="space-y-3">
-            <div className="text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500 font-bold">
+            <div className="cm-label text-[10px] uppercase tracking-widest text-muted font-bold">
               Sub-score contributions (adaptive weights · sum = 1.00)
             </div>
-            <SubScoreBar label="SA"   sub="acoustic"  value={latest?.sa}   weight={weights.a}   barColor="#d946ef" hasData={hasData} />
-            <SubScoreBar label="SV"   sub="vibration" value={latest?.sv}   weight={weights.v}   barColor="#06b6d4" hasData={hasData} />
-            <SubScoreBar label="ST"   sub="thermal"   value={latest?.st}   weight={weights.t}   barColor="#f97316" hasData={hasData} />
-            <SubScoreBar label="SVOC" sub="VOC"       value={latest?.svoc} weight={weights.voc} barColor="#10b981" hasData={hasData} />
+            <SubScoreBar label="SA"   sub="acoustic"  value={latest?.sa}   weight={weights.a}   barColor="#4D9BE6" hasData={hasData} />
+            <SubScoreBar label="SV"   sub="vibration" value={latest?.sv}   weight={weights.v}   barColor="#CBA45B" hasData={hasData} />
+            <SubScoreBar label="ST"   sub="thermal"   value={latest?.st}   weight={weights.t}   barColor="#F0883E" hasData={hasData} />
+            <SubScoreBar label="SVOC" sub="VOC"       value={latest?.svoc} weight={weights.voc} barColor="#43C76E" hasData={hasData} />
           </div>
         </div>
       </div>

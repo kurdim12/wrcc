@@ -6,10 +6,10 @@ import { StatusPill } from './Primitives.jsx';
 
 export function riskTone(level, score = 0) {
   const l = String(level || '').toLowerCase();
-  if (l.includes('crit') || score >= 80) return { color: '#C94A3A', key: 'critical', label: 'Critical' };
-  if (l.includes('high') || l.includes('elev') || score >= 61) return { color: '#D89B2B', key: 'elevated', label: level ? cap(level) : 'Elevated' };
-  if (l.includes('watch') || l.includes('med') || score >= 31) return { color: '#C2A14D', key: 'watch', label: level ? cap(level) : 'Watch' };
-  return { color: '#19A66A', key: 'healthy', label: level ? cap(level) : 'Healthy' };
+  if (l.includes('crit') || score >= 80) return { color: '#EE5A48', key: 'critical', label: 'Critical' };
+  if (l.includes('high') || l.includes('elev') || score >= 61) return { color: '#F0883E', key: 'elevated', label: level ? cap(level) : 'Elevated' };
+  if (l.includes('watch') || l.includes('med') || score >= 31) return { color: '#F0B040', key: 'watch', label: level ? cap(level) : 'Watch' };
+  return { color: '#43C76E', key: 'healthy', label: level ? cap(level) : 'Healthy' };
 }
 const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
 

@@ -18,7 +18,7 @@ export const Header = ({
         </div>
         <div className="hidden md:block h-6 w-px" style={{ background: 'var(--cm-border)' }} />
         <div className="min-w-0">
-          <div className="text-[13px] font-semibold cm-ink truncate leading-tight">{pageTitle}</div>
+          <div className="cm-display text-[14px] font-bold cm-ink truncate leading-tight">{pageTitle}</div>
           {pageSubtitle && <div className="hidden lg:block text-[11px] cm-muted truncate leading-tight">{pageSubtitle}</div>}
         </div>
       </div>
@@ -27,9 +27,9 @@ export const Header = ({
         {/* mode badge — never hide the demo/live distinction */}
         <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold"
           style={isLive
-            ? { color: '#2F7D46', background: '#2F7D461A', border: '1px solid #2F7D4640' }
-            : { color: '#B7791F', background: '#B7791F1A', border: '1px solid #B7791F40' }}>
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: isLive ? '#2F7D46' : '#B7791F' }} />
+            ? { color: '#43C76E', background: '#43C76E1A', border: '1px solid #43C76E40' }
+            : { color: '#F0B040', background: '#F0B0401A', border: '1px solid #F0B04040' }}>
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: isLive ? '#43C76E' : '#F0B040' }} />
           {isLive ? 'LIVE' : 'DEMO — Clear Water Only'}
         </span>
         {devicesOnline && (
@@ -47,7 +47,7 @@ export const Header = ({
         <button onClick={onBellClick} className="focus-ring relative p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5"
           aria-label={`Incidents${alertCount > 0 ? ` (${alertCount})` : ''}`}>
           <Bell size={18} className="cm-muted" />
-          {alertCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#B42318' }} />}
+          {alertCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#EE5A48' }} />}
         </button>
       </div>
     </header>

@@ -3,7 +3,7 @@ import { ModelCaveatBadge } from './ModelCaveatBadge.jsx';
 // RiskHalo — calm circular ring for a fused risk score (0–100), with the model
 // caveat badge alongside. Green (low) → gold (watch) → red (critical).
 const band = (risk) => (risk >= 61 ? 'crit' : risk >= 31 ? 'watch' : 'ok');
-const RING = { ok: '#19A66A', watch: '#C2A14D', crit: '#C94A3A' };
+const RING = { ok: '#43C76E', watch: '#CBA45B', crit: '#EE5A48' };
 const LABEL = { ok: 'NOMINAL', watch: 'UNDER WATCH', crit: 'CRITICAL' };
 
 export const RiskHalo = ({
